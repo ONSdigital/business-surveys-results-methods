@@ -76,6 +76,7 @@ repos:
         name: Run vulnerability detection checks (bandit)
         entry: uv run bandit -r bsrm
         language: system
+        exclude: ^tests/|/tests/
       - id: prepare_commit_msg
         name: Prepare commit message
         entry: dev_utils/pre-commit_helpers/prepare_commit_msg.py
