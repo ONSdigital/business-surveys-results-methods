@@ -1,0 +1,90 @@
+# Precommit hooks.
+# install using `pre-commit install`
+# skip using `git commit -m "message" --no-verify`
+default_stages: [commit, push]
+
+repos:
+  # Default provided pre-commit hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+    - id: check-added-large-files
+      exclude_types: [markdown, yaml]
+    - id: check-merge-conflict
+    - id: check-yaml
+    - id: detect-private-key # detects the presence of private keys
+    - id: end-of-file-fixer
+    - id: fix-byte-order-marker
+    - id: name-tests-test
+      args: [--pytest-test-first]
+    - id: trailing-whitespace
+      exclude: |
+          (?x)(
+            ^dev_utils/ |
+            ^config/ |
+            ^.github/
+          )
+
+  # Yelp pre-commit hooks to detect secrets
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        args: ["--baseline", ".secrets.baseline"]
+
+  # Ruff pre-commit hook - should be run before black or isort
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    # Ruff version.
+    rev: v0.13.3
+    hooks:
+      # Run the linter.
+      - id: ruff-check
+        types_or: [ python, pyi ]
+        args: [ --fix ]
+      # Run the formatter.
+      - id: ruff-format
+        types_or: [ python, pyi ]
+
+  # Black pre-commit hooks - ruff does not do the linting fixes that black does
+  - repo: https://github.com/psf/black
+    rev: 24.10.0 # Replace by any tag/version: https://github.com/psf/black/tags
+    hooks:
+      - id: black
+        name: black - consistent Python code formatting (auto-fixes)
+        language_version: python3.11 # Should be a command that runs python3.6+
+        exclude: .*/tests/.*|^\.cruft\.json$|.*\tests\.*|helpers/.*|^tests
+        args: ["--preview", "--line-length=88"]
+
+  # isort fixes to sort Python imports
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        name: isort - Sort Python imports (auto-fixes)
+        types: [cython, pyi, python]
+        args: ["--profile", "black", "--filter-files"]
+
+  # Local hooks
+  - repo: local
+    hooks:
+      - id: restricted-filenames
+        name: Check commits for restricted file extensions
+        entry: Looking for extensions that are not allowed
+        language: fail
+        files: .*\.(csv|feather|xlsx|zip|hdf5|h5|txt|json|xml|hd|parquet)
+      - id: vulnerability-linting-checks
+        name: Run vulnerability detection checks (bandit)
+        entry: uv run bandit -r bsrm
+        language: system
+      - id: prepare_commit_msg
+        name: Prepare commit message
+        entry: dev_utils/pre-commit_helpers/prepare_commit_msg.py
+        stages: [prepare-commit-msg]
+        language: system
+        exclude: |
+          (?x)(
+            ^dev_utils/ |
+            ^config/ |
+            ^.gitlab/
+          )
+        exclude_types: [markdown, yaml]

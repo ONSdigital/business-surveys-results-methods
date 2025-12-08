@@ -1,0 +1,375 @@
+[reference]
+data_type = "int64"
+nullable = false
+
+[instance]
+data_type = "int64"
+nullable = false
+
+[period_year]
+data_type = "int64"
+nullable = false
+
+[101]
+data_type = "object"
+nullable = true
+
+[102]
+data_type = "float64"
+nullable = true
+
+[103]
+data_type = "float64"
+nullable = true
+
+[104]
+data_type = "float64"
+nullable = true
+
+[200]
+data_type = "object"
+nullable = true
+
+[201]
+data_type = "object"
+nullable = true
+
+[202]
+data_type = "int64"
+nullable = false
+
+[203]
+data_type = "int64"
+nullable = false
+
+[204]
+data_type = "int64"
+nullable = false
+
+[205]
+data_type = "int64"
+nullable = false
+
+[206]
+data_type = "int64"
+nullable = false
+
+[207]
+data_type = "int64"
+nullable = false
+
+[209]
+data_type = "int64"
+nullable = false
+
+[210]
+data_type = "int64"
+nullable = false
+
+[211]
+data_type = "int64"
+nullable = false
+
+[212]
+data_type = "int64"
+nullable = false
+
+[214]
+data_type = "int64"
+nullable = false
+
+[216]
+data_type = "int64"
+nullable = false
+
+[218]
+data_type = "int64"
+nullable = false
+
+[219]
+data_type = "int64"
+nullable = false
+
+[220]
+data_type = "int64"
+nullable = false
+
+[221]
+data_type = "int64"
+nullable = false
+
+[222]
+data_type = "int64"
+nullable = false
+
+[223]
+data_type = "int64"
+nullable = false
+
+[225]
+data_type = "int64"
+nullable = false
+
+[226]
+data_type = "int64"
+nullable = false
+
+[227]
+data_type = "int64"
+nullable = false
+
+[228]
+data_type = "int64"
+nullable = false
+
+[229]
+data_type = "int64"
+nullable = false
+
+[237]
+data_type = "int64"
+nullable = false
+
+[242]
+data_type = "int64"
+nullable = false
+
+[243]
+data_type = "int64"
+nullable = false
+
+[244]
+data_type = "int64"
+nullable = false
+
+[245]
+data_type = "int64"
+nullable = false
+
+[246]
+data_type = "int64"
+nullable = false
+
+[247]
+data_type = "int64"
+nullable = false
+
+[248]
+data_type = "int64"
+nullable = false
+
+[249]
+data_type = "int64"
+nullable = false
+
+[250]
+data_type = "int64"
+nullable = false
+
+[251]
+data_type = "object"
+nullable = true
+
+[300]
+data_type = "object"
+nullable = true
+
+[301]
+data_type = "int64"
+nullable = false
+
+[302]
+data_type = "int64"
+nullable = false
+
+[303]
+data_type = "int64"
+nullable = false
+
+[304]
+data_type = "int64"
+nullable = false
+
+[305]
+data_type = "int64"
+nullable = false
+
+[307]
+data_type = "object"
+nullable = true
+
+[308]
+data_type = "object"
+nullable = true
+
+[309]
+data_type = "object"
+nullable = true
+
+[405]
+data_type = "int64"
+nullable = false
+
+[406]
+data_type = "int64"
+nullable = false
+
+[407]
+data_type = "int64"
+nullable = false
+
+[408]
+data_type = "int64"
+nullable = false
+
+[409]
+data_type = "int64"
+nullable = false
+
+[410]
+data_type = "int64"
+nullable = false
+
+[411]
+data_type = "int64"
+nullable = false
+
+[412]
+data_type = "int64"
+nullable = false
+
+[501]
+data_type = "int64"
+nullable = false
+
+[502]
+data_type = "int64"
+nullable = false
+
+[503]
+data_type = "int64"
+nullable = false
+
+[504]
+data_type = "int64"
+nullable = false
+
+[505]
+data_type = "int64"
+nullable = false
+
+[506]
+data_type = "int64"
+nullable = false
+
+[507]
+data_type = "int64"
+nullable = false
+
+[508]
+data_type = "int64"
+nullable = false
+
+[601]
+data_type = "object"
+nullable = true
+
+[602]
+data_type = "float64"
+nullable = true
+
+[603]
+data_type = "float64"
+nullable = true
+
+[604]
+data_type = "object"
+nullable = true
+
+[605]
+data_type = "object"
+nullable = true
+
+[period]
+data_type = "int64"
+nullable = false
+
+[survey]
+data_type = "int64"
+nullable = false
+
+[formid]
+data_type = "int64"
+nullable = false
+
+[formtype]
+data_type = "int64"
+nullable = false
+
+[cellnumber]
+data_type = "int64"
+nullable = false
+
+[pg_numeric]
+data_type = "int64"
+nullable = false
+
+[emp_researcher]
+data_type = "int64"
+nullable = false
+
+[emp_technician]
+data_type = "int64"
+nullable = false
+
+[emp_other]
+data_type = "int64"
+nullable = false
+
+[emp_total]
+data_type = "int64"
+nullable = false
+
+[headcount_res_m]
+data_type = "int64"
+nullable = false
+
+[headcount_res_f]
+data_type = "int64"
+nullable = false
+
+[headcount_tec_m]
+data_type = "int64"
+nullable = false
+
+[headcount_tec_f]
+data_type = "int64"
+nullable = false
+
+[headcount_oth_m]
+data_type = "int64"
+nullable = false
+
+[headcount_oth_f]
+data_type = "int64"
+nullable = false
+
+[headcount_tot_m]
+data_type = "int64"
+nullable = false
+
+[headcount_tot_f]
+data_type = "int64"
+nullable = false
+
+[headcount_total]
+data_type = "int64"
+nullable = false
+
+[imp_marker]
+data_type = "object"
+nullable = false
+
+[imp_class]
+data_type = "object"
+nullable = false

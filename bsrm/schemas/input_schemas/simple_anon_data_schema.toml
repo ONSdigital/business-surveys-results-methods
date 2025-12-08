@@ -1,0 +1,39 @@
+[reference]
+data_type = "float"
+nullable = "False"
+
+[salaries]
+data_type = "float"
+nullable = "False"
+
+[expenditure]
+data_type = "float"
+nullable = "False"
+
+[employees]
+data_type = "float"
+nullable = "False"
+
+[turnover]
+data_type = "float"
+nullable = "False"
+
+[postcodes_harmonised]
+data_type = "object"
+nullable = "True"
+
+[cellnumber]
+data_type = "float"
+nullable = "False"
+
+[rusic]
+data_type = "float"
+nullable = "False"
+
+[pg_numeric]
+data_type = "float"
+nullable = "False"
+
+[itl]
+data_type = "object"
+nullable = "True"

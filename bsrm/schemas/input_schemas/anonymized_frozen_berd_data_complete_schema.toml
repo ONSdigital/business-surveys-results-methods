@@ -1,0 +1,587 @@
+[reference]
+data_type = "int64"
+nullable = false
+
+[instance]
+data_type = "float64"
+nullable = true
+
+[101]
+data_type = "object"
+nullable = true
+
+[102]
+data_type = "float64"
+nullable = true
+
+[103]
+data_type = "float64"
+nullable = true
+
+[104]
+data_type = "float64"
+nullable = true
+
+[200]
+data_type = "object"
+nullable = true
+
+[201]
+data_type = "float64"
+nullable = true
+
+[202]
+data_type = "float64"
+nullable = false
+
+[203]
+data_type = "float64"
+nullable = false
+
+[204]
+data_type = "float64"
+nullable = false
+
+[205]
+data_type = "float64"
+nullable = false
+
+[206]
+data_type = "float64"
+nullable = false
+
+[207]
+data_type = "float64"
+nullable = false
+
+[209]
+data_type = "float64"
+nullable = false
+
+[210]
+data_type = "float64"
+nullable = false
+
+[211]
+data_type = "float64"
+nullable = false
+
+[212]
+data_type = "float64"
+nullable = false
+
+[214]
+data_type = "float64"
+nullable = false
+
+[216]
+data_type = "float64"
+nullable = false
+
+[218]
+data_type = "float64"
+nullable = false
+
+[219]
+data_type = "float64"
+nullable = false
+
+[220]
+data_type = "float64"
+nullable = false
+
+[221]
+data_type = "float64"
+nullable = false
+
+[222]
+data_type = "float64"
+nullable = false
+
+[223]
+data_type = "float64"
+nullable = false
+
+[225]
+data_type = "float64"
+nullable = false
+
+[226]
+data_type = "float64"
+nullable = false
+
+[227]
+data_type = "float64"
+nullable = false
+
+[228]
+data_type = "float64"
+nullable = false
+
+[229]
+data_type = "float64"
+nullable = false
+
+[237]
+data_type = "float64"
+nullable = false
+
+[242]
+data_type = "float64"
+nullable = false
+
+[243]
+data_type = "float64"
+nullable = false
+
+[244]
+data_type = "float64"
+nullable = false
+
+[245]
+data_type = "float64"
+nullable = false
+
+[246]
+data_type = "float64"
+nullable = false
+
+[247]
+data_type = "float64"
+nullable = false
+
+[248]
+data_type = "float64"
+nullable = false
+
+[249]
+data_type = "float64"
+nullable = false
+
+[250]
+data_type = "float64"
+nullable = false
+
+[251]
+data_type = "object"
+nullable = true
+
+[300]
+data_type = "object"
+nullable = true
+
+[301]
+data_type = "float64"
+nullable = false
+
+[302]
+data_type = "float64"
+nullable = false
+
+[303]
+data_type = "float64"
+nullable = false
+
+[304]
+data_type = "float64"
+nullable = false
+
+[305]
+data_type = "float64"
+nullable = false
+
+[307]
+data_type = "object"
+nullable = true
+
+[308]
+data_type = "object"
+nullable = true
+
+[309]
+data_type = "object"
+nullable = true
+
+[405]
+data_type = "float64"
+nullable = false
+
+[406]
+data_type = "float64"
+nullable = false
+
+[407]
+data_type = "float64"
+nullable = false
+
+[408]
+data_type = "float64"
+nullable = false
+
+[409]
+data_type = "float64"
+nullable = false
+
+[410]
+data_type = "float64"
+nullable = false
+
+[411]
+data_type = "float64"
+nullable = false
+
+[412]
+data_type = "float64"
+nullable = false
+
+[501]
+data_type = "float64"
+nullable = false
+
+[502]
+data_type = "float64"
+nullable = false
+
+[503]
+data_type = "float64"
+nullable = false
+
+[504]
+data_type = "float64"
+nullable = false
+
+[505]
+data_type = "float64"
+nullable = false
+
+[506]
+data_type = "float64"
+nullable = false
+
+[507]
+data_type = "float64"
+nullable = false
+
+[508]
+data_type = "float64"
+nullable = false
+
+[601]
+data_type = "object"
+nullable = true
+
+[602]
+data_type = "float64"
+nullable = true
+
+[603]
+data_type = "float64"
+nullable = true
+
+[604]
+data_type = "object"
+nullable = true
+
+[605]
+data_type = "object"
+nullable = true
+
+[701]
+data_type = "float64"
+nullable = false
+
+[702]
+data_type = "float64"
+nullable = false
+
+[703]
+data_type = "float64"
+nullable = false
+
+[704]
+data_type = "float64"
+nullable = false
+
+[705]
+data_type = "float64"
+nullable = false
+
+[706]
+data_type = "float64"
+nullable = false
+
+[707]
+data_type = "float64"
+nullable = false
+
+[708]
+data_type = "object"
+nullable = true
+
+[709]
+data_type = "float64"
+nullable = false
+
+[710]
+data_type = "float64"
+nullable = false
+
+[711]
+data_type = "float64"
+nullable = false
+
+[712]
+data_type = "float64"
+nullable = true
+
+[713]
+data_type = "float64"
+nullable = true
+
+[714]
+data_type = "float64"
+nullable = true
+
+[9000]
+data_type = "float64"
+nullable = true
+
+[9001]
+data_type = "float64"
+nullable = true
+
+[9002]
+data_type = "float64"
+nullable = true
+
+[9003]
+data_type = "float64"
+nullable = true
+
+[9004]
+data_type = "float64"
+nullable = true
+
+[9005]
+data_type = "float64"
+nullable = true
+
+[9006]
+data_type = "float64"
+nullable = true
+
+[9007]
+data_type = "float64"
+nullable = true
+
+[9008]
+data_type = "float64"
+nullable = true
+
+[9009]
+data_type = "float64"
+nullable = true
+
+[9010]
+data_type = "float64"
+nullable = true
+
+[9011]
+data_type = "float64"
+nullable = true
+
+[9012]
+data_type = "float64"
+nullable = true
+
+[9013]
+data_type = "float64"
+nullable = true
+
+[period]
+data_type = "int64"
+nullable = false
+
+[survey]
+data_type = "int64"
+nullable = false
+
+[formid]
+data_type = "int64"
+nullable = false
+
+[status]
+data_type = "object"
+nullable = false
+
+[receiptdate]
+data_type = "float64"
+nullable = true
+
+[lockedby]
+data_type = "float64"
+nullable = true
+
+[lockeddate]
+data_type = "float64"
+nullable = true
+
+[formtype]
+data_type = "int64"
+nullable = false
+
+[checkletter]
+data_type = "float64"
+nullable = true
+
+[frozensicoutdated]
+data_type = "int64"
+nullable = false
+
+[rusicoutdated]
+data_type = "int64"
+nullable = false
+
+[frozensic]
+data_type = "int64"
+nullable = false
+
+[frozenemployees]
+data_type = "float64"
+nullable = false
+
+[employees]
+data_type = "float64"
+nullable = false
+
+[frozenemployment]
+data_type = "float64"
+nullable = false
+
+[employment]
+data_type = "float64"
+nullable = false
+
+[frozenfteemployment]
+data_type = "float64"
+nullable = false
+
+[fteemployment]
+data_type = "float64"
+nullable = false
+
+[frozenturnover]
+data_type = "float64"
+nullable = false
+
+[turnover]
+data_type = "float64"
+nullable = false
+
+[enterprisereference]
+data_type = "float64"
+nullable = true
+
+[wowenterprisereference]
+data_type = "float64"
+nullable = true
+
+[cellnumber]
+data_type = "int64"
+nullable = false
+
+[currency]
+data_type = "float64"
+nullable = true
+
+[vatreference]
+data_type = "float64"
+nullable = true
+
+[payereference]
+data_type = "float64"
+nullable = true
+
+[companyregistrationnumber]
+data_type = "float64"
+nullable = true
+
+[numberlivelocalunits]
+data_type = "float64"
+nullable = true
+
+[numberlivevat]
+data_type = "float64"
+nullable = true
+
+[numberlivepaye]
+data_type = "float64"
+nullable = true
+
+[legalstatus]
+data_type = "int64"
+nullable = false
+
+[reportingunitmarker]
+data_type = "float64"
+nullable = true
+
+[region]
+data_type = "float64"
+nullable = true
+
+[birthdate]
+data_type = "float64"
+nullable = true
+
+[referencename]
+data_type = "float64"
+nullable = true
+
+[referencepostcode]
+data_type = "object"
+nullable = false
+
+[tradingstyle]
+data_type = "float64"
+nullable = true
+
+[selectiontype]
+data_type = "object"
+nullable = false
+
+[inclusionexclusion]
+data_type = "float64"
+nullable = true
+
+[lastupdateddate]
+data_type = "float64"
+nullable = true
+
+[statusencoded]
+data_type = "int64"
+nullable = false
+
+[postcodes_harmonised]
+data_type = "object"
+nullable = true
+
+[last_frozen]
+data_type = "object"
+nullable = false
+
+[change_type]
+data_type = "object"
+nullable = true
+
+[frozen_data_file]
+data_type = "object"
+nullable = true
+
+[accept_changes]
+data_type = "float64"
+nullable = true
+
+[rusic]
+data_type = "int64"
+nullable = false

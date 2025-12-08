@@ -1,0 +1,11 @@
+dev_global:
+  logging_level: "INFO"
+
+survey:
+  survey_type: "survey_1"
+  survey_year: 2023
+
+local_root: "D:/bsrm/"
+# schemas
+input_schema_root: "./bsrm/schemas/input_schemas"
+output_schema_root: "./bsrm/schemas/output_schemas"

@@ -1,0 +1,40 @@
+# So personal .gitconfigs aren't committed or tracked.
+.gitconfig
+
+# project items
+*egg-info
+run_logs
+*.pyc
+*__pycache__
+.pytest_cache
+build/
+dist/
+venv/
+.venv/
+dist*/
+requirements*
+
+# log files
+logs/*
+
+# IDEs
+.vscode/
+
+# general environment folders
+.bash_history
+.cache
+.conda*
+.coverage
+*.ipynb_checkpoints
+.ipython
+.local
+.oracle_jre_usage
+.pip
+.plotly
+.python_history
+.ssh
+.viminfo
+.jupyter
+
+# build folders
+src_with_deps
