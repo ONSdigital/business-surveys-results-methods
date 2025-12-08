@@ -13,8 +13,8 @@ IOModsLogger = logging.getLogger(__name__)
 def safeload_yaml(file_path: str) -> dict:
     """Load a .yaml file from a path.
 
-    Args
-    ----
+    Parameters
+    ----------
         file_path (str): The path to load the .yaml file from.
 
     Raises
@@ -52,8 +52,8 @@ def load_toml(file_path: str) -> dict:
     The schema defines expceted columns, their data types and whether
     they can contain null values.
 
-    Args
-    ----
+    Parameters
+    ----------
         file_path: str
             The path to the .toml file from.
 

@@ -18,13 +18,13 @@ MappingLogger = logging.getLogger(__name__)
 def mapper_null_checks(
     mapper_df: pd.DataFrame,
     mapper_name: str,
-    validate_cols: list = None,
+    validate_cols: list | None = None,
     warn: bool = False,
 ) -> None:
     """Perform null checks on selected columns of a mapper DataFrame.
 
-    Args
-    ----
+    Parameters
+    ----------
         mapper_df (pd.DataFrame): The mapper DataFrame to check.
         mapper_name (str): The name of the mapper being validated.
         validate_cols (list, optional): List of columns to validate.
@@ -33,19 +33,17 @@ def mapper_null_checks(
 
     Raises
     ------
-        Warning: unexpected null values are found in the mapper DataFrame and
-        warn bool is false.
+        ValueError: Raised if nulls are found in the specified columns
+            and 'warn' bool is False.
 
     """
-    # Check for null values in selected columns
-    # List is defaulted to None unless specified
     if validate_cols is None:
         validate_cols = mapper_df.columns.tolist()
 
     # List to store columns with null values
     null_cols = []
 
-    # Check for NULL values of all columns in the list
+    # Check for null values of all columns in the list
     for col in validate_cols:
         if mapper_df[col].isna().any():
             # Append col to list
@@ -68,8 +66,8 @@ def join_with_null_check(
 ) -> pd.DataFrame:
     """Perform a left join on two DataFrames and check for nulls on the join.
 
-    Args
-    ----
+    Parameters
+    ----------
         df (pd.DataFrame): The main DataFrame.
         mapper_df (pd.DataFrame): The mapper DataFrame.
         mapper_name (str): The name of the mapper being validated.
@@ -125,8 +123,8 @@ def check_mapping_unique(
 
     This will ensure that they can be uniquely mapped to values in another column.
 
-    Args
-    ----
+    Parameters
+    ----------
         mapper_df (pd.DataFrame): The mapper DataFrame to check.
         col_to_check (str): The name of the column to check.
         mapper_name (str): The name of the mapper being validated.

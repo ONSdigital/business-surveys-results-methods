@@ -97,7 +97,7 @@ flowchart LR
 These tools have distinct roles:
 
 | Tool  | Purpose                                   |
-|-------|-------------------------------------------|
+|-------|-------------------------------------|
 | pipx  | Installs uv globally, safely              |
 | uv    | Manages the project’s dependencies/env    |
 

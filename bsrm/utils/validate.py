@@ -25,8 +25,8 @@ def schema_name_from_filename(filename: str, config: dict) -> str:
     """
     Generate the schema file path based on the given filename.
 
-    Args
-    -----
+    Parameters
+    ----------
         filename (str): The base name of the file (without extension).
         config (dict): Configuration dictionary containing schema root path.
 
@@ -53,8 +53,8 @@ def validate_with_schema(
     3. Check for nullability violations.
     4. Coerces columns to the required data types.
 
-    Args
-    ----
+    Parameters
+    ----------
         df (pd.DataFrame): The input Dataframe to validate
         config (dict): The configuration dictionary containing paths.
         filepath_name (str): The path to the file being validated.

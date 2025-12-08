@@ -19,8 +19,8 @@ def run_mapping(user_config_path: str) -> None:
     """
     Perform mapping to the responses dataframes and output QA to csv.
 
-    Args
-    ----
+    Parameters
+    ----------
         df (pd.DataFrame): bsrm dataframe.
         config (dict): The configuration settings.
 
