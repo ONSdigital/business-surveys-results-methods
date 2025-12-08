@@ -101,7 +101,7 @@ def join_with_null_check(
     if len(missing) > 0:
         msg = (
             f"Nulls found in the join on {join_col} of {mapper_name} mapper."
-            f"Missing values: {missing} "
+            f"Missing values: {missing}"
         )
         if warn:
             MappingLogger.warning(msg)
