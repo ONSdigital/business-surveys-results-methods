@@ -6,41 +6,6 @@ import logging
 CalcWeights_Logger = logging.getLogger(__name__)
 
 
-def create_weights_filter(df: pd.DataFrame) -> pd.Series:
-    """Return a boolean mask for the rows that the weights should be applied to.
-
-    Args:
-        df (pd.DataFrame): The input dataframe which contains survey data.
-
-    Returns
-    -------
-        pd.Series: A boolean mask for the conditions needed to calculate weights.
-    """
-    prn_only_mask = df.selectiontype == "P"
-    shortform_only_mask = df.formtype == "0006"
-    weights_filter = prn_only_mask & shortform_only_mask
-    return weights_filter
-
-
-def create_estimation_filter(df: pd.DataFrame) -> pd.Series:
-    """Return a boolean mask for the conditions needed to calculate estimation weights.
-
-    Args:
-        df (pd.DataFrame): The input dataframe which contains survey data.
-
-    Returns
-    -------
-        pd.Series: A boolean mask for the conditions needed to calculate weights.
-    """
-    estimation_filter = create_weights_filter(df)
-    status_cond = df["status"].isin(["Clear", "Clear - overridden"])
-    instance_cond = df["instance"] == 0
-    valid_cond = df["709"].notna()
-
-    estimation_filter = estimation_filter & status_cond & valid_cond & instance_cond
-    return estimation_filter
-
-
 def calc_lower_n(df: pd.DataFrame) -> int:
     """Calculate 'n' which is a number of unique RU references in the filtered dataset.
 
@@ -52,7 +17,6 @@ def calc_lower_n(df: pd.DataFrame) -> int:
     -------
         int: The number of unique references.
     """
-    # Count the records
     n = df["reference"].nunique()
 
     return n
@@ -69,7 +33,6 @@ def calc_lower_e(df: pd.DataFrame) -> int:
     -------
         int: The sum of IDBR employment of sampled.
     """
-    # Sum employment for each cellnumber
     e = df["employment"].sum()
 
     return e
@@ -101,8 +64,6 @@ def calc_lower_s(df: pd.DataFrame) -> int:
 def calculate_weighting_factors(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Calculate the weighting factor 'a' for each cell in the survery data.
 
-    Note: A 'cell' is a group of businesses.
-
     Args:
         df (pd.DataFrame): The input df containing survey data
         cellno_dict (dict): dictionary of cellnumbers and UNI_counts
@@ -115,15 +76,6 @@ def calculate_weighting_factors(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.Data
         new column "a_weight".
         2) Returns a QA dataframe of all variables used in the calculation
     """
-    cols = set(df.columns)
-    if "outlier" not in cols:
-        msg = "The column essential 'outlier' is missing."
-        raise ValueError(msg)
-    df["outlier"] = df["outlier"].fillna(False)
-
-    # Convert 709 column to numeric
-    df["709"] = pd.to_numeric(df["709"], errors="coerce")
-
     # Default a and g-weights to 1 for all entries
     df["a_weight"] = 1.0
     df["g_weight"] = 1.0
@@ -166,15 +118,11 @@ def calc_a_weight(cell_group: pd.DataFrame) -> pd.DataFrame:
     if cell_group.empty:
         return cell_group
 
-    N = cell_group["uni_count"].iloc[0]  # noqa: N806
-
-    estimation_filter = create_estimation_filter(cell_group)
-    filtered_group = cell_group.copy().loc[estimation_filter]
-
-    n = calc_lower_n(filtered_group)
+    N = cell_group["uni_count"].iloc[0]  # noqa: N806 (allow capitals for variables)
+    n = calc_lower_n(cell_group)
 
     # Count the outliers for this group (will count all the `True` values)
-    outlier_count = filtered_group["outlier"].sum()
+    outlier_count = cell_group["outlier"].sum()
 
     # Calculate 'a' for this group
     if n > 0:
@@ -186,8 +134,7 @@ def calc_a_weight(cell_group: pd.DataFrame) -> pd.DataFrame:
     cell_group["n"] = n
     cell_group["o"] = outlier_count
 
-    weights_filter = create_weights_filter(cell_group)
-    cell_group.loc[weights_filter, "a_weight"] = a_weight
+    cell_group["a_weight"] = a_weight
 
     return cell_group
 
@@ -215,17 +162,13 @@ def calc_g_weight(cell_group: pd.DataFrame) -> pd.DataFrame:
     if cell_group.empty:
         return cell_group
 
-    estimation_filter = create_estimation_filter(cell_group)
-    filtered_group = cell_group.copy().loc[estimation_filter]
-
-    if filtered_group.empty:
+    if cell_group.empty:
         return cell_group
 
-    E = filtered_group["uni_employment"].iloc[0]  # noqa: N806
-    a = filtered_group["a_weight"].iloc[0]
-
-    e = calc_lower_e(filtered_group)
-    s = calc_lower_s(filtered_group)
+    E = cell_group["uni_employment"].iloc[0]  # noqa: N806
+    a = cell_group["a_weight"].iloc[0]
+    e = calc_lower_e(cell_group)
+    s = calc_lower_s(cell_group)
 
     # Calculate 'g' for this group
     if (e - s) > 0:
@@ -237,8 +180,7 @@ def calc_g_weight(cell_group: pd.DataFrame) -> pd.DataFrame:
     cell_group["e"] = e
     cell_group["s"] = s
 
-    weights_filter = create_weights_filter(cell_group)
-    cell_group.loc[weights_filter, "g_weight"] = g_weight
+    cell_group["g_weight"] = g_weight
 
     return cell_group
 
@@ -253,10 +195,8 @@ def create_weights_qa_df(df: pd.DataFrame) -> pd.DataFrame:
     -------
         pd.DataFrame: The QA dataframe.
     """
-    est_filter = create_estimation_filter(df)
-
     qa_cols_list = ["cellnumber", "N", "n", "o", "E", "e", "s", "a_weight", "g_weight"]
-    qa_frame = df[qa_cols_list].loc[est_filter].groupby("cellnumber").first()
+    qa_frame = df[qa_cols_list].groupby("cellnumber").first()
     qa_frame = qa_frame.reset_index()
     qa_frame = qa_frame.rename(
         columns={
