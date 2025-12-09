@@ -10,6 +10,7 @@ and this project adheres to [semantic versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - mapping_utils : add unit tests for mapping_helpers.py
+- estimation_module : adapted estimation functions and tests from R&D
 
 ### Changed
 

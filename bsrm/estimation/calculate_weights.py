@@ -61,38 +61,6 @@ def calc_lower_s(df: pd.DataFrame) -> int:
     return s
 
 
-def calculate_weighting_factors(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Calculate the weighting factor 'a' for each cell in the survery data.
-
-    Args:
-        df (pd.DataFrame): The input df containing survey data
-        cellno_dict (dict): dictionary of cellnumbers and UNI_counts
-        exp_col (str, optional): The column that is used to calculate n.
-
-    Returns
-    -------
-        tuple[pd.DataFrame, pd.DataFrame]:
-        1) Returns the full dataframe with the added
-        new column "a_weight".
-        2) Returns a QA dataframe of all variables used in the calculation
-    """
-    # Default a and g-weights to 1 for all entries
-    df["a_weight"] = 1.0
-    df["g_weight"] = 1.0
-
-    df = df.groupby("cellnumber", group_keys=False).apply(calc_a_weight)
-    df = df.groupby("cellnumber", group_keys=False).apply(calc_g_weight)
-
-    # Create a QA dataframe
-    qa_frame = create_weights_qa_df(df)
-    df = df.drop(columns=["N", "n", "o", "E", "e", "s"])
-
-    # Apply the outlier weights
-    df = outlier_weights(df)
-
-    return df, qa_frame
-
-
 def calc_a_weight(cell_group: pd.DataFrame) -> pd.DataFrame:
     """Calculate the 'a' weighting factor for a cell group.
 
@@ -162,9 +130,6 @@ def calc_g_weight(cell_group: pd.DataFrame) -> pd.DataFrame:
     if cell_group.empty:
         return cell_group
 
-    if cell_group.empty:
-        return cell_group
-
     E = cell_group["uni_employment"].iloc[0]  # noqa: N806
     a = cell_group["a_weight"].iloc[0]
     e = calc_lower_e(cell_group)
@@ -185,17 +150,31 @@ def calc_g_weight(cell_group: pd.DataFrame) -> pd.DataFrame:
     return cell_group
 
 
-def create_weights_qa_df(df: pd.DataFrame) -> pd.DataFrame:
+def create_weights_qa_df(df: pd.DataFrame, calc_g_weights: bool = True) -> pd.DataFrame:
     """Create a QA dataframe for the weight calculation.
 
     Args:
         df (pd.DataFrame): The dataframe containing the weights columns.
+        calc_g_weights (bool, optional): Whether g weights were calculated.
 
     Returns
     -------
         pd.DataFrame: The QA dataframe.
     """
-    qa_cols_list = ["cellnumber", "N", "n", "o", "E", "e", "s", "a_weight", "g_weight"]
+    if calc_g_weights:
+        qa_cols_list = [
+            "cellnumber",
+            "N",
+            "n",
+            "o",
+            "E",
+            "e",
+            "s",
+            "a_weight",
+            "g_weight",
+        ]
+    else:
+        qa_cols_list = ["cellnumber", "N", "n", "o", "a_weight"]
     qa_frame = df[qa_cols_list].groupby("cellnumber").first()
     qa_frame = qa_frame.reset_index()
     qa_frame = qa_frame.rename(
@@ -213,7 +192,7 @@ def create_weights_qa_df(df: pd.DataFrame) -> pd.DataFrame:
     return qa_frame
 
 
-def outlier_weights(df: pd.DataFrame) -> pd.DataFrame:
+def outlier_weights(df: pd.DataFrame, calc_g_weights: bool = True) -> pd.DataFrame:
     """Calculate weights for outliers.
 
     If a reference has been flagged as an outlier,
@@ -227,5 +206,45 @@ def outlier_weights(df: pd.DataFrame) -> pd.DataFrame:
         pd.DataFrame: The dataframe with the a_weights set to 1.0 for outliers.
     """
     df.loc[df["outlier"], "a_weight"] = 1.0
-    df.loc[df["outlier"], "g_weight"] = 1.0
+    if calc_g_weights:
+        df.loc[df["outlier"], "g_weight"] = 1.0
     return df
+
+
+def calculate_weighting_factors(
+    df: pd.DataFrame, calc_g_weights: bool = True
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Calculate the 'a' weight and optionally 'g' weightfor each cell in the data.
+
+    Args:
+        df (pd.DataFrame): The input df containing survey data
+        calc_g_weights (bool, optional): Whether to calculate g weights
+
+    Returns
+    -------
+        tuple[pd.DataFrame, pd.DataFrame]:
+        1) Returns the full dataframe with the added
+        new column "a_weight".
+        2) Returns a QA dataframe of all variables used in the calculation
+    """
+    df["a_weight"] = 1.0
+    df = df.groupby("cellnumber", group_keys=False).apply(calc_a_weight)
+
+    if calc_g_weights:
+        df["g_weight"] = 1.0
+        df = df.groupby("cellnumber", group_keys=False).apply(calc_g_weight)
+
+    # Create a QA dataframe
+    qa_frame = create_weights_qa_df(df, calc_g_weights=calc_g_weights)
+
+    # Apply the outlier weights
+    df = outlier_weights(df, calc_g_weights=calc_g_weights)
+
+    # drop intermediate calculation columns
+    drop_cols = ["N", "n", "o"]
+    if calc_g_weights:
+        drop_cols.extend(["E", "e", "s"])
+
+    df = df.drop(columns=drop_cols)
+
+    return df, qa_frame
