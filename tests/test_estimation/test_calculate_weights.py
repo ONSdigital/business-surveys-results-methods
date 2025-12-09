@@ -128,14 +128,14 @@ class TestCalcLowerSNoOutliers:
 
 
 
-# Five tests for calculate_weighting_factors:
-# testing calculate_weighting_factors where missing outlier col
-# testing calculate_weighting_factors filter
-# testing calculate_weighting_factors 709 to numeric with no missing vals
-# testing calculate_weighting_factors 709 to numeric with missing vals
-# testing calculate_weighting_factors with missing vals
+# Five tests for calculate_weights:
+# testing calculate_weights where missing outlier col
+# testing calculate_weights filter
+# testing calculate_weights 709 to numeric with no missing vals
+# testing calculate_weights 709 to numeric with missing vals
+# testing calculate_weights with missing vals
 class TestCalcWeightFactors:
-    """Tests for calculate_weighting_factors function."""
+    """Tests for calculate_weights function."""
 
     def create_input_df(self):
         """Creates input df for test"""
@@ -222,14 +222,14 @@ class TestCalcWeightFactors:
         expected_qa_df = pd.DataFrame(data=data, columns=expected_qa_cols)
         return expected_qa_df
 
-    def test_calculate_weighting_factors_g_weight_true(self):
-        """Test for calculate_weighting_factors with g_weight set to True"""
+    def test_calculate_weights_g_weight_true(self):
+        """Test for calculate_weights with g_weight set to True"""
 
         input_df = self.create_input_df()
         expected_df = self.create_expected_output()
         expected_qa_df = self.create_expected_qa()
         print(expected_qa_df.columns)
-        result_df, result_qa_df = calw.calculate_weighting_factors(input_df)
+        result_df, result_qa_df = calw.calculate_weights(input_df)
 
         for df in [result_qa_df, result_df]:
             df["a_weight"] = df["a_weight"].round(1)
@@ -238,8 +238,8 @@ class TestCalcWeightFactors:
         assert_frame_equal(result_df, expected_df, check_exact=False, rtol=0.01)
         assert_frame_equal(result_qa_df, expected_qa_df, check_exact=False, rtol=0.01)
 
-    def test_calculate_weighting_factors_g_weight_false(self):
-        """Test for calculate_weighting_factors for filter
+    def test_calculate_weights_g_weight_false(self):
+        """Test for calculate_weights for filter
         and np.nan taken out of calculation"""
 
         input_df = self.create_input_df()
@@ -256,7 +256,7 @@ class TestCalcWeightFactors:
             ]
         )
 
-        result_df, result_qa_df = calw.calculate_weighting_factors(input_df, calc_g_weights=False)
+        result_df, result_qa_df = calw.calculate_weights(input_df, incl_g_wts=False)
 
         # Round specified columns in each DataFrame
         for df in [result_qa_df, result_df]:

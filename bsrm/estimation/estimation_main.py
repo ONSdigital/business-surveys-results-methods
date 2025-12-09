@@ -1,29 +1,31 @@
 """Main file for the estimation module."""
 
 import logging
-from typing import Any
-from collections.abc import Callable
 import pandas as pd
 
-from bsrm.estimation import apply_weights as appweights
-from bsrm.estimation import calculate_weights as weights
-from bsrm.utils.helpers import filename_amender
+from bsrm.estimation.calculate_weights import calculate_weights
+from bsrm.estimation.apply_weights import apply_weights
 
 EstMainLogger = logging.getLogger(__name__)
 
 
 def run_estimation(
     df: pd.DataFrame,
-    config: dict[str, Any],
-    write_csv: Callable,
-) -> pd.DataFrame:
+    a_weight_cols: list[str],
+    g_weight_cols: list[str] | None = None,
+    incl_g_wts: bool = True,
+    round_val: int = 4,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Run the estimation module.
 
-    Args:
-        df (pd.DataFrame): The main dataset were estimation will be applied.
-        config (dict): The configuration settings.
-        write_csv (Callable): Function to write to a csv file.
+    Parameters
+    ----------
+        df (pd.DataFrame): The survey data were estimation will be applied.
+        a_weight_cols (list[str]): List of columns to apply a_weight to.
+        g_weight_cols (list[str]): List of columns to apply g_weight to.
+        incl_g_wts (bool): Whether to include g weights in the calculation.
+        round_val (int): The number of decimal places to round the final results to
 
     Returns
     -------
@@ -31,23 +33,28 @@ def run_estimation(
     """
     EstMainLogger.info("Starting estimation weights calculation...")
 
-    # # clean and create a dictionary from the cellno mapper
-    # cell_unit_dict = cmap.cellno_unit_dict(cellno_df)
-
     # calculate the weights
-    weighted_df, qa_df = weights.calculate_weighting_factors(df)
+    weighted_df, qa_df = calculate_weights(df, incl_g_wts)
 
     # apply the weights to the dataframe and apply the specified rounding
-    for_est = weighted_df.copy()
-    estimated_df = appweights.apply_weights(for_est, config, for_qa=True, round_val=4)
+    final_weighted_df = apply_weights(
+        weighted_df, a_weight_cols, g_weight_cols, incl_g_wts, round_val
+    )
 
-    if config["global"]["output_estimation_qa"]:
-        EstMainLogger.info("Outputting estimation QA file.")
-        est_qa_path = config["estimation_paths"]["qa_path"]
-        cell_qa_filename = filename_amender("estimation_weights_qa", config)
-        full_qa_filename = filename_amender("full_estimation_qa", config)
-        write_csv(f"{est_qa_path}/{cell_qa_filename}", qa_df)
-        write_csv(f"{est_qa_path}/{full_qa_filename}", estimated_df)
-    EstMainLogger.success("Finished estimation weights calculation.")
+    return final_weighted_df, qa_df
 
-    return weighted_df
+
+# example usage
+if __name__ == "__main__":
+    input_path = "path/to/input.csv"
+
+    df = pd.read_csv(input_path)
+    a_weight_cols = ["question1", "question2"]
+    g_weight_cols = ["question3"]
+    # call the method to return the weighted dataframe and qa dataframe
+    weighted_df, qa_df = run_estimation(
+        df,
+        a_weight_cols,
+        g_weight_cols,
+        incl_g_wts=True,
+    )
