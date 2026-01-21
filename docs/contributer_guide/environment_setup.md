@@ -18,7 +18,7 @@ git clone https://github.com/ONSdigital/iabs-results-processing
 This section can be skipped if you have performed these steps for a different project.
 
 In order to install uv on your Windows machine so it is not restricted to a particular environment, use pipx.
-To learn more about `pipx`, see the [technical documentation](https://github.com/ONSdigital/iabs-results-processing/blob/iabs_19_uv_docs/docs/uv_and_pipx.md).
+To learn more about `pipx`, see the [technical documentation](uv_and_pipx.md).
 
 You may first need to install pipx:
 
