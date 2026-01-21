@@ -9,7 +9,7 @@ It is useful to follow the ASAP instructions above to create a `.bat` file that 
 
 Open your terminal in the folder you want to save your repo in. Note that you don't need to create a folder for the name of the repo, cloning will automatically do this. Input the following line into your terminal:
 
-git clone https://github.com/ONSdigital/iabs-results-processing
+git clone https://github.com/ONSdigital/business-surveys-results-methods.git
 
 ## 2. Installing uv for the virtual environment and package management
 
