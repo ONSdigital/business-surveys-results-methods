@@ -9,3 +9,4 @@ and this project adheres to [semantic versioning](https://semver.org/spec/v2.0.0
 
 - mapping_utils : add unit tests for mapping_helpers.py
 - update_environment_docs: modify the documentation for project setup
+- update_environment_docs2: updates to relative paths in docs
