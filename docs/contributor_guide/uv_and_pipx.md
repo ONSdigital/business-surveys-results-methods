@@ -1,4 +1,4 @@
-## Technical Documentation - IABS Setup Deep Dive
+## Technical Documentation - Environment setup with `pipx` and `uv`
 This document provides a deeper look at the setup process for the Python environment in this project, expanding on the steps in the README and explaining the reasoning behind each choice.
 
 ### Visual Overview
