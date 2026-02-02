@@ -75,7 +75,7 @@ class TestApplyWeights:
 
         a_weight_cols = g_weight_cols + ["211", "218", "701", "702", "709"]
 
-        result_df = apply_weights(input_df, a_weight_cols, g_weight_cols, False, 2)
+        result_df = apply_weights(input_df, a_weight_cols, g_weight_cols, True, 2)
 
         assert_frame_equal(
             result_df, exp_output_df, check_like=True, check_exact=False, check_dtype=False
