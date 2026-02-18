@@ -235,6 +235,7 @@ def calculate_weights(
         new column "a_weight".
         2) Returns a QA dataframe of all variables used in the calculation
     """
+    df = df.copy()
     df["a_weight"] = 1.0
     df = df.groupby("cellnumber", group_keys=False).apply(calc_a_weight)
 
