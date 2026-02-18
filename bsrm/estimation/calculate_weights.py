@@ -6,46 +6,49 @@ import logging
 CalcWeights_Logger = logging.getLogger(__name__)
 
 
-def calc_lower_n(df: pd.DataFrame) -> int:
-    """Calculate 'n' which is a number of unique RU references in the filtered dataset.
+def calc_lower_n(df: pd.DataFrame, ru_column: str) -> int:
+    """Calculate 'n' which is a number of unique reporting units (RUs) in the dataset.
 
     Parameters
     ----------
         df (pd.DataFrame): The input dataframe which contains survey data,
             including expenditure data
+        ru_column (str): The name of the column containing reporting unit identifiers.
 
     Returns
     -------
-        int: The number of unique references.
+        int: The number of unique reporting units (RUs).
     """
-    n = df["reference"].nunique()
+    n = df[ru_column].nunique()
 
     return n
 
 
-def calc_lower_e(df: pd.DataFrame) -> int:
+def calc_lower_e(df: pd.DataFrame, col_name: str) -> int:
     """Calculate 'e' which is a sum of IDBR employment data in the filtered dataset.
 
     Parameters
     ----------
-        df (pd.DatatFrame): The input dataframe which contains survey data,
+        df (pd.DataFrame): The input dataframe which contains survey data,
             including IDBR employment data.
+        col_name (str): The name of the column for this calculation.
 
     Returns
     -------
         int: The sum of IDBR employment of sampled.
     """
-    e = df["employment"].sum()
+    e = df[col_name].sum()
 
     return e
 
 
-def calc_lower_s(df: pd.DataFrame) -> int:
+def calc_lower_s(df: pd.DataFrame, col_name: str) -> int:
     """Calculate 's' which identifies the sum of outliers for a cell group.
 
     Parameters
     ----------
         df (pd.DataFrame): The input dataframe which contains survey data.
+        col_name (str): The name of the column for this calculation.
 
     Returns
     -------
@@ -58,13 +61,13 @@ def calc_lower_s(df: pd.DataFrame) -> int:
     if df.empty:
         s = 0
     else:
-        # Sum the employment column
-        s = df["employment"].sum()
+        # Sum the specified column
+        s = df[col_name].sum()
 
     return s
 
 
-def calc_a_weight(cell_group: pd.DataFrame) -> pd.DataFrame:
+def a_weight(cell_group: pd.DataFrame, ru_column: str) -> pd.DataFrame:
     """Calculate the 'a' weighting factor for a cell group.
 
     The calculation here is:
@@ -82,6 +85,7 @@ def calc_a_weight(cell_group: pd.DataFrame) -> pd.DataFrame:
     Parameters
     ----------
         cell_group (pd.DataFrame): The dataframe grouped by cellnumber.
+        ru_column (str): The name of the column containing reporting unit identifiers.
 
     Returns
     -------
@@ -91,7 +95,7 @@ def calc_a_weight(cell_group: pd.DataFrame) -> pd.DataFrame:
         return cell_group
 
     N = cell_group["uni_count"].iloc[0]  # noqa: N806 (allow capitals for variables)
-    n = calc_lower_n(cell_group)
+    n = calc_lower_n(cell_group, ru_column)
 
     # Count the outliers for this group (will count all the `True` values)
     outlier_count = cell_group["outlier"].sum()
@@ -111,13 +115,14 @@ def calc_a_weight(cell_group: pd.DataFrame) -> pd.DataFrame:
     return cell_group
 
 
-def calc_g_weight(cell_group: pd.DataFrame) -> pd.DataFrame:
+def calc_g_weight(cell_group: pd.DataFrame, aux_col_name: str) -> pd.DataFrame:
     """Calculate the 'g' weighting factor for a cell group.
 
     The calculation for the g-weight is:
 
     g = (E - s) / a * (e - s)
 
+    TODO: this needs to be made more general, currently this is for R&D
     Where:
         - E is the sum of IDBR employment for all businesses in a cell
         - e is the sum of IDBR employment for all sampled, valid responses in the cell
@@ -127,18 +132,19 @@ def calc_g_weight(cell_group: pd.DataFrame) -> pd.DataFrame:
     Parameters
     ----------
         cell_group (pd.DataFrame): The dataframe grouped by cellnumber.
+        aux_col_name (str): The name of the column containing auxiliary employment data.
 
     Returns
     -------
-        pd.DataFrame: The dataframe with the 'a' weighting factor calculated.
+        pd.DataFrame: The dataframe with the 'g' weighting factor calculated.
     """
     if cell_group.empty:
         return cell_group
 
     E = cell_group["uni_employment"].iloc[0]  # noqa: N806
     a = cell_group["a_weight"].iloc[0]
-    e = calc_lower_e(cell_group)
-    s = calc_lower_s(cell_group)
+    e = calc_lower_e(cell_group, aux_col_name)
+    s = calc_lower_s(cell_group, aux_col_name)
 
     # Calculate 'g' for this group
     if (e - s) > 0:
@@ -155,45 +161,29 @@ def calc_g_weight(cell_group: pd.DataFrame) -> pd.DataFrame:
     return cell_group
 
 
-def create_weights_qa_df(df: pd.DataFrame, incl_g_wts: bool = True) -> pd.DataFrame:
+def create_weights_qa_df(
+    df: pd.DataFrame, strata_col: str, incl_g_wts: bool = True
+) -> pd.DataFrame:
     """Create a QA dataframe for the weight calculation.
 
     Parameters
     ----------
         df (pd.DataFrame): The dataframe containing the weights columns.
+        strata_col (str): The name of the column containing stratum identifiers.
         incl_g_wts (bool, optional): Whether g weights were calculated.
 
     Returns
     -------
         pd.DataFrame: The QA dataframe.
     """
+    qa_cols_list = [strata_col, "N", "n", "o"]
     if incl_g_wts:
-        qa_cols_list = [
-            "cellnumber",
-            "N",
-            "n",
-            "o",
-            "E",
-            "e",
-            "s",
-            "a_weight",
-            "g_weight",
-        ]
+        qa_cols_list += ["E", "e", "s", "a_weight", "g_weight"]
     else:
-        qa_cols_list = ["cellnumber", "N", "n", "o", "a_weight"]
-    qa_frame = df[qa_cols_list].groupby("cellnumber").first()
+        qa_cols_list += ["a_weight"]
+
+    qa_frame = df[qa_cols_list].groupby(strata_col).first()
     qa_frame = qa_frame.reset_index()
-    qa_frame = qa_frame.rename(
-        columns={
-            "cellnumber": "Cell Number",
-            "N": "N - uni_count",
-            "n": "n - num clear records in cell",
-            "o": "o - num outliers in cell",
-            "E": "E - uni_employment",
-            "e": "e - sum of employment in cell",
-            "s": "s - sum of employment outliers in cell",
-        }
-    )
 
     return qa_frame
 
@@ -207,6 +197,7 @@ def outlier_weights(df: pd.DataFrame, incl_g_wts: bool = True) -> pd.DataFrame:
     Parameters
     ----------
         df (pd.DataFrame): The dataframe weights are calculated for.
+        incl_g_wts (bool, optional): Whether g weights were calculated.
 
     Returns
     -------
@@ -218,42 +209,48 @@ def outlier_weights(df: pd.DataFrame, incl_g_wts: bool = True) -> pd.DataFrame:
     return df
 
 
-def calculate_weights(
-    df: pd.DataFrame, incl_g_wts: bool = True
-) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Calculate the 'a' weight and optionally 'g' weightfor each cell in the data.
+def calculate_a_weights(
+    df: pd.DataFrame,
+    strata_col: str,
+    ru_col: str,
+) -> pd.DataFrame:
+    """Calculate the 'a' weight for each stratum in the data.
+
+    Parameters
+    ----------
+        df (pd.DataFrame): The input df containing survey data.
+        strata_col (str): The name of the column containing stratum identifiers.
+        ru_col (str): The name of the column containing reference unit data.
+
+    Returns
+    -------
+        pd.DataFrame: The full dataframe with the added new column "a_weight".
+    """
+    df = df.copy()
+    df["a_weight"] = 1.0
+    df = df.groupby("cellnumber", group_keys=False).apply(a_weight, ru_col)
+
+    return df
+
+
+def calculate_g_weights(
+    df: pd.DataFrame, strata_col: str, aux_col: str
+) -> pd.DataFrame:
+    """Calculate the 'g' weight for each stratum in the data.
 
     Parameters
     ----------
         df (pd.DataFrame): The input df containing survey data
-        incl_g_wts (bool, optional): Whether to calculate g weights
+        strata_col (str): The name of the column containing stratum identifiers.
+        aux_col (str): The name of the column containing auxiliary employment data.
 
     Returns
     -------
-        tuple[pd.DataFrame, pd.DataFrame]:
-        1) Returns the full dataframe with the added
-        new column "a_weight".
-        2) Returns a QA dataframe of all variables used in the calculation
+        pd.DataFrame: The full dataframe with the added new column "g_weight".
     """
     df = df.copy()
-    df["a_weight"] = 1.0
-    df = df.groupby("cellnumber", group_keys=False).apply(calc_a_weight)
 
-    if incl_g_wts:
-        df["g_weight"] = 1.0
-        df = df.groupby("cellnumber", group_keys=False).apply(calc_g_weight)
+    df["g_weight"] = 1.0
+    df = df.groupby(strata_col, group_keys=False).apply(calc_g_weight, aux_col)
 
-    # Create a QA dataframe
-    qa_frame = create_weights_qa_df(df, incl_g_wts=incl_g_wts)
-
-    # Apply the outlier weights
-    df = outlier_weights(df, incl_g_wts=incl_g_wts)
-
-    # drop intermediate calculation columns
-    drop_cols = ["N", "n", "o"]
-    if incl_g_wts:
-        drop_cols.extend(["E", "e", "s"])
-
-    df = df.drop(columns=drop_cols)
-
-    return df, qa_frame
+    return df

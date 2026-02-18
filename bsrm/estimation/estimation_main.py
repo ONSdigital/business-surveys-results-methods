@@ -3,7 +3,11 @@
 import logging
 import pandas as pd
 
-from bsrm.estimation.calculate_weights import calculate_weights
+from bsrm.estimation.calculate_weights import (
+    calculate_a_weights,
+    calculate_g_weights,
+    create_weights_qa_df,
+)
 from bsrm.estimation.apply_weights import apply_weights
 
 EstMainLogger = logging.getLogger(__name__)
@@ -11,10 +15,10 @@ EstMainLogger = logging.getLogger(__name__)
 
 def run_estimation(
     df: pd.DataFrame,
-    a_weight_cols: list[str],
-    g_weight_cols: list[str] | None = None,
+    strata_col: str,
+    ru_col: str,
+    aux_col: str = "",
     incl_g_wts: bool = True,
-    round_val: int = 4,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Run the estimation module.
@@ -22,8 +26,9 @@ def run_estimation(
     Parameters
     ----------
         df (pd.DataFrame): The survey data were estimation will be applied.
-        a_weight_cols (list[str]): List of columns to apply a_weight to.
-        g_weight_cols (list[str]): List of columns to apply g_weight to.
+        strata_col (str): The column representing the strata.
+        ru_col (str): The column representing the reference unit.
+        aux_col (str): The column representing the auxiliary variable.
         incl_g_wts (bool): Whether to include g weights in the calculation.
         round_val (int): The number of decimal places to round the final results to
 
@@ -34,14 +39,25 @@ def run_estimation(
     EstMainLogger.info("Starting estimation weights calculation...")
 
     # calculate the weights
-    weighted_df, qa_df = calculate_weights(df, incl_g_wts)
+    weighted_df = calculate_a_weights(df, strata_col, ru_col)
 
-    # apply the weights to the dataframe and apply the specified rounding
-    final_weighted_df = apply_weights(
-        weighted_df, a_weight_cols, g_weight_cols, incl_g_wts, round_val
-    )
+    # if required also calculate g weights
+    if incl_g_wts:
+        weighted_df = calculate_g_weights(weighted_df, strata_col, aux_col)
 
-    return final_weighted_df, qa_df
+    # Create a QA dataframe
+    qa_frame = create_weights_qa_df(df, strata_col, incl_g_wts)
+
+    # drop intermediate calculation columns
+    drop_cols = ["N", "n", "o"]
+    if incl_g_wts:
+        drop_cols += ["E", "e", "s"]
+
+    weighted_df = weighted_df.drop(columns=drop_cols)
+
+    df = df.drop(columns=drop_cols)
+
+    return weighted_df, qa_frame
 
 
 # example usage
@@ -49,12 +65,27 @@ if __name__ == "__main__":
     input_path = "path/to/input.csv"
 
     df = pd.read_csv(input_path)
+
     a_weight_cols = ["question1", "question2"]
     g_weight_cols = ["question3"]
-    # call the method to return the weighted dataframe and qa dataframe
+    incl_g_wts = True
+    round_val = 2
+
+    ru_col = "reference"
+    aux_col = "employment"
+    strata_col = "cellnumber"
+
+    # call the method to return the dataframe with new weights columns, and qa dataframe
     weighted_df, qa_df = run_estimation(
         df,
-        a_weight_cols,
-        g_weight_cols,
-        incl_g_wts=True,
+        strata_col,
+        ru_col,
+        aux_col,
+        incl_g_wts,
+    )
+
+    # call the method to return the dataframe with the new weights applied
+    # to the specified columns, and qa dataframe
+    final_weighted_df = apply_weights(
+        weighted_df, a_weight_cols, g_weight_cols, incl_g_wts, round_val
     )
