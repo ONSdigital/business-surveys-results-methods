@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import pytest
 import bsrm.estimation.calculate_weights as calw
+from bsrm.estimation.estimation_main import run_estimation
 from pandas._testing import assert_frame_equal, assert_series_equal
 
 
@@ -23,7 +24,7 @@ class TestCalcLowerN:
         input_df = pd.DataFrame(data=data, columns=input_cols)
 
         # Call calc_lower_n function
-        actual_result = calw.calc_lower_n(input_df)
+        actual_result = calw.calc_lower_n(input_df, "reference")
         # Defined expected result
         expected_result = 3
         assert actual_result == expected_result, "calc_lower_n not behaving as expected"
@@ -43,7 +44,7 @@ class TestCalcLowerN:
         input_df = pd.DataFrame(data=data, columns=input_cols)
 
         # Call calc_lower_n function
-        actual_result = calw.calc_lower_n(input_df)
+        actual_result = calw.calc_lower_n(input_df, "reference")
 
         # Defined expected result
         expected_result = 3
@@ -74,7 +75,7 @@ class TestCalcLowerE:
         expected_result = 14
 
         # Call calc_lower_e function
-        actual_result = calw.calc_lower_e(input_df)
+        actual_result = calw.calc_lower_e(input_df, "employment")
         assert actual_result == expected_result, "calc_lower_e not behaving as expected"
 
 class TestCalcLowerS:
@@ -96,7 +97,7 @@ class TestCalcLowerS:
 
         input_df = self.create_input_df()
         # Call calc_lower_s function
-        actual_result = calw.calc_lower_s(input_df)
+        actual_result = calw.calc_lower_s(input_df, "employment")
         # Define expected result
         expected_result = 145
         assert actual_result == expected_result, "calc_lower_s not behaving as expected"
@@ -121,7 +122,7 @@ class TestCalcLowerSNoOutliers:
 
         input_df = self.create_input_df()
         # Call calc_lower_s function
-        actual_result = calw.calc_lower_s(input_df)
+        actual_result = calw.calc_lower_s(input_df, "employment")
         # Define expected result
         expected_result = 0
         assert actual_result == expected_result, "calc_lower_s not behaving as expected"
@@ -229,7 +230,7 @@ class TestCalcWeightFactors:
         expected_df = self.create_expected_output()
         expected_qa_df = self.create_expected_qa()
         print(expected_qa_df.columns)
-        result_df, result_qa_df = calw.calculate_weights(input_df)
+        result_df, result_qa_df = run_estimation(input_df, "cellnumber", "reference", "employment", incl_g_wts=True)
 
         for df in [result_qa_df, result_df]:
             df["a_weight"] = df["a_weight"].round(1)
@@ -256,7 +257,7 @@ class TestCalcWeightFactors:
             ]
         )
 
-        result_df, result_qa_df = calw.calculate_weights(input_df, incl_g_wts=False)
+        result_df, result_qa_df = run_estimation(input_df, "cellnumber", "reference", "employment", incl_g_wts=False)
 
         # Round specified columns in each DataFrame
         for df in [result_qa_df, result_df]:
