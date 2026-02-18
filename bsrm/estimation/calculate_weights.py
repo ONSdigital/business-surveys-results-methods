@@ -228,7 +228,7 @@ def calculate_a_weights(
     """
     df = df.copy()
     df["a_weight"] = 1.0
-    df = df.groupby("cellnumber", group_keys=False).apply(a_weight, ru_col)
+    df = df.groupby(strata_col, group_keys=False).apply(a_weight, ru_col)
 
     return df
 
