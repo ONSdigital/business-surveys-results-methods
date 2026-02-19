@@ -97,7 +97,7 @@ class TestCalcLowerS:
 
         input_df = self.create_input_df()
         # Call calc_lower_s function
-        actual_result = calw.calc_lower_s(input_df, "employment")
+        actual_result = calw.calc_lower_s(input_df, "employment", "outlier")
         # Define expected result
         expected_result = 145
         assert actual_result == expected_result, "calc_lower_s not behaving as expected"
@@ -122,7 +122,7 @@ class TestCalcLowerSNoOutliers:
 
         input_df = self.create_input_df()
         # Call calc_lower_s function
-        actual_result = calw.calc_lower_s(input_df, "employment")
+        actual_result = calw.calc_lower_s(input_df, "employment", "outlier")
         # Define expected result
         expected_result = 0
         assert actual_result == expected_result, "calc_lower_s not behaving as expected"
@@ -202,13 +202,13 @@ class TestCalcWeightFactors:
     def create_expected_qa(self):
         """Creates expected qa df for test"""
         expected_qa_cols = [
-            "Cell Number",
-            "N - uni_count",
-            "n - num clear records in cell",
-            "o - num outliers in cell",
-            "E - uni_employment",
-            "e - sum of employment in cell",
-            "s - sum of employment outliers in cell",
+            "cellnumber",
+            "N",
+            "n",
+            "o",
+            "E",
+            "e",
+            "s",
             "a_weight",
             "g_weight"
         ]
@@ -230,7 +230,16 @@ class TestCalcWeightFactors:
         expected_df = self.create_expected_output()
         expected_qa_df = self.create_expected_qa()
         print(expected_qa_df.columns)
-        result_df, result_qa_df = run_estimation(input_df, "cellnumber", "reference", "employment", incl_g_wts=True)
+        result_df, result_qa_df = run_estimation(
+            input_df,
+            "cellnumber",
+            "reference",
+            "uni_count",
+            "employment",
+            "uni_employment",
+            "outlier",
+            incl_g_wts=True
+        )
 
         for df in [result_qa_df, result_df]:
             df["a_weight"] = df["a_weight"].round(1)
@@ -250,14 +259,23 @@ class TestCalcWeightFactors:
         expected_df = expected_df.drop(columns=["g_weight"])
         expected_qa_df = expected_qa_df.drop(
             columns=[
-                "E - uni_employment",
-                "e - sum of employment in cell",
-                "s - sum of employment outliers in cell",
+                "E",
+                "e",
+                "s",
                 "g_weight"
             ]
         )
 
-        result_df, result_qa_df = run_estimation(input_df, "cellnumber", "reference", "employment", incl_g_wts=False)
+        result_df, result_qa_df = run_estimation(
+            input_df,
+            "cellnumber",
+            "reference",
+            "uni_count",
+            "employment",
+            "uni_employment",
+            "outlier",
+            incl_g_wts=False
+        )
 
         # Round specified columns in each DataFrame
         for df in [result_qa_df, result_df]:
@@ -312,5 +330,5 @@ class TestOutlierWeight:
         input_df = self.create_input_df()
         expected_df = self.create_expected_output()
 
-        result_df = calw.outlier_weights(input_df)
+        result_df = calw.outlier_weights(input_df, "outlier", incl_g_wts=True)
         assert_frame_equal(result_df, expected_df)

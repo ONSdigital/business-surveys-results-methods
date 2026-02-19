@@ -42,20 +42,21 @@ def calc_lower_e(df: pd.DataFrame, col_name: str) -> int:
     return e
 
 
-def calc_lower_s(df: pd.DataFrame, col_name: str) -> int:
-    """Calculate 's' which identifies the sum of outliers for a cell group.
+def calc_lower_s(df: pd.DataFrame, col_name: str, outlier_col: str) -> int:
+    """Calculate 's' which identifies the sum of outliers for a stratum group.
 
     Parameters
     ----------
         df (pd.DataFrame): The input dataframe which contains survey data.
         col_name (str): The name of the column for this calculation.
+        outlier_col (str): The name of the column containing outlier indicators.
 
     Returns
     -------
         int: Calculated value of s.
     """
     # Filter where outliers bool = true
-    df = df.loc[df.outlier]
+    df = df.loc[df[outlier_col]]
 
     # If there are no outliers, return 0
     if df.empty:
@@ -67,38 +68,42 @@ def calc_lower_s(df: pd.DataFrame, col_name: str) -> int:
     return s
 
 
-def a_weight(cell_group: pd.DataFrame, ru_column: str) -> pd.DataFrame:
-    """Calculate the 'a' weighting factor for a cell group.
+def a_weight(
+    strata_group: pd.DataFrame, ru_column: str, univ_count_col: str, outlier_col: str
+) -> pd.DataFrame:
+    """Calculate the 'a' weighting factor for a stratum group.
 
     The calculation here is:
 
     a = (N-o) / (n-o)
 
     Where:
-        - N is the total number of businesses in the cell
-        - n is the number of businesses in sample for that cell
-        - o is the number of outliers in the cell
+        - N is the total number of reporting units in the stratum (universe)
+        - n is the number of reporting units in sample for the stratum
+        - o is the number of outliers in the stratum
 
     'o' is calculated in this function by summing all the `True` values
-        because `True` == 1
 
     Parameters
     ----------
-        cell_group (pd.DataFrame): The dataframe grouped by cellnumber.
+        strata_group (pd.DataFrame): The dataframe grouped by strata.
         ru_column (str): The name of the column containing reporting unit identifiers.
+        univ_count_col (str): The name of the column containing the total number of
+            reporting units in the stratum.
+        outlier_col (str): The name of the column containing outlier indicators.
 
     Returns
     -------
         pd.DataFrame: The dataframe with the 'a' weighting factor calculated.
     """
-    if cell_group.empty:
-        return cell_group
+    if strata_group.empty:
+        return strata_group
 
-    N = cell_group["uni_count"].iloc[0]  # noqa: N806 (allow capitals for variables)
-    n = calc_lower_n(cell_group, ru_column)
+    N = strata_group[univ_count_col].iloc[0]  # noqa: N806 (allow capitals for vars)
+    n = calc_lower_n(strata_group, ru_column)
 
     # Count the outliers for this group (will count all the `True` values)
-    outlier_count = cell_group["outlier"].sum()
+    outlier_count = strata_group[outlier_col].sum()
 
     # Calculate 'a' for this group
     if n > 0:
@@ -106,17 +111,19 @@ def a_weight(cell_group: pd.DataFrame, ru_column: str) -> pd.DataFrame:
     else:
         a_weight = 1.0
 
-    cell_group["N"] = N
-    cell_group["n"] = n
-    cell_group["o"] = outlier_count
+    strata_group["N"] = N
+    strata_group["n"] = n
+    strata_group["o"] = outlier_count
 
-    cell_group["a_weight"] = a_weight
+    strata_group["a_weight"] = a_weight
 
-    return cell_group
+    return strata_group
 
 
-def calc_g_weight(cell_group: pd.DataFrame, aux_col_name: str) -> pd.DataFrame:
-    """Calculate the 'g' weighting factor for a cell group.
+def calc_g_weight(
+    strata_group: pd.DataFrame, aux_col: str, univ_aux_col: str, outlier_col: str
+) -> pd.DataFrame:
+    """Calculate the 'g' weighting factor for a stratum group.
 
     The calculation for the g-weight is:
 
@@ -124,27 +131,31 @@ def calc_g_weight(cell_group: pd.DataFrame, aux_col_name: str) -> pd.DataFrame:
 
     TODO: this needs to be made more general, currently this is for R&D
     Where:
-        - E is the sum of IDBR employment for all businesses in a cell
-        - e is the sum of IDBR employment for all sampled, valid responses in the cell
-        - s is the sum of IDBR employment for all outliered sampled, valid responses
-        - a is the 'a' weighting factor for the cell
+        - E is the sum of IDBR employment for all reporting units in the stratum
+        - e is the sum of IDBR employment for all sampled valid responses in the stratum
+        - s is the sum of IDBR employment for all outliered sampled, valid responses in
+            the stratum
+        - a is the 'a' weighting factor for the stratum
 
     Parameters
     ----------
-        cell_group (pd.DataFrame): The dataframe grouped by cellnumber.
-        aux_col_name (str): The name of the column containing auxiliary employment data.
+        strata_group (pd.DataFrame): The dataframe grouped by strata.
+        aux_col (str): The name of the column containing auxiliary employment data.
+        univ_aux_col (str): The name of the column containing the total auxiliary
+            employment in the stratum.
+        outlier_col (str): The name of the column containing outlier indicators.
 
     Returns
     -------
         pd.DataFrame: The dataframe with the 'g' weighting factor calculated.
     """
-    if cell_group.empty:
-        return cell_group
+    if strata_group.empty:
+        return strata_group
 
-    E = cell_group["uni_employment"].iloc[0]  # noqa: N806
-    a = cell_group["a_weight"].iloc[0]
-    e = calc_lower_e(cell_group, aux_col_name)
-    s = calc_lower_s(cell_group, aux_col_name)
+    E = strata_group[univ_aux_col].iloc[0]  # noqa: N806
+    a = strata_group["a_weight"].iloc[0]
+    e = calc_lower_e(strata_group, aux_col)
+    s = calc_lower_s(strata_group, aux_col, outlier_col)
 
     # Calculate 'g' for this group
     if (e - s) > 0:
@@ -152,13 +163,13 @@ def calc_g_weight(cell_group: pd.DataFrame, aux_col_name: str) -> pd.DataFrame:
     else:
         g_weight = 1.0
 
-    cell_group["E"] = E
-    cell_group["e"] = e
-    cell_group["s"] = s
+    strata_group["E"] = E
+    strata_group["e"] = e
+    strata_group["s"] = s
 
-    cell_group["g_weight"] = g_weight
+    strata_group["g_weight"] = g_weight
 
-    return cell_group
+    return strata_group
 
 
 def create_weights_qa_df(
@@ -188,7 +199,9 @@ def create_weights_qa_df(
     return qa_frame
 
 
-def outlier_weights(df: pd.DataFrame, incl_g_wts: bool = True) -> pd.DataFrame:
+def outlier_weights(
+    df: pd.DataFrame, outlier_col: str, incl_g_wts: bool = True
+) -> pd.DataFrame:
     """Calculate weights for outliers.
 
     If a reference has been flagged as an outlier,
@@ -197,15 +210,16 @@ def outlier_weights(df: pd.DataFrame, incl_g_wts: bool = True) -> pd.DataFrame:
     Parameters
     ----------
         df (pd.DataFrame): The dataframe weights are calculated for.
+        outlier_col (str): The name of the column containing outlier indicators.
         incl_g_wts (bool, optional): Whether g weights were calculated.
 
     Returns
     -------
         pd.DataFrame: The dataframe with the a_weights set to 1.0 for outliers.
     """
-    df.loc[df["outlier"], "a_weight"] = 1.0
+    df.loc[df[outlier_col], "a_weight"] = 1.0
     if incl_g_wts:
-        df.loc[df["outlier"], "g_weight"] = 1.0
+        df.loc[df[outlier_col], "g_weight"] = 1.0
     return df
 
 
@@ -213,6 +227,8 @@ def calculate_a_weights(
     df: pd.DataFrame,
     strata_col: str,
     ru_col: str,
+    univ_count_col: str,
+    outlier_col: str,
 ) -> pd.DataFrame:
     """Calculate the 'a' weight for each stratum in the data.
 
@@ -221,6 +237,9 @@ def calculate_a_weights(
         df (pd.DataFrame): The input df containing survey data.
         strata_col (str): The name of the column containing stratum identifiers.
         ru_col (str): The name of the column containing reference unit data.
+        univ_count_col (str): The name of the column containing the total number of
+            reporting units in the stratum.
+        outlier_col (str): The name of the column containing outlier indicators.
 
     Returns
     -------
@@ -228,13 +247,15 @@ def calculate_a_weights(
     """
     df = df.copy()
     df["a_weight"] = 1.0
-    df = df.groupby(strata_col, group_keys=False).apply(a_weight, ru_col)
+    df = df.groupby(strata_col, group_keys=False).apply(
+        a_weight, ru_col, univ_count_col, outlier_col
+    )
 
     return df
 
 
 def calculate_g_weights(
-    df: pd.DataFrame, strata_col: str, aux_col: str
+    df: pd.DataFrame, strata_col: str, aux_col: str, univ_aux_col: str, outlier_col: str
 ) -> pd.DataFrame:
     """Calculate the 'g' weight for each stratum in the data.
 
@@ -243,6 +264,9 @@ def calculate_g_weights(
         df (pd.DataFrame): The input df containing survey data
         strata_col (str): The name of the column containing stratum identifiers.
         aux_col (str): The name of the column containing auxiliary employment data.
+        univ_aux_col (str): The name of the column containing the total number of
+            reporting units in the stratum for auxiliary data.
+        outlier_col (str): The name of the column containing outlier indicators.
 
     Returns
     -------
@@ -251,6 +275,8 @@ def calculate_g_weights(
     df = df.copy()
 
     df["g_weight"] = 1.0
-    df = df.groupby(strata_col, group_keys=False).apply(calc_g_weight, aux_col)
+    df = df.groupby(strata_col, group_keys=False).apply(
+        calc_g_weight, aux_col, univ_aux_col, outlier_col
+    )
 
     return df
