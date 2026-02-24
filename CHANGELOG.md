@@ -11,3 +11,4 @@ and this project adheres to [semantic versioning](https://semver.org/spec/v2.0.0
 - update_environment_docs: modify the documentation for project setup
 - update_environment_docs2: updates to relative paths in docs
 - unit_test_helper: helper to generate test scripts from csv inputs
+- imputation_module: adapt mean of ratios script from research_and_development

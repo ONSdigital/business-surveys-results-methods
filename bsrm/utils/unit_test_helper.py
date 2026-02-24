@@ -395,11 +395,12 @@ def main(
 # Example usage:
 if __name__ == "__main__":
     main(
-        csv_directory="D:/coding_projects/randd_test_data/",
-        files=["itl_test_input.csv", "itl_test_expected_output.csv"],
-        function_name="new_function",
+        csv_directory="D:/coding_projects/iabs_test_data/",
+        files=["pre-processing_expected.csv", "backdata.csv", "joined_expected.csv"],
+        function_name="join_current_backdata",  # Please insert correct function name
         column_type_override={
-            "string": ["reference", "postcode", "itl", "ITL221CD", "ITL221NM"],
+            "string": ["reference", "sic"],
             "float": [],
+            "boolean": ["is_clear", "to_impute"],
         },
     )

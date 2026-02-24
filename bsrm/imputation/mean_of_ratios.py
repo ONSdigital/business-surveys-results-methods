@@ -44,12 +44,38 @@ def get_imputation_lists(
     imputed_vars = target_vars.copy()
     for var in imputed_vars_dict.values():
         imputed_vars += var
+    # sort the imputed vars list to make sure the order is consistent for testing
+    imputed_vars = sorted(set(imputed_vars))
     return target_vars, imputed_vars
 
 
+def join_current_backdata(
+    df: pd.DataFrame, backdata: pd.DataFrame, ru_col: str, imp_class_col: str
+) -> pd.DataFrame:
+    """Join the current data with the backdata.
+
+    Args:
+        df (pd.DataFrame): Processed full responses DataFrame.
+        backdata (pd.DataFrame): One period of backdata.
+        ru_col (str): Column name for the reference unit.
+        imp_class_col (str): Column name for the imputation class.
+
+    Returns
+    -------
+        pd.DataFrame: DataFrame with current and backdata merged.
+    """
+    merged_df = df.merge(
+        backdata,
+        how="left",
+        on=[ru_col, imp_class_col],
+        suffixes=("", "_prev"),
+        indicator=True,
+    )
+    return merged_df
+
+
 def carry_forwards(
-    df: pd.DataFrame,
-    backdata: pd.DataFrame,
+    merged_df: pd.DataFrame,
     impute_vars: list[str],
     ru_col: str,
     imp_class_col: str,
@@ -61,8 +87,7 @@ def carry_forwards(
     we do a left merge of the current data with the backdata.
 
     Args:
-        df (pd.DataFrame): Processed full responses DataFrame.
-        backdata (pd.DataFrame): One period of backdata.
+        merged_df (pd.DataFrame): DataFrame with current and previous data merged.
         impute_vars (list[str]): Variables to be imputed.
         ru_col (str): Column name for the reference unit.
         imp_class_col (str): Column name for the imputation class.
@@ -71,14 +96,6 @@ def carry_forwards(
     -------
         pd.DataFrame: df with values carried forwards
     """
-    merged_df = df.merge(
-        backdata,
-        how="left",
-        on=[ru_col, imp_class_col],
-        suffixes=("", "_prev"),
-        indicator=True,
-    )
-
     # imputation condition: data is "to_impute" and we have a match in the backdata
     # including "indicator=True" in the merge adds a column "_merge" which shows whether
     # we have a match in the backdata or not
@@ -315,9 +332,9 @@ def run_mor(
     # Carry forwards method
     target_vars, imputed_vars = get_imputation_lists(imputed_vars_dict)
 
-    carried_forwards_df = carry_forwards(
-        df, backdata, imputed_vars, ru_col, imp_class_col
-    )
+    merged_df = join_current_backdata(df, backdata, ru_col, imp_class_col)
+
+    carried_forwards_df = carry_forwards(merged_df, imputed_vars, ru_col, imp_class_col)
 
     # get list of columns to be imputed
     gr_df = calculate_growth_rates(carried_forwards_df, target_vars)
