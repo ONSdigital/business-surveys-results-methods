@@ -24,22 +24,22 @@ def calc_lower_n(df: pd.DataFrame, ru_column: str) -> int:
     return n
 
 
-def calc_lower_e(df: pd.DataFrame, col_name: str) -> int:
-    """Calculate 'e' which is a sum of IDBR employment data in the filtered dataset.
+def calc_aux_col_sum(df: pd.DataFrame, aux_col: str) -> int:
+    """Calculate aux_col_sum: sum of auxiliary data for sampled units.
 
     Parameters
     ----------
         df (pd.DataFrame): The input dataframe which contains survey data,
-            including IDBR employment data.
-        col_name (str): The name of the column for this calculation.
+            including auxiliary data.
+        aux_col (str): The name of the auxiliary column for this calculation.
 
     Returns
     -------
-        int: The sum of IDBR employment of sampled.
+        int: The sum of auxiliary data for sampled units.
     """
-    e = df[col_name].sum()
+    aux_col_sum = df[aux_col].sum()
 
-    return e
+    return aux_col_sum
 
 
 def calc_lower_s(df: pd.DataFrame, col_name: str, outlier_col: str) -> int:
@@ -127,14 +127,15 @@ def calc_g_weight(
 
     The calculation for the g-weight is:
 
-    g = (E - s) / a * (e - s)
+    g = (univ_aux_col - s) / a * (aux_col - s)
 
-    TODO: this needs to be made more general, currently this is for R&D
     Where:
-        - E is the sum of IDBR employment for all reporting units in the stratum
-        - e is the sum of IDBR employment for all sampled valid responses in the stratum
-        - s is the sum of IDBR employment for all outliered sampled, valid responses in
-            the stratum
+        - univ_aux_col is the universe auxiliary total for all reporting
+            units in the stratum
+        - aux_col is the sample auxiliary total for all sampled valid
+            responses in the stratum
+        - s is the sum of auxiliary data for all outliered sampled, valid
+            responses in the stratum
         - a is the 'a' weighting factor for the stratum
 
     Parameters
@@ -152,20 +153,22 @@ def calc_g_weight(
     if strata_group.empty:
         return strata_group
 
-    E = strata_group[univ_aux_col].iloc[0]  # noqa: N806
-    a = strata_group["a_weight"].iloc[0]
-    e = calc_lower_e(strata_group, aux_col)
-    s = calc_lower_s(strata_group, aux_col, outlier_col)
+    univ_aux_col_value = strata_group[univ_aux_col].iloc[0]  # noqa: N806
+    a_weight_value = strata_group["a_weight"].iloc[0]
+    aux_col_sum = calc_aux_col_sum(strata_group, aux_col)
+    outlier_aux_col_sum = calc_lower_s(strata_group, aux_col, outlier_col)
 
     # Calculate 'g' for this group
-    if (e - s) > 0:
-        g_weight = (E - s) / (a * (e - s))
+    if (aux_col_sum - outlier_aux_col_sum) > 0:
+        g_weight = (univ_aux_col_value - outlier_aux_col_sum) / (
+            a_weight_value * (aux_col_sum - outlier_aux_col_sum)
+        )
     else:
         g_weight = 1.0
 
-    strata_group["E"] = E
-    strata_group["e"] = e
-    strata_group["s"] = s
+    strata_group["univ_aux_col_value"] = univ_aux_col_value
+    strata_group["aux_col_sum"] = aux_col_sum
+    strata_group["s"] = outlier_aux_col_sum
 
     strata_group["g_weight"] = g_weight
 
@@ -189,7 +192,13 @@ def create_weights_qa_df(
     """
     qa_cols_list = [strata_col, "N", "n", "o"]
     if incl_g_wts:
-        qa_cols_list += ["E", "e", "s", "a_weight", "g_weight"]
+        qa_cols_list += [
+            "univ_aux_col_value",
+            "aux_col_sum",
+            "s",
+            "a_weight",
+            "g_weight",
+        ]
     else:
         qa_cols_list += ["a_weight"]
 
