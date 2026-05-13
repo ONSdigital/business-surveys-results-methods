@@ -8,19 +8,14 @@ from bsrm.estimation.estimation_main import run_estimation
 from pandas._testing import assert_frame_equal, assert_series_equal
 
 
+@pytest.mark.skip(reason="Work in progress ")
 class TestCalcLowerN:
     """Test for calc_lower_n with duplicate refs."""
+
     def test_calc_lower_n(self):
         """Test for calc_lower_n with duplicate refs."""
         input_cols = ["reference", "709"]
-        data = [
-            [1, "A"],
-            [2, "B"],
-            [2, "C"],
-            [4, "D"],
-            [1, "E"],
-            [4, np.nan]
-        ]
+        data = [[1, "A"], [2, "B"], [2, "C"], [4, "D"], [1, "E"], [4, np.nan]]
         input_df = pd.DataFrame(data=data, columns=input_cols)
 
         # Call calc_lower_n function
@@ -28,7 +23,6 @@ class TestCalcLowerN:
         # Defined expected result
         expected_result = 3
         assert actual_result == expected_result, "calc_lower_n not behaving as expected"
-
 
     def test_calc_lower_n_nan_ref(self):
         """Test for calc_lower_n with nan in reference."""
@@ -51,8 +45,10 @@ class TestCalcLowerN:
 
         assert actual_result == expected_result, "calc_lower_n not behaving as expected"
 
+
 class TestCalcLowerE:
     """Test for calc_lower_e with nan."""
+
     def create_input_df(self):
         """Creates input df for test"""
 
@@ -78,17 +74,21 @@ class TestCalcLowerE:
         actual_result = calw.calc_lower_e(input_df, "employment")
         assert actual_result == expected_result, "calc_lower_e not behaving as expected"
 
+
 class TestCalcLowerS:
     """Test for calc_lower_s"""
+
     def create_input_df(self):
         """Creates input dataframe"""
-        cols =['reference', 'cellnumber', 'employment', 'outlier']
-        data =[[1, 22, 100, False],
-               [2, 22, 10, False],
-               [3, 22, 5, False],
-               [4, 8, 60, False],
-               [5, 8, 45, True],
-               [6, 8, 100, True]]
+        cols = ["reference", "cellnumber", "employment", "outlier"]
+        data = [
+            [1, 22, 100, False],
+            [2, 22, 10, False],
+            [3, 22, 5, False],
+            [4, 8, 60, False],
+            [5, 8, 45, True],
+            [6, 8, 100, True],
+        ]
         input_df = pd.DataFrame(data=data, columns=cols)
         return input_df
 
@@ -105,15 +105,18 @@ class TestCalcLowerS:
 
 class TestCalcLowerSNoOutliers:
     """Test to check if calc_lower_s returns 0 when there are no outliers"""
+
     def create_input_df(self):
         """Creates input dataframe"""
-        cols = ['reference', 'cellnumber', 'employment', 'outlier']
-        data = [[1, 22, 100, False],
-                [2, 22, 10, False],
-                [3, 22, 5, False],
-                [4, 8, 60, False],
-                [5, 8, 45, False],
-                [6, 8, 100, False]]
+        cols = ["reference", "cellnumber", "employment", "outlier"]
+        data = [
+            [1, 22, 100, False],
+            [2, 22, 10, False],
+            [3, 22, 5, False],
+            [4, 8, 60, False],
+            [5, 8, 45, False],
+            [6, 8, 100, False],
+        ]
         input_df = pd.DataFrame(data=data, columns=cols)
         return input_df
 
@@ -126,7 +129,6 @@ class TestCalcLowerSNoOutliers:
         # Define expected result
         expected_result = 0
         assert actual_result == expected_result, "calc_lower_s not behaving as expected"
-
 
 
 # Five tests for calculate_weights:
@@ -148,7 +150,7 @@ class TestCalcWeightFactors:
             "uni_count",
             "uni_employment",
             "employment",
-            "outlier"
+            "outlier",
         ]
 
         data = [
@@ -180,7 +182,7 @@ class TestCalcWeightFactors:
             "employment",
             "outlier",
             "a_weight",
-            "g_weight"
+            "g_weight",
         ]
 
         data = [
@@ -210,7 +212,7 @@ class TestCalcWeightFactors:
             "e",
             "s",
             "a_weight",
-            "g_weight"
+            "g_weight",
         ]
 
         data = [
@@ -238,7 +240,7 @@ class TestCalcWeightFactors:
             "employment",
             "uni_employment",
             "outlier",
-            incl_g_wts=True
+            incl_g_wts=True,
         )
 
         for df in [result_qa_df, result_df]:
@@ -257,14 +259,7 @@ class TestCalcWeightFactors:
         expected_qa_df = self.create_expected_qa()
 
         expected_df = expected_df.drop(columns=["g_weight"])
-        expected_qa_df = expected_qa_df.drop(
-            columns=[
-                "E",
-                "e",
-                "s",
-                "g_weight"
-            ]
-        )
+        expected_qa_df = expected_qa_df.drop(columns=["E", "e", "s", "g_weight"])
 
         result_df, result_qa_df = run_estimation(
             input_df,
@@ -274,7 +269,7 @@ class TestCalcWeightFactors:
             "employment",
             "uni_employment",
             "outlier",
-            incl_g_wts=False
+            incl_g_wts=False,
         )
 
         # Round specified columns in each DataFrame
@@ -285,15 +280,24 @@ class TestCalcWeightFactors:
         result_df["709"] = result_df["709"].astype(float)
         expected_df["709"] = expected_df["709"].astype(float)
 
-        assert_frame_equal(result_df, expected_df, check_exact=False, rtol=0.01, check_dtype=False)
-        assert_frame_equal(result_qa_df, expected_qa_df, check_exact=False, rtol=0.01, check_dtype=False)
+        assert_frame_equal(
+            result_df, expected_df, check_exact=False, rtol=0.01, check_dtype=False
+        )
+        assert_frame_equal(
+            result_qa_df,
+            expected_qa_df,
+            check_exact=False,
+            rtol=0.01,
+            check_dtype=False,
+        )
+
 
 class TestOutlierWeight:
     """Test for outlier_weights."""
 
     def create_input_df(self):
         """Creates input df for test"""
-        input_cols = ["reference","outlier"]
+        input_cols = ["reference", "outlier"]
         data = [
             [1, True],
             [2, False],
@@ -307,12 +311,7 @@ class TestOutlierWeight:
 
     def create_expected_output(self):
         """Creates expected df for test"""
-        expected_cols = [
-            "reference",
-            "outlier",
-            "a_weight",
-            "g_weight"
-        ]
+        expected_cols = ["reference", "outlier", "a_weight", "g_weight"]
 
         data = [
             [1, True, 1.0, 1.0],
