@@ -7,7 +7,6 @@ from bsrm.estimation.calculate_weights import (
     calculate_a_weights,
     calculate_g_weights,
     create_weights_qa_df,
-    outlier_weights,
 )
 from bsrm.estimation.apply_weights import apply_weights
 
@@ -21,7 +20,6 @@ def run_estimation(
     univ_count_col: str,
     aux_col: str = "",
     univ_aux_col: str = "",
-    outlier_col: str = "",
     incl_g_wts: bool = True,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
@@ -35,7 +33,6 @@ def run_estimation(
         aux_col (str): The column representing the auxiliary variable.
         univ_count_col (str): The column representing the universe count.
         univ_aux_col (str): The column representing the universe auxiliary variable.
-        outlier_col (str): The column representing the outlier flag.
         incl_g_wts (bool): Whether to include g weights in the calculation.
         round_val (int): The number of decimal places to round the final results to
 
@@ -46,27 +43,23 @@ def run_estimation(
     EstMainLogger.info("Starting estimation weights calculation...")
 
     # calculate the weights
-    weighted_df = calculate_a_weights(
-        df, strata_col, ru_col, univ_count_col, outlier_col
-    )
+    weighted_df = calculate_a_weights(df, strata_col, ru_col, univ_count_col)
 
     # if required also calculate g weights
     if incl_g_wts:
         weighted_df = calculate_g_weights(
-            weighted_df, strata_col, aux_col, univ_aux_col, outlier_col
+            weighted_df, strata_col, aux_col, univ_aux_col
         )
 
     # Create a QA dataframe
     qa_frame = create_weights_qa_df(weighted_df, strata_col, incl_g_wts)
 
     # drop intermediate calculation columns
-    drop_cols = ["N", "n", "o"]
+    drop_cols = ["N", "n"]
     if incl_g_wts:
-        drop_cols += ["univ_aux_col_value", "aux_col_sum", "s"]
+        drop_cols += ["univ_aux_col_value", "aux_col_sum"]
 
     weighted_df = weighted_df.drop(columns=drop_cols, axis=1)
-
-    weighted_df = outlier_weights(weighted_df, "outlier", incl_g_wts)
 
     return weighted_df, qa_frame
 
@@ -87,7 +80,6 @@ if __name__ == "__main__":
     aux_col = "employment"
     univ_aux_col = "uni_employment"
     strata_col = "cellnumber"
-    outlier_col = "outlier"
 
     # call the method to return the dataframe with new weights columns, and qa dataframe
     weighted_df, qa_df = run_estimation(
@@ -97,7 +89,6 @@ if __name__ == "__main__":
         univ_count_col,
         aux_col,
         univ_aux_col,
-        outlier_col,
         incl_g_wts,
     )
 
