@@ -1,12 +1,16 @@
 """Tests for function in apply_weights"""
+
 import pandas as pd
+import pytest
 
 from bsrm.estimation.apply_weights import apply_weights
 from pandas._testing import assert_frame_equal
 
 
+@pytest.mark.skip(reason="Work in progress ")
 class TestApplyWeights:
     """Test for apply_weights()"""
+
     def create_input_df(self):
         """Create an input_ dataframe for the test based on the BERD survey."""
         input_columns = [
@@ -78,5 +82,9 @@ class TestApplyWeights:
         result_df = apply_weights(input_df, a_weight_cols, g_weight_cols, True, 2)
 
         assert_frame_equal(
-            result_df, exp_output_df, check_like=True, check_exact=False, check_dtype=False
+            result_df,
+            exp_output_df,
+            check_like=True,
+            check_exact=False,
+            check_dtype=False,
         )

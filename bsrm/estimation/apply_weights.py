@@ -3,7 +3,6 @@
 import logging
 import pandas as pd
 
-
 AppWeights_Logger = logging.getLogger(__name__)
 
 
