@@ -8,6 +8,7 @@ and this project adheres to [semantic versioning](https://semver.org/spec/v2.0.0
 # branches
 
 irps_51_update_variables : Renamed variable to match estimation paper nomenclature<br>
+irps_50_remove_reference_outliers: Removed all reference to outliers from the existing code to align with the estimation paper from methodologist. <br>
 
 - mapping_utils : add unit tests for mapping_helpers.py <br>
 - update_environment_docs: modify the documentation for project setup<br>
