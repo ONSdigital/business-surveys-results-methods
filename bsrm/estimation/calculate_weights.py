@@ -52,8 +52,8 @@ def a_weight(
     a = (N/n)
 
     Where:
-        - N is population size in stratum h (Nh)
-        - n is the number of returns in stratum h (nh)
+        N is population (universe) count for the stratum
+        n is the number of valid returns for the stratum
 
 
 
