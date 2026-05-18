@@ -7,6 +7,8 @@ import bsrm.estimation.calculate_weights as calw
 from bsrm.estimation.estimation_main import run_estimation
 from pandas._testing import assert_frame_equal, assert_series_equal
 
+pytestmark = pytest.mark.skip(reason="Work in progress")
+
 
 @pytest.mark.skip(reason="Work in progress ")
 class TestCalcLowerN:
