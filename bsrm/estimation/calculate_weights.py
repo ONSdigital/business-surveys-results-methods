@@ -95,14 +95,17 @@ def calc_g_weight(
 
     The calculation for the g-weight is:
 
-    g = univ_aux_col_value / sum_ax
+    g =  univ_aux_sum / sum_ax
 
-    Where:
-        - univ_aux_col is the universe auxiliary total for the calibration group k.
-        - sum_ax is the sum of (design weight * auxiliary variable) for each row
-            in the calibration group.
-            This is what goes in the denominator and is calculated as:
-            sum_ax = (a_weight * aux_col).sum()
+        sum_ax = Σ a_i * x_i
+
+        Where:
+        - univ_aux_sum is the sum of the auxiliary value for the universe over
+          the calibration group.
+        - sum_ax is the sum of the auxiliary value multiplied by its a_weight
+          for responders in the calibration group.
+        - x_i represents each auxiliary value.
+        - a_i represents the a_weight corresponding to x_i.
 
     Parameters
     ----------
@@ -118,18 +121,18 @@ def calc_g_weight(
     if strata_group.empty:
         return strata_group
 
-    univ_aux_col_value = strata_group[univ_aux_col].sum()
+    univ_aux_sum = strata_group[univ_aux_col].iloc[0]
     aux_col_sum = calc_aux_col_sum(strata_group, aux_col)
 
     # Calculate 'g' for this group
 
     if aux_col_sum > 0:
         sum_ax = (strata_group["a_weight"] * strata_group[aux_col]).sum()
-        g_weight = univ_aux_col_value / sum_ax
+        g_weight = univ_aux_sum / sum_ax
     else:
         g_weight = 1.0
 
-    strata_group["univ_aux_col_value"] = univ_aux_col_value
+    strata_group["univ_aux_sum"] = univ_aux_sum
     strata_group["aux_col_sum"] = aux_col_sum
 
     strata_group["g_weight"] = g_weight
@@ -155,7 +158,7 @@ def create_weights_qa_df(
     qa_cols_list = [strata_col, "N", "n"]
     if incl_g_wts:
         qa_cols_list += [
-            "univ_aux_col_value",
+            "univ_aux_sum",
             "aux_col_sum",
             "a_weight",
             "g_weight",
