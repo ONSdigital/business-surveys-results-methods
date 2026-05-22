@@ -1,339 +1,245 @@
 """Tests for functions in calculate_weights"""
 
 import pandas as pd
-import numpy as np
 import pytest
-import bsrm.estimation.calculate_weights as calw
-from bsrm.estimation.estimation_main import run_estimation
-from pandas._testing import assert_frame_equal, assert_series_equal
-
-pytestmark = pytest.mark.skip(reason="Work in progress")
-
-
-@pytest.mark.skip(reason="Work in progress ")
-class TestCalcLowerN:
-    """Test for calc_lower_n with duplicate refs."""
-
-    def test_calc_lower_n(self):
-        """Test for calc_lower_n with duplicate refs."""
-        input_cols = ["reference", "709"]
-        data = [[1, "A"], [2, "B"], [2, "C"], [4, "D"], [1, "E"], [4, np.nan]]
-        input_df = pd.DataFrame(data=data, columns=input_cols)
-
-        # Call calc_lower_n function
-        actual_result = calw.calc_lower_n(input_df, "reference")
-        # Defined expected result
-        expected_result = 3
-        assert actual_result == expected_result, "calc_lower_n not behaving as expected"
-
-    def test_calc_lower_n_nan_ref(self):
-        """Test for calc_lower_n with nan in reference."""
-        input_cols = ["reference", "709"]
-        data = [
-            [1, "A"],
-            [2, "B"],
-            [np.nan, "C"],
-            [4, "D"],
-            [1, "E"],
-        ]
-
-        input_df = pd.DataFrame(data=data, columns=input_cols)
-
-        # Call calc_lower_n function
-        actual_result = calw.calc_lower_n(input_df, "reference")
-
-        # Defined expected result
-        expected_result = 3
-
-        assert actual_result == expected_result, "calc_lower_n not behaving as expected"
+from pandas.testing import assert_frame_equal
+from bsrm.estimation.calculate_weights import (
+    calc_aux_col_sum,
+    calc_lower_n,
+    calculate_a_weights,
+    calculate_g_weights,
+    create_weights_qa_df,
+)
 
 
-class TestCalcLowerE:
-    """Test for calc_lower_e with nan."""
-
-    def create_input_df(self):
-        """Creates input df for test"""
-
-        input_cols = ["employment", "711"]
-        data = [
-            [1, 10],
-            [2, 5],
-            [2, np.nan],
-            [4, np.nan],
-            [1, 10],
-            [4, np.nan],
-        ]
-        input_df = pd.DataFrame(data=data, columns=input_cols)
-        return input_df
-
-    @pytest.mark.skip(
-        reason="WIP: calc_lower_e test not aligned with current implementation"
+@pytest.fixture
+def input_data() -> pd.DataFrame:
+    """Input for calculate_weights tests."""
+    return pd.DataFrame(
+        {
+            "ruref": [17, 1, 16, 8, 9, 13, 14, 19, 18, 26, 34, 29, 23, 25],
+            "cell_no": [1, 1, 1, 2, 2, 2, 3, 4, 5, 6, 6, 7, 7, 7],
+            "k": [1, 1, 1, 2, 2, 2, 2, 3, 4, 5, 5, 5, 5, 5],
+            "nh": [3, 3, 3, 3, 3, 3, 1, 1, 1, 2, 2, 3, 3, 3],
+            "nk": [3, 3, 3, 4, 4, 4, 4, 1, 1, 5, 5, 5, 5, 5],
+            "rusic2007": [
+                11010,
+                11010,
+                11010,
+                11010,
+                11010,
+                11010,
+                11010,
+                11010,
+                11010,
+                11020,
+                11020,
+                11020,
+                11020,
+                11020,
+            ],
+            "region": [
+                "AA",
+                "AA",
+                "AA",
+                "AA",
+                "AA",
+                "AA",
+                "AA",
+                "AA",
+                "AA",
+                "AA",
+                "AA",
+                "AA",
+                "AA",
+                "AA",
+            ],
+            "y": [
+                10.2,
+                30.0,
+                30.6,
+                265.2,
+                306.0,
+                1100.0,
+                632.4,
+                3111.0,
+                10230.6,
+                30.6,
+                40.8,
+                295.8,
+                306.0,
+                500.0,
+            ],
+            "x": [1, 2, 3, 26, 30, 48, 62, 305, 1003, 3, 4, 29, 30, 40],
+            "Nh": [8, 8, 8, 9, 9, 9, 1, 1, 1, 4, 4, 10, 10, 10],
+            "Nk": [8, 8, 8, 10, 10, 10, 10, 1, 1, 14, 14, 14, 14, 14],
+            "sum_y": [
+                416.4,
+                416.4,
+                416.4,
+                4030.0,
+                4030.0,
+                4030.0,
+                4030.0,
+                3111.0,
+                10230.6,
+                2876.6,
+                2876.6,
+                2876.6,
+                2876.6,
+                2876.6,
+            ],
+            "sum_x": [
+                40,
+                40,
+                40,
+                278,
+                278,
+                278,
+                278,
+                305,
+                1003,
+                273,
+                273,
+                273,
+                273,
+                273,
+            ],
+        }
     )
-    def test_calc_lower_e(self):
-        """Test for calc_lower_e with nan."""
-
-        input_df = self.create_input_df()
-        expected_result = 14
-
-        # Call calc_lower_e function
-        actual_result = calw.calc_lower_e(input_df, "employment")
-        assert actual_result == expected_result, "calc_lower_e not behaving as expected"
 
 
-class TestCalcLowerS:
-    """Test for calc_lower_s"""
-
-    def create_input_df(self):
-        """Creates input dataframe"""
-        cols = ["reference", "cellnumber", "employment", "outlier"]
-        data = [
-            [1, 22, 100, False],
-            [2, 22, 10, False],
-            [3, 22, 5, False],
-            [4, 8, 60, False],
-            [5, 8, 45, True],
-            [6, 8, 100, True],
-        ]
-        input_df = pd.DataFrame(data=data, columns=cols)
-        return input_df
-
-    def test_calc_lower_s(self):
-        """Test for lower_s calculation"""
-
-        input_df = self.create_input_df()
-        # Call calc_lower_s function
-        actual_result = calw.calc_lower_s(input_df, "employment", "outlier")
-        # Define expected result
-        expected_result = 145
-        assert actual_result == expected_result, "calc_lower_s not behaving as expected"
+@pytest.fixture
+def expected_a_weights() -> pd.DataFrame:
+    """Expected output for a_Weight value by cell"""
+    return pd.DataFrame(
+        {
+            "cell_no": [1, 2, 3, 4, 5, 6, 7],
+            "a_weight": [2.666667, 3.0, 1.0, 1.0, 1.0, 2.0, 3.333333],
+        }
+    )
 
 
-class TestCalcLowerSNoOutliers:
-    """Test to check if calc_lower_s returns 0 when there are no outliers"""
-
-    def create_input_df(self):
-        """Creates input dataframe"""
-        cols = ["reference", "cellnumber", "employment", "outlier"]
-        data = [
-            [1, 22, 100, False],
-            [2, 22, 10, False],
-            [3, 22, 5, False],
-            [4, 8, 60, False],
-            [5, 8, 45, False],
-            [6, 8, 100, False],
-        ]
-        input_df = pd.DataFrame(data=data, columns=cols)
-        return input_df
-
-    def test_calc_lower_s_emptydf_(self):
-        """Test for lower_s calculation"""
-
-        input_df = self.create_input_df()
-        # Call calc_lower_s function
-        actual_result = calw.calc_lower_s(input_df, "employment", "outlier")
-        # Define expected result
-        expected_result = 0
-        assert actual_result == expected_result, "calc_lower_s not behaving as expected"
+@pytest.fixture
+def expected_g_weights() -> pd.DataFrame:
+    """Expected g_weight value by calibration group k"""
+    return pd.DataFrame(
+        {
+            "k": [1, 2, 3, 4, 5],
+            "g_weight": [2.5, 0.743316, 1.0, 1.0, 0.793605],
+        }
+    )
 
 
-# Five tests for calculate_weights:
-# testing calculate_weights where missing outlier col
-# testing calculate_weights filter
-# testing calculate_weights 709 to numeric with no missing vals
-# testing calculate_weights 709 to numeric with missing vals
-# testing calculate_weights with missing vals
-class TestCalcWeightFactors:
-    """Tests for calculate_weights function."""
-
-    def create_input_df(self):
-        """Creates input df for test"""
-        input_cols = [
-            "reference",
-            "instance",
-            "cellnumber",
-            "709",
-            "uni_count",
-            "uni_employment",
-            "employment",
-            "outlier",
-        ]
-
-        data = [
-            [1, 0, 1, "12", 20, 5000, 66, True],
-            [2, 0, 2, 14, 4, 5000, 77, False],
-            [3, 0, 1, 1, 20, 5000, 11, False],
-            [4, 0, 4, 18, 3, 5000, 88, False],
-            [5, 0, 2, 14, 4, 5000, 22, False],
-            [6, 0, 1, 10, 20, 5000, 7, False],
-            [7, 0, 5, 20, 50, 5000, 20, False],
-            [8, 0, 2, np.nan, 4, 5000, 7, False],
-            [9, 0, 1, 5, 20, 5000, 44, False],
-            [10, 0, 1, 10, 20, 5000, 44, False],
-            [11, 0, 5, 20, 50, 5000, 20, False],
-        ]
-
-        input_df = pd.DataFrame(data=data, columns=input_cols)
-        return input_df
-
-    def create_expected_output(self):
-        """Creates expected df for test"""
-        expected_cols = [
-            "reference",
-            "instance",
-            "cellnumber",
-            "709",
-            "uni_count",
-            "uni_employment",
-            "employment",
-            "outlier",
-            "a_weight",
-            "g_weight",
-        ]
-
-        data = [
-            [1, 0, 1, "12", 20, 5000, 66, True, 1.0, 1.0],
-            [2, 0, 2, 14, 4, 5000, 77, False, 1.3, 35.4],
-            [3, 0, 1, 1, 20, 5000, 11, False, 4.8, 9.8],
-            [4, 0, 4, 18, 3, 5000, 88, False, 3.0, 18.9],
-            [5, 0, 2, 14, 4, 5000, 22, False, 1.3, 35.4],
-            [6, 0, 1, 10, 20, 5000, 7, False, 4.8, 9.8],
-            [7, 0, 5, 20, 50, 5000, 20, False, 25.0, 5.0],
-            [8, 0, 2, np.nan, 4, 5000, 7, False, 1.3, 35.4],
-            [9, 0, 1, 5, 20, 5000, 44, False, 4.8, 9.8],
-            [10, 0, 1, 10, 20, 5000, 44, False, 4.8, 9.8],
-            [11, 0, 5, 20, 50, 5000, 20, False, 25.0, 5.0],
-        ]
-        expected_df = pd.DataFrame(data=data, columns=expected_cols)
-        return expected_df
-
-    def create_expected_qa(self):
-        """Creates expected qa df for test"""
-        expected_qa_cols = [
-            "cellnumber",
-            "N",
-            "n",
-            "o",
-            "E",
-            "e",
-            "s",
-            "a_weight",
-            "g_weight",
-        ]
-
-        data = [
-            [1, 20, 5, 1, 5000, 172, 66, 4.8, 9.8],
-            [2, 4, 3, 0, 5000, 106, 0, 1.3, 35.4],
-            [4, 3, 1, 0, 5000, 88, 0, 3.0, 18.9],
-            [5, 50, 2, 0, 5000, 40, 0, 25.0, 5.0],
-        ]
-
-        expected_qa_df = pd.DataFrame(data=data, columns=expected_qa_cols)
-        return expected_qa_df
-
-    @pytest.mark.skip(reason="WIP: expected QA column names are being updated")
-    def test_calculate_weights_g_weight_true(self):
-        """Test for calculate_weights with g_weight set to True"""
-
-        input_df = self.create_input_df()
-        expected_df = self.create_expected_output()
-        expected_qa_df = self.create_expected_qa()
-        print(expected_qa_df.columns)
-        result_df, result_qa_df = run_estimation(
-            input_df,
-            "cellnumber",
-            "reference",
-            "uni_count",
-            "employment",
-            "uni_employment",
-            "outlier",
-            incl_g_wts=True,
-        )
-
-        for df in [result_qa_df, result_df]:
-            df["a_weight"] = df["a_weight"].round(1)
-            df["g_weight"] = df["g_weight"].round(1)
-
-        assert_frame_equal(result_df, expected_df, check_exact=False, rtol=0.01)
-        assert_frame_equal(result_qa_df, expected_qa_df, check_exact=False, rtol=0.01)
-
-    def test_calculate_weights_g_weight_false(self):
-        """Test for calculate_weights for filter
-        and np.nan taken out of calculation"""
-
-        input_df = self.create_input_df()
-        expected_df = self.create_expected_output()
-        expected_qa_df = self.create_expected_qa()
-
-        expected_df = expected_df.drop(columns=["g_weight"])
-        expected_qa_df = expected_qa_df.drop(columns=["E", "e", "s", "g_weight"])
-
-        result_df, result_qa_df = run_estimation(
-            input_df,
-            "cellnumber",
-            "reference",
-            "uni_count",
-            "employment",
-            "uni_employment",
-            "outlier",
-            incl_g_wts=False,
-        )
-
-        # Round specified columns in each DataFrame
-        for df in [result_qa_df, result_df]:
-            df["a_weight"] = df["a_weight"].round(1)
-
-        # Ensure both DataFrames have the same data type for the "709" column
-        result_df["709"] = result_df["709"].astype(float)
-        expected_df["709"] = expected_df["709"].astype(float)
-
-        assert_frame_equal(
-            result_df, expected_df, check_exact=False, rtol=0.01, check_dtype=False
-        )
-        assert_frame_equal(
-            result_qa_df,
-            expected_qa_df,
-            check_exact=False,
-            rtol=0.01,
-            check_dtype=False,
-        )
+@pytest.fixture
+def expected_qa_df() -> pd.DataFrame:
+    """Expected output for QA dataframe."""
+    return pd.DataFrame(
+        {
+            "k": [1, 2, 3, 4, 5],
+            "N": [8, 9, 1, 1, 4],
+            "n": [3, 3, 1, 1, 2],
+            "univ_aux_sum": [40.0, 278.0, 305.0, 1003.0, 273.0],
+            "aux_col_sum": [6.0, 166.0, 305.0, 1003.0, 106.0],
+            "g_weight": [2.5, 0.743316, 1.0, 1.0, 0.793605],
+        }
+    )
 
 
-class TestOutlierWeight:
-    """Test for outlier_weights."""
+def test_calculation_a_weights(
+    input_data: pd.DataFrame, expected_a_weights: pd.DataFrame
+) -> None:
+    """Test a_weight =Nh/nh per stratum."""
+    result = calculate_a_weights(
+        input_data,
+        strata_col="cell_no",
+        ru_col="ruref",
+        univ_count_col="Nh",
+    )
+    actual = result.groupby("cell_no")["a_weight"].first().reset_index()
+    actual = actual.sort_values("cell_no").reset_index(drop=True)
+    expected = expected_a_weights.sort_values("cell_no").reset_index(drop=True)
+    assert_frame_equal(actual, expected, check_exact=False, rtol=1e-6)
 
-    def create_input_df(self):
-        """Creates input df for test"""
-        input_cols = ["reference", "outlier"]
-        data = [
-            [1, True],
-            [2, False],
-            [2, True],
-            [4, True],
-            [1, False],
-        ]
 
-        input_df = pd.DataFrame(data=data, columns=input_cols)
-        return input_df
+def test_calc_lower_n_counts_unique_ruref(input_data: pd.DataFrame) -> None:
+    """Test calc_lower_n counts unique reporting units."""
+    cell_one = input_data[input_data["cell_no"] == 1]
+    actual = calc_lower_n(cell_one, "ruref")
+    assert actual == 3
 
-    def create_expected_output(self):
-        """Creates expected df for test"""
-        expected_cols = ["reference", "outlier", "a_weight", "g_weight"]
 
-        data = [
-            [1, True, 1.0, 1.0],
-            [2, False, None, None],
-            [2, True, 1.0, 1.0],
-            [4, True, 1.0, 1.0],
-            [1, False, None, None],
-        ]
+def test_calc_aux_col_sum(input_data: pd.DataFrame) -> None:
+    """Test calc_aux_col_sum returns the sum of x in a subset."""
+    k_two = input_data[input_data["k"] == 2]
+    actual = calc_aux_col_sum(k_two, "x")
+    assert actual == 166
 
-        expected_df = pd.DataFrame(data=data, columns=expected_cols)
-        return expected_df
 
-    def test_outlier_weights(self):
-        """Test for outlier_weights."""
-        input_df = self.create_input_df()
-        expected_df = self.create_expected_output()
+def test_calculate_g_weights(
+    input_data: pd.DataFrame, expected_g_weights: pd.DataFrame
+) -> None:
+    """Test g_weight = sum_x / sum(a * x) per calibration group k."""
+    df_with_a = calculate_a_weights(
+        input_data,
+        strata_col="cell_no",
+        ru_col="ruref",
+        univ_count_col="Nh",
+    )
+    result = calculate_g_weights(
+        df_with_a,
+        strata_col="k",
+        aux_col="x",
+        univ_aux_col="sum_x",
+    )
 
-        result_df = calw.outlier_weights(input_df, "outlier", incl_g_wts=True)
-        assert_frame_equal(result_df, expected_df)
+    actual = result.groupby("k")["g_weight"].first().reset_index()
+    actual = actual.sort_values("k").reset_index(drop=True)
+    expected = expected_g_weights.sort_values("k").reset_index(drop=True)
+
+    assert_frame_equal(actual, expected, check_exact=False, rtol=1e-5)
+
+
+def test_g_weight_same_within_group(input_data: pd.DataFrame) -> None:
+    """All rows in same k should have the same g_weight even with mixed a values."""
+    df_with_a = calculate_a_weights(
+        input_data, strata_col="cell_no", ru_col="ruref", univ_count_col="Nh"
+    )
+    result = calculate_g_weights(
+        df_with_a, strata_col="k", aux_col="x", univ_aux_col="sum_x"
+    )
+
+    k2 = result[result["k"] == 2]
+    assert k2["g_weight"].nunique() == 1, "All rows in k=2 should have same g_weight"
+    assert k2["g_weight"].iloc[0] == pytest.approx(278 / 374, rel=1e-5)
+
+
+def test_create_weights_qa_df(
+    input_data: pd.DataFrame, expected_qa_df: pd.DataFrame
+) -> None:
+    """Test QA dataframe values with g weights included."""
+    df_with_a = calculate_a_weights(
+        input_data, strata_col="cell_no", ru_col="ruref", univ_count_col="Nh"
+    )
+    df_with_g = calculate_g_weights(
+        df_with_a, strata_col="k", aux_col="x", univ_aux_col="sum_x"
+    )
+    qa = create_weights_qa_df(df_with_g, strata_col="k", incl_g_wts=True)
+
+    actual = qa[["k", "N", "n", "univ_aux_sum", "aux_col_sum", "g_weight"]]
+    actual = actual.sort_values("k").reset_index(drop=True)
+    expected = expected_qa_df.sort_values("k").reset_index(drop=True)
+
+    assert_frame_equal(
+        actual, expected, check_exact=False, rtol=1e-5, check_dtype=False
+    )
+
+
+def test_create_weights_qa_df_no_g_weights(input_data: pd.DataFrame) -> None:
+    """Test QA dataframe columns when g weights are not included."""
+    df_with_a = calculate_a_weights(
+        input_data, strata_col="cell_no", ru_col="ruref", univ_count_col="Nh"
+    )
+    qa = create_weights_qa_df(df_with_a, strata_col="cell_no", incl_g_wts=False)
+
+    assert list(qa.columns) == ["cell_no", "N", "n", "a_weight"]
