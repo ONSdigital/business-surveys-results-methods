@@ -6,11 +6,11 @@ suitable for unit tests by inferring column types and applying any specified ove
 """
 
 import logging
-from dataclasses import dataclass, field
 from pathlib import Path
 
 import pandas as pd
 import pandas.api.types as ptypes
+import textwrap
 
 logging.basicConfig(
     level=logging.INFO,
@@ -18,105 +18,70 @@ logging.basicConfig(
 )
 
 
-@dataclass
-class Config:
-    """Validate inputs and create a dataclass for the script configuration.
+def validate_configuration(
+    csv_directory: str,
+    files: list[str],
+    function_name: str,
+    column_type_override: dict[str, list[str]] | None = None,
+) -> None:
+    """Validate configuration parameters to ensure they meet expected criteria.
 
-    Attributes
+    Parameters
     ----------
-    csv_directory : str
-        Directory path where CSV files are located.
-    files : list[str]
-        List of CSV filenames to process.
-    function_name : str
-        Name of the function to be tested. This will populate the test code with
-        given function_name
-    column_type_override : dict[str, list[str]]
-        Dictionary mapping column types to lists of columns to override the
-        inferred types. Currently supported type overrides are string & float.
+    csv_directory (str): Directory path where CSV files are located.
+    files (list[str]): List of CSV filenames to process.
+    function_name (str): Name of the function to be tested.
+    column_type_override (dict[str, list[str]] | None): Dictionary mapping column types
+        to lists of columns. Defaults to None.
+
+    Raises
+    ------
+    TypeError: If any attribute is not of the expected type.
+    ValueError: If csv_directory is not a valid directory or contains non-CSV files.
     """
+    if not isinstance(csv_directory, str):
+        error_msg = "csv_directory must be a string"
+        raise TypeError(error_msg)
+    if not Path(csv_directory).is_dir():
+        error_msg = f"Invalid CSV path: {csv_directory}"
+        raise ValueError(error_msg)
 
-    csv_directory: str
-    files: list[str]
-    function_name: str
-    column_type_override: dict[str, list[str]] = field(default_factory=dict)
+    if not isinstance(files, list):
+        error_msg = "files must be a list of strings"
+        raise TypeError(error_msg)
+    if any(not isinstance(file, str) or not file.endswith(".csv") for file in files):
+        error_msg = "All files must be CSV files and must be strings"
+        raise ValueError(error_msg)
 
-    def __post_init__(self) -> None:
-        """Run validations after initialization to ensure configuration correctness."""
-        self.validate()
+    if not isinstance(function_name, str):
+        error_msg = "function_name must be a string"
+        raise TypeError(error_msg)
+    if not function_name.isidentifier():
+        error_msg = "function_name must be formatted as a function, i.e 'create_schema'"
+        raise ValueError(error_msg)
 
-    def validate(self) -> None:
-        """
-        Validate the configuration values to ensure they meet the expected criteria.
+    if column_type_override is None:
+        column_type_override = {}
 
-        Raises
-        ------
-        TypeError
-            If any attribute is not of the expected type.
-        ValueError
-            If `csv_directory` is not a valid directory or contains non-CSV files.
-        """
-        if not isinstance(self.csv_directory, str):
-            error_msg = "csv_directory must be a string"
+    example_err = (
+        "i.e column_type_override={'string': ['names', 'cars'], 'float': ['wts']}"
+    )
+    if not isinstance(column_type_override, dict):
+        error_msg = f"column_type_override must be a dictionary {example_err}"
+        raise TypeError(error_msg)
+    for key, value in column_type_override.items():
+        if not isinstance(key, str):
+            error_msg = f"Keys in column_type_override must be strings {example_err}"
             raise TypeError(error_msg)
-        if not Path(self.csv_directory).is_dir():
-            error_msg = f"Invalid CSV path: {self.csv_directory}"
-            raise ValueError(error_msg)
-
-        if not isinstance(self.files, list):
-            error_msg = "files must be a list of strings"
+        if not isinstance(value, list):
+            error_msg = f"Values in column_type_override must be lists {example_err}"
             raise TypeError(error_msg)
-        if any(
-            not isinstance(file, str) or not file.endswith(".csv")
-            for file in self.files
-        ):
-            error_msg = "All files must be CSV files and must be strings"
-            raise ValueError(error_msg)
-
-        if not isinstance(self.function_name, str):
-            error_msg = "function_name must be a string"
-            raise TypeError(error_msg)
-        if not self.function_name.isidentifier():
+        if any(not isinstance(col, str) for col in value):
             error_msg = (
-                "function_name must be formatted as a function, i.e 'create_schema' "
+                "All column names in column_type_override must be strings "
+                f"{example_err}"
             )
-            raise ValueError(error_msg)
-
-        example_err = (
-            "i.e column_type_override={'string': ['names', 'cars'], 'float': ['wts']}"
-        )
-        if not isinstance(self.column_type_override, dict):
-            error_msg = f"column_type_override must be a dictionary {example_err}"
             raise TypeError(error_msg)
-        for key, value in self.column_type_override.items():
-            if not isinstance(key, str):
-                error_msg = (
-                    f"Keys in column_type_override must be strings {example_err}"
-                )
-                raise TypeError(error_msg)
-            if not isinstance(value, list):
-                error_msg = (
-                    f"Values in column_type_override must be lists {example_err}"
-                )
-                raise TypeError(error_msg)
-            if any(not isinstance(col, str) for col in value):
-                error_msg = (
-                    "All column names in column_type_override must be strings "
-                    f"{example_err}"
-                )
-                raise TypeError(error_msg)
-
-    @property
-    def class_name(self) -> str:
-        """
-        Convert the function name to CamelCase for use as a class name.
-
-        Returns
-        -------
-        str
-            The CamelCase class name derived from the function_name.
-        """
-        return "".join(word.capitalize() for word in self.function_name.split("_"))
 
 
 def infer_column_types(df: pd.DataFrame) -> dict[str, list[str]]:
@@ -129,14 +94,12 @@ def infer_column_types(df: pd.DataFrame) -> dict[str, list[str]]:
 
     Parameters
     ----------
-    df : pd.DataFrame
-        The input DataFrame to analyze.
+    df (pd.DataFrame): The input DataFrame to analyze.
 
     Returns
     -------
-    dict[str, list[str]]
-        A dictionary mapping column types to lists of column names. Columns with
-        mixed types are classified under 'mixed'.
+    dict[str, list[str]]: Column type mappings as a dictionary with column
+        names grouped by type. Mixed type columns are classified under 'mixed'.
     """
     type_dict: dict[str, list[str]] = {
         "string": [],
@@ -165,9 +128,12 @@ def infer_column_types(df: pd.DataFrame) -> dict[str, list[str]]:
     return type_dict
 
 
-def dataframe_to_string(df: pd.DataFrame, file: str, config: Config) -> str:
-    """
-    Convert a DataFrame to a formatted string representation suitable for unit tests.
+def dataframe_to_string(
+    df: pd.DataFrame,
+    file_name: str,
+    column_type_override: dict[str, list[str]] | None = None,
+) -> str:
+    """Convert a DataFrame to a formatted string representation suitable for unit tests.
 
     This function infers column types and formats the DataFrame accordingly.
     Columns are converted to string representations with specific formatting based
@@ -175,27 +141,27 @@ def dataframe_to_string(df: pd.DataFrame, file: str, config: Config) -> str:
 
     Parameters
     ----------
-    df : pd.DataFrame
-        The input DataFrame to convert.
-    file : str
-        The name of the file the DataFrame was read from, used for logging.
-    config : Config
-        Configuration object with settings that may affect the conversion.
+    df (pd.DataFrame): The input DataFrame to convert.
+    file_name (str): The name of the file the DataFrame was read from, used for logging.
+    column_type_override (dict[str, list[str]] | None): Dictionary mapping column types
+        to lists of columns. Defaults to None.
 
     Returns
     -------
-    str
-        A string representation of the DataFrame formatted for use in unit tests.
+    str: A string representation of the DataFrame formatted for use in unit tests.
     """
-    logging.info(f"Processing DataFrame from file: {file}")
+    if column_type_override is None:
+        column_type_override = {}
+
+    logging.info(f"Processing DataFrame from file: {file_name}")
 
     type_dict = infer_column_types(df)
 
     logging.debug(f"Inferred column types: {type_dict}")
 
-    if config.column_type_override:
+    if column_type_override:
         non_existent_columns = []
-        for col_type, cols in config.column_type_override.items():
+        for col_type, cols in column_type_override.items():
             for col in cols:
                 if col in type_dict.get(col_type, []):
                     type_dict[col_type].remove(col)
@@ -206,122 +172,146 @@ def dataframe_to_string(df: pd.DataFrame, file: str, config: Config) -> str:
         if non_existent_columns:
             msg = (
                 "The following columns to override do not exist in the DataFrame "
-                f"'{file}': {', '.join(non_existent_columns)}"
+                f"'{file_name}': {', '.join(non_existent_columns)}"
             )
             logging.warning(msg)
 
     df = df.astype(str)
 
+    # Format string columns with quotes
     for col in type_dict["string"]:
-        df.loc[df[col] != "nan", col] = df.loc[df[col] != "nan", col].apply(
-            lambda x: f'"{x}"',
-        )
+        mask = df[col] != "nan"
+        df.loc[mask, col] = df.loc[mask, col].map(quote_string)
 
+    # Format float columns with decimal points
     for col in type_dict["float"]:
-        df.loc[df[col] != "nan", col] = df.loc[df[col] != "nan", col].apply(
-            lambda x: f"{x}.0" if "." not in x else x,
-        )
+        mask = df[col] != "nan"
+        df.loc[mask, col] = df.loc[mask, col].map(ensure_decimal)
 
     df = df.replace("nan", "np.nan")
 
     tab = " " * 4
-    col_string = "".join([f'{tab}{tab}{tab}"{col}",\n' for col in df.columns])
+    col_string = "".join(f'{tab}"{col}",\n' for col in df.columns)
+    rows_string = "\n".join(f"{tab}[{', '.join(row)}]," for row in df.to_numpy())
+    data_string = f"columns = [\n{col_string}]\ndata = [\n{rows_string}\n]\n"
 
-    df["output"] = (
-        f"{tab}[" + df[df.columns[:]].apply(lambda row: ", ".join(row), axis=1) + "],"
-    )
-    rows_string = df["output"].str.cat(sep=f"\n{tab}{tab}")
-
-    data_string = f"""columns = [\n{col_string}{tab}{tab}]\n
-        data = [\n{tab}{tab}{rows_string}\n{tab}{tab}]\n"""
-
-    logging.info(f"Data string generated for file: {file}")
+    logging.info(f"Data string generated for file: {file_name}")
 
     return data_string
 
 
-def generate_test_code(config: Config, data_strings: dict[str, str]) -> str:
-    """
-    Generate a unit test code string based on configuration and data strings.
+def quote_string(value: str) -> str:
+    """Wrap a value in double quotes."""
+    return f'"{value}"'
 
-    The function creates imports, class definitions, fixture functions,
-    and test functions necessary for unit testing a given function. It uses
-    the configuration to customize the class name and imports.
+
+def ensure_decimal(value: str) -> str:
+    """Add a decimal suffix if a value looks like an integer."""
+    return f"{value}.0" if "." not in value else value
+
+
+def build_fixture_definition(file_name: str, data_string: str) -> tuple[str, str]:
+    """Build one top-level pytest fixture function."""
+    fixture_name = (
+        file_name.replace(".csv", "").replace("-", "_").replace(" ", "_").lower()
+    )
+    fixture_defs = (
+        f'\n@pytest.fixture(scope="function")\n'
+        f"def {fixture_name}():\n"
+        f'    """Data from {file_name}."""\n'
+        f"{textwrap.indent(data_string, '    ')}"
+        f"    return pd.DataFrame(columns=columns, data=data)\n"
+    )
+    return fixture_name, fixture_defs
+
+
+def build_test_definition(
+    function_name: str, fixture_names: list[str], source_file_name: str
+) -> str:
+    """Build one top-level test function."""
+    fixture_args = ", ".join(fixture_names)
+    expected_fixture = fixture_names[-1]
+    fixture_arg = (
+        source_file_name.replace(".csv", "").replace("-", "_").replace(" ", "_").lower()
+    )
+    return (
+        f"\ndef test_{function_name}({fixture_args}):\n"
+        f'    """General tests for {function_name}."""\n'
+        f"    output = {function_name}({fixture_arg})\n"
+        f"    assert output.equals({expected_fixture}), "
+        f'"{function_name} file not behaving as expected"\n'
+    )
+
+
+def generate_test_code(function_name: str, data_strings: dict[str, str]) -> str:
+    """Generate a unit test code string based on configuration and data strings.
+
+    The function creates imports, fixture functions, and test functions necessary
+    for unit testing a given function.
 
     Parameters
     ----------
-    config : Config
-        Configuration object with settings for test generation.
-    data_strings : dict[str, str]
-        Dictionary mapping filenames to their corresponding data strings.
+    function_name (str): Name of the function to be tested.
+    data_strings (dict[str, str]): Dictionary mapping filenames to their corresponding
+        data strings.
 
     Returns
     -------
-    str
-        The generated unit test code as a string.
+    str: The generated unit test code as a string.
     """
     imports = (
         "import pandas as pd\n"
         "import numpy as np\n"
         "import pytest\n"
-        f"import {config.function_name}  "
-        f"# Please insert correct pathway to function import\n"
-    )
-
-    class_def = (
-        f'\n\nclass {config.class_name}:\n    """Tests for {config.function_name}."""\n'
+        f"from {function_name} import {function_name}\n"
     )
 
     fixture_defs = ""
     fixture_names = []
 
-    for file, data_string in data_strings.items():
-        fixture_name = file.replace(".csv", "").replace("-", "_").replace(" ", "_")
+    for file_name, data_string in data_strings.items():
+        fixture_name, fixture_def = build_fixture_definition(file_name, data_string)
         fixture_names.append(fixture_name)
-        fixture_defs += (
-            f'\n    @pytest.fixture(scope="function")\n'
-            f"    def {fixture_name}(self):\n"
-            f'        """Data from {file}."""\n'
-            f"        {data_string}\n"
-            f"        return pd.DataFrame(columns=columns, data=data)\n"
-        )
+        fixture_defs += fixture_def
 
-    test_def = (
-        f"\n    def test_{config.function_name}(self, {', '.join(fixture_names)}): "
-        "# Please construct your function\n"
-        f'        """General tests for {config.function_name}."""\n'
-        f"        output = {config.function_name}({list(data_strings.keys())[0]})\n"
-        f'        assert output.equals({fixture_names[-1]}), "{config.function_name} '
-        'file not behaving as expected"\n'
+    test_def = build_test_definition(
+        function_name=function_name,
+        fixture_names=fixture_names,
+        source_file_name=list(data_strings.keys())[0],
     )
 
-    return f"{imports}{class_def}{fixture_defs}{test_def}"
+    return f"{imports}{fixture_defs}{test_def}"
 
 
-def process_dataframe(config: Config) -> None:
-    """
-    Process CSV files, generate unit test code, and save it to a Python (.py) file.
+def process_dataframe(
+    csv_directory: str,
+    files: list[str],
+    function_name: str,
+    column_type_override: dict[str, list[str]] | None = None,
+) -> None:
+    """Process CSV files, generate unit test code, and save it to a Python (.py) file.
 
-    This function reads CSV files specified in the configuration, converts each
-    DataFrameto a string representation suitable for unit tests, and generates
-    test code based on the provided configuration. It handles file reading errors
+    This function reads CSV files, converts each DataFrame to a string representation
+    suitable for unit tests, and generates test code. It handles file reading errors
     and logs relevant information.
 
     Parameters
     ----------
-    config : Config
-        Configuration object containing settings such as file paths, function name to
-        test,and column type overrides.
+    csv_directory (str): Directory path where CSV files are located.
+    files (list[str]): List of CSV filenames to process.
+    function_name (str): Name of the function to be tested.
+    column_type_override (dict[str, list[str]] | None): Dictionary mapping column types
+        to lists of columns. Defaults to None.
 
     Raises
     ------
-    IOError
-        If there is an error writing the test code to the output file.
+    IOError: If there is an error writing the test code to the output file.
     """
+    if column_type_override is None:
+        column_type_override = {}
+
     missing_files = [
-        file
-        for file in config.files
-        if not (Path(config.csv_directory) / file).is_file()
+        file for file in files if not (Path(csv_directory) / file).is_file()
     ]
 
     if missing_files:
@@ -330,22 +320,24 @@ def process_dataframe(config: Config) -> None:
 
     data_strings: dict[str, str] = {}
 
-    for file in config.files:
+    for file_name in files:
         try:
-            df = pd.read_csv(Path(config.csv_directory) / file)
-            data_strings[file] = dataframe_to_string(df, file, config)
-            logging.info(f"Successfully read and processed file: {file}")
+            df = pd.read_csv(Path(csv_directory) / file_name)
+            data_strings[file_name] = dataframe_to_string(
+                df, file_name, column_type_override
+            )
+            logging.info(f"Successfully read and processed file: {file_name}")
         except pd.errors.EmptyDataError:
-            logging.error(f"File is empty: {file}")
+            logging.error(f"File is empty: {file_name}")
         except pd.errors.ParserError:
-            logging.error(f"File could not be parsed: {file}")
+            logging.error(f"File could not be parsed: {file_name}")
         except Exception as e:
-            logging.error(f"Error reading or processing file {file}: {e}")
+            logging.error(f"Error reading or processing file {file_name}: {e}")
             return
 
-    test_code = generate_test_code(config, data_strings)
+    test_code = generate_test_code(function_name, data_strings)
 
-    output_path = Path(config.csv_directory) / f"test_{config.function_name}.py"
+    output_path = Path(csv_directory) / f"test_{function_name}.py"
 
     try:
         with Path(output_path).open("w") as text_file:
@@ -357,49 +349,34 @@ def process_dataframe(config: Config) -> None:
 
 def main(
     csv_directory: str,
-    files: list,
+    files: list[str],
     function_name: str,
-    column_type_override: dict,
+    column_type_override: dict[str, list[str]] | None = None,
 ) -> None:
-    """Initialise configuration and process CSV files for unit testing.
-
-    This function sets up the configuration with paths, filenames, and function names,
-    and then calls `process_dataframe` to handle the CSV files and generate the test
-    code.
+    """Generate unit test code from CSV files.
 
     Parameters
     ----------
-    csv_directory : str
-        The path to the directory containing the CSV files.
-    files : list
-        A list of filenames to process.
-    function_name : str
-        The name of the function to generate tests for.
-    column_type_override : dict
-        A dictionary to override column types.
-
-    Returns
-    -------
-    None
+    csv_directory (str): Directory path where CSV files are located.
+    files (list[str]): List of CSV filenames to process.
+    function_name (str): Name of the function to be tested.
+    column_type_override (dict[str, list[str]] | None): Dictionary mapping column types
+        to lists of columns. Defaults to None.
     """
-    config = Config(
-        csv_directory=csv_directory,
-        files=files,
-        function_name=function_name,
-        column_type_override=column_type_override,
-    )
+    if column_type_override is None:
+        column_type_override = {}
 
-    process_dataframe(config)
+    validate_configuration(csv_directory, files, function_name, column_type_override)
+    process_dataframe(csv_directory, files, function_name, column_type_override)
 
 
-# Example usage:
 if __name__ == "__main__":
     main(
-        csv_directory="D:/coding_projects/randd_test_data/",
-        files=["itl_test_input.csv", "itl_test_expected_output.csv"],
+        csv_directory="D:/business-surveys-results-methods/data",
+        files=["Estimation_input.csv", "Estimation_output.csv"],
         function_name="new_function",
         column_type_override={
-            "string": ["reference", "postcode", "itl", "ITL221CD", "ITL221NM"],
-            "float": [],
+            "string": ["cell_no"],
+            "float": ["y", "x", "sum_y", "sum_x"],
         },
     )
