@@ -35,7 +35,8 @@ class CustomFormatter(logging.Formatter):
 def logger_creator(config: dict) -> logging.Logger:
     """Create and configure a logger based on the provided config.
 
-    Args:
+    Parameters
+    ----------
         config (dict): Configuration dictionary with logging settings.
 
     Returns

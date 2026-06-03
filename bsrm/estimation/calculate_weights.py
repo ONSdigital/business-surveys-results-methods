@@ -1,0 +1,227 @@
+"""Functions to calculate estimation weights for survey data."""
+
+import pandas as pd
+import logging
+
+CalcWeights_Logger = logging.getLogger(__name__)
+
+
+def calc_lower_n(df: pd.DataFrame, ru_column: str) -> int:
+    """Calculate 'n' which is a number of unique reporting units (RUs) in the dataset.
+
+    Parameters
+    ----------
+        df (pd.DataFrame): The input dataframe which contains survey data,
+            including expenditure data
+        ru_column (str): The name of the column containing reporting unit identifiers.
+
+    Returns
+    -------
+        int: The number of unique reporting units (RUs).
+    """
+    n = df[ru_column].nunique()
+
+    return n
+
+
+def calc_aux_col_sum(df: pd.DataFrame, aux_col: str) -> int:
+    """Calculate aux_col_sum: sum of auxiliary data for sampled units.
+
+    Parameters
+    ----------
+        df (pd.DataFrame): The input dataframe which contains survey data,
+            including auxiliary data.
+        aux_col (str): The name of the auxiliary column for this calculation.
+
+    Returns
+    -------
+        int: The sum of auxiliary data for sampled units.
+    """
+    aux_col_sum = df[aux_col].sum()
+
+    return aux_col_sum
+
+
+def a_weight(
+    strata_group: pd.DataFrame, ru_column: str, univ_count_col: str
+) -> pd.DataFrame:
+    """Calculate the 'a' weighting factor for a stratum group.
+
+    The calculation here is:
+
+    a = (N/n)
+
+    Where:
+        N is population (universe) count for the stratum
+        n is the number of valid returns for the stratum
+
+
+
+    Parameters
+    ----------
+        strata_group (pd.DataFrame): The dataframe grouped by strata.
+        ru_column (str): The name of the column containing reporting unit identifiers.
+        univ_count_col (str): The name of the column containing the total number of
+            reporting units in the stratum.
+
+    Returns
+    -------
+        pd.DataFrame: The dataframe with the 'a' weighting factor calculated.
+    """
+    if strata_group.empty:
+        return strata_group
+
+    N = strata_group[univ_count_col].iloc[0]  # noqa: N806 (allow capitals for vars)
+    n = calc_lower_n(strata_group, ru_column)
+
+    # Calculate 'a' for this group
+    if n > 0:
+        a_weight = N / n
+    else:
+        a_weight = 1.0
+
+    strata_group["N"] = N
+    strata_group["n"] = n
+
+    strata_group["a_weight"] = a_weight
+
+    return strata_group
+
+
+def calc_g_weight(
+    strata_group: pd.DataFrame, aux_col: str, univ_aux_col: str
+) -> pd.DataFrame:
+    """Calculate the 'g' weighting factor for a stratum group.
+
+    The calculation for the g-weight is:
+
+    g = (univ_aux_col ) / a * (aux_col )
+
+    Where:
+        - univ_aux_col is the universe auxiliary total for all reporting
+            units in the stratum
+        - aux_col is the sample auxiliary total for all sampled valid
+            responses in the stratum
+        - a is the 'a' weighting factor for the stratum
+
+    Parameters
+    ----------
+        strata_group (pd.DataFrame): The dataframe grouped by strata.
+        aux_col (str): The name of the column containing auxiliary employment data.
+        univ_aux_col (str): The name of the column containing the total auxiliary
+            employment in the stratum.
+
+    Returns
+    -------
+        pd.DataFrame: The dataframe with the 'g' weighting factor calculated.
+    """
+    if strata_group.empty:
+        return strata_group
+
+    univ_aux_col_value = strata_group[univ_aux_col].iloc[0]  # noqa: N806
+    a_weight_value = strata_group["a_weight"].iloc[0]
+    aux_col_sum = calc_aux_col_sum(strata_group, aux_col)
+
+    # Calculate 'g' for this group
+
+    if aux_col_sum > 0:
+        g_weight = univ_aux_col_value / (a_weight_value * aux_col_sum)
+    else:
+        g_weight = 1.0
+
+    strata_group["univ_aux_col_value"] = univ_aux_col_value
+    strata_group["aux_col_sum"] = aux_col_sum
+
+    strata_group["g_weight"] = g_weight
+
+    return strata_group
+
+
+def create_weights_qa_df(
+    df: pd.DataFrame, strata_col: str, incl_g_wts: bool = True
+) -> pd.DataFrame:
+    """Create a QA dataframe for the weight calculation.
+
+    Parameters
+    ----------
+        df (pd.DataFrame): The dataframe containing the weights columns.
+        strata_col (str): The name of the column containing stratum identifiers.
+        incl_g_wts (bool, optional): Whether g weights were calculated.
+
+    Returns
+    -------
+        pd.DataFrame: The QA dataframe.
+    """
+    qa_cols_list = [strata_col, "N", "n"]
+    if incl_g_wts:
+        qa_cols_list += [
+            "univ_aux_col_value",
+            "aux_col_sum",
+            "a_weight",
+            "g_weight",
+        ]
+    else:
+        qa_cols_list += ["a_weight"]
+
+    qa_frame = df[qa_cols_list].groupby(strata_col).first()
+    qa_frame = qa_frame.reset_index()
+
+    return qa_frame
+
+
+def calculate_a_weights(
+    df: pd.DataFrame,
+    strata_col: str,
+    ru_col: str,
+    univ_count_col: str,
+) -> pd.DataFrame:
+    """Calculate the 'a' weight for each stratum in the data.
+
+    Parameters
+    ----------
+        df (pd.DataFrame): The input df containing survey data.
+        strata_col (str): The name of the column containing stratum identifiers.
+        ru_col (str): The name of the column containing reference unit data.
+        univ_count_col (str): The name of the column containing the total number of
+            reporting units in the stratum.
+
+
+    Returns
+    -------
+        pd.DataFrame: The full dataframe with the added new column "a_weight".
+    """
+    df = df.copy()
+    df["a_weight"] = 1.0
+    df = df.groupby(strata_col, group_keys=False).apply(
+        a_weight, ru_col, univ_count_col
+    )
+
+    return df
+
+
+def calculate_g_weights(
+    df: pd.DataFrame, strata_col: str, aux_col: str, univ_aux_col: str
+) -> pd.DataFrame:
+    """Calculate the 'g' weight for each stratum in the data.
+
+    Parameters
+    ----------
+        df (pd.DataFrame): The input df containing survey data
+        strata_col (str): The name of the column containing stratum identifiers.
+        aux_col (str): The name of the column containing auxiliary employment data.
+        univ_aux_col (str): The name of the column containing the total number of
+            reporting units in the stratum for auxiliary data.
+        .
+
+    Returns
+    -------
+        pd.DataFrame: The full dataframe with the added new column "g_weight".
+    """
+    df = df.copy()
+
+    df["g_weight"] = 1.0
+    df = df.groupby(strata_col, group_keys=False).apply(
+        calc_g_weight, aux_col, univ_aux_col
+    )
+
+    return df
