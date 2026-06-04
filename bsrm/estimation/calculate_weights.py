@@ -24,24 +24,6 @@ def calc_lower_n(df: pd.DataFrame, ru_column: str) -> int:
     return n
 
 
-def calc_aux_col_sum(df: pd.DataFrame, aux_col: str) -> int:
-    """Calculate aux_col_sum: sum of auxiliary data for sampled units.
-
-    Parameters
-    ----------
-        df (pd.DataFrame): The input dataframe which contains survey data,
-            including auxiliary data.
-        aux_col (str): The name of the auxiliary column for this calculation.
-
-    Returns
-    -------
-        int: The sum of auxiliary data for sampled units.
-    """
-    aux_col_sum = df[aux_col].sum()
-
-    return aux_col_sum
-
-
 def a_weight(
     strata_group: pd.DataFrame, ru_column: str, univ_count_col: str
 ) -> pd.DataFrame:
@@ -122,12 +104,13 @@ def calc_g_weight(
         return strata_group
 
     univ_aux_sum = strata_group[univ_aux_col].iloc[0]
-    aux_col_sum = calc_aux_col_sum(strata_group, aux_col)
+    aux_col_sum = strata_group[aux_col].sum()
+    # sum_ax must be computed row-by-row (a_i * x_i) before summing
+    sum_ax = (strata_group["a_weight"] * strata_group[aux_col]).sum()
 
     # Calculate 'g' for this group
 
-    if aux_col_sum > 0:
-        sum_ax = (strata_group["a_weight"] * strata_group[aux_col]).sum()
+    if aux_col_sum > 0 and sum_ax > 0:
         g_weight = univ_aux_sum / sum_ax
     else:
         g_weight = 1.0
@@ -156,15 +139,9 @@ def create_weights_qa_df(
         pd.DataFrame: The QA dataframe.
     """
     qa_cols_list = [strata_col, "N", "n"]
-    if incl_g_wts:
-        qa_cols_list += [
-            "univ_aux_sum",
-            "aux_col_sum",
-            "a_weight",
-            "g_weight",
-        ]
-    else:
-        qa_cols_list += ["a_weight"]
+    g_weight_cols = ["univ_aux_sum", "aux_col_sum", "a_weight", "g_weight"]
+    a_weight_only_cols = ["a_weight"]
+    qa_cols_list = qa_cols_list + (g_weight_cols if incl_g_wts else a_weight_only_cols)
 
     qa_frame = df[qa_cols_list].groupby(strata_col).first()
     qa_frame = qa_frame.reset_index()
