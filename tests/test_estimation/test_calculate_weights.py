@@ -27,7 +27,7 @@ def sample_data():
     return pd.DataFrame(columns=col_name, data=data)
 
 
-def test_calc_lower_n_for_stratum_1(sample_data):
+def test_calc_lower_n(sample_data):
     """Test for lower n unique business in stratum 1."""
     cell_1 = sample_data[sample_data["cell_no"] == 1]
     result = calc_lower_n(cell_1, "ruref")
