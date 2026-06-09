@@ -57,7 +57,7 @@ def run_estimation(
     # drop intermediate calculation columns
     drop_cols = ["N", "n"]
     if incl_g_wts:
-        drop_cols += ["univ_aux_col_value", "aux_col_sum"]
+        drop_cols += ["univ_aux_sum", "aux_col_sum"]
 
     weighted_df = weighted_df.drop(columns=drop_cols, axis=1)
 

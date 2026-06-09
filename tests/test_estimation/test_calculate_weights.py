@@ -1,339 +1,154 @@
-"""Tests for functions in calculate_weights"""
+"""Tests for functions in calculate_weights."""
 
 import pandas as pd
-import numpy as np
 import pytest
-import bsrm.estimation.calculate_weights as calw
-from bsrm.estimation.estimation_main import run_estimation
-from pandas._testing import assert_frame_equal, assert_series_equal
-
-pytestmark = pytest.mark.skip(reason="Work in progress")
-
-
-@pytest.mark.skip(reason="Work in progress ")
-class TestCalcLowerN:
-    """Test for calc_lower_n with duplicate refs."""
-
-    def test_calc_lower_n(self):
-        """Test for calc_lower_n with duplicate refs."""
-        input_cols = ["reference", "709"]
-        data = [[1, "A"], [2, "B"], [2, "C"], [4, "D"], [1, "E"], [4, np.nan]]
-        input_df = pd.DataFrame(data=data, columns=input_cols)
-
-        # Call calc_lower_n function
-        actual_result = calw.calc_lower_n(input_df, "reference")
-        # Defined expected result
-        expected_result = 3
-        assert actual_result == expected_result, "calc_lower_n not behaving as expected"
-
-    def test_calc_lower_n_nan_ref(self):
-        """Test for calc_lower_n with nan in reference."""
-        input_cols = ["reference", "709"]
-        data = [
-            [1, "A"],
-            [2, "B"],
-            [np.nan, "C"],
-            [4, "D"],
-            [1, "E"],
-        ]
-
-        input_df = pd.DataFrame(data=data, columns=input_cols)
-
-        # Call calc_lower_n function
-        actual_result = calw.calc_lower_n(input_df, "reference")
-
-        # Defined expected result
-        expected_result = 3
-
-        assert actual_result == expected_result, "calc_lower_n not behaving as expected"
+from pandas.testing import assert_frame_equal
+from bsrm.estimation.calculate_weights import (
+    calc_lower_n,
+    calculate_a_weights,
+    calculate_g_weights,
+    create_weights_qa_df,
+)
 
 
-class TestCalcLowerE:
-    """Test for calc_lower_e with nan."""
+def test_calc_lower_n_expected(estimation_input):
+    """Expected output for calc_lower_n."""
+    cell_1 = estimation_input[estimation_input["cell_no"] == "1"]
+    result = calc_lower_n(cell_1, "ruref")
+    assert result == 3
 
-    def create_input_df(self):
-        """Creates input df for test"""
 
-        input_cols = ["employment", "711"]
-        data = [
-            [1, 10],
-            [2, 5],
-            [2, np.nan],
-            [4, np.nan],
-            [1, 10],
-            [4, np.nan],
-        ]
-        input_df = pd.DataFrame(data=data, columns=input_cols)
-        return input_df
+def test_calc_lower_n_single_row(estimation_input):
+    """Expected output for calc_lower_n with single row."""
+    cell_4 = estimation_input[estimation_input["cell_no"] == "4"]
+    result = calc_lower_n(cell_4, "ruref")
+    assert result == 1
 
-    @pytest.mark.skip(
-        reason="WIP: calc_lower_e test not aligned with current implementation"
+
+def test_calc_lower_n_invalid_column(estimation_input):
+    """Test calc_lower_n with invalid column."""
+    with pytest.raises(KeyError):
+        calc_lower_n(estimation_input, "invalid_column")
+
+
+@pytest.mark.skip(reason="WIP - Testing in new branch")
+def test_calculate_a_weights_expected(estimation_input, estimation_output):
+    """test calculate_a_weights with expected output."""
+    result = calculate_a_weights(estimation_input, "cell_no", "ruref", "Nh")
+    result_qa = (
+        result[["cell_no", "a_weight"]]
+        .drop_duplicates()
+        .reset_index(drop=True)
+        .sort_values("cell_no")
+        .reset_index(drop=True)
     )
-    def test_calc_lower_e(self):
-        """Test for calc_lower_e with nan."""
-
-        input_df = self.create_input_df()
-        expected_result = 14
-
-        # Call calc_lower_e function
-        actual_result = calw.calc_lower_e(input_df, "employment")
-        assert actual_result == expected_result, "calc_lower_e not behaving as expected"
-
-
-class TestCalcLowerS:
-    """Test for calc_lower_s"""
-
-    def create_input_df(self):
-        """Creates input dataframe"""
-        cols = ["reference", "cellnumber", "employment", "outlier"]
-        data = [
-            [1, 22, 100, False],
-            [2, 22, 10, False],
-            [3, 22, 5, False],
-            [4, 8, 60, False],
-            [5, 8, 45, True],
-            [6, 8, 100, True],
-        ]
-        input_df = pd.DataFrame(data=data, columns=cols)
-        return input_df
-
-    def test_calc_lower_s(self):
-        """Test for lower_s calculation"""
-
-        input_df = self.create_input_df()
-        # Call calc_lower_s function
-        actual_result = calw.calc_lower_s(input_df, "employment", "outlier")
-        # Define expected result
-        expected_result = 145
-        assert actual_result == expected_result, "calc_lower_s not behaving as expected"
+    expected = (
+        estimation_output[["cell_no", "a_wt"]]
+        .drop_duplicates()
+        .reset_index(drop=True)
+        .rename(columns={"a_wt": "a_weight"})
+        .sort_values("cell_no")
+        .reset_index(drop=True)
+    )
+    assert_frame_equal(result_qa, expected, check_dtype=False, atol=1e-6)
 
 
-class TestCalcLowerSNoOutliers:
-    """Test to check if calc_lower_s returns 0 when there are no outliers"""
-
-    def create_input_df(self):
-        """Creates input dataframe"""
-        cols = ["reference", "cellnumber", "employment", "outlier"]
-        data = [
-            [1, 22, 100, False],
-            [2, 22, 10, False],
-            [3, 22, 5, False],
-            [4, 8, 60, False],
-            [5, 8, 45, False],
-            [6, 8, 100, False],
-        ]
-        input_df = pd.DataFrame(data=data, columns=cols)
-        return input_df
-
-    def test_calc_lower_s_emptydf_(self):
-        """Test for lower_s calculation"""
-
-        input_df = self.create_input_df()
-        # Call calc_lower_s function
-        actual_result = calw.calc_lower_s(input_df, "employment", "outlier")
-        # Define expected result
-        expected_result = 0
-        assert actual_result == expected_result, "calc_lower_s not behaving as expected"
+@pytest.mark.skip(reason="WIP - Testing in new branch")
+def test_calculate_a_weight_invalid_column(estimation_input):
+    """Test calculate_a_weights with invalid column."""
+    with pytest.raises(KeyError):
+        calculate_a_weights(estimation_input, "cell_no", "invalid_column", "Nh")
 
 
-# Five tests for calculate_weights:
-# testing calculate_weights where missing outlier col
-# testing calculate_weights filter
-# testing calculate_weights 709 to numeric with no missing vals
-# testing calculate_weights 709 to numeric with missing vals
-# testing calculate_weights with missing vals
-class TestCalcWeightFactors:
-    """Tests for calculate_weights function."""
-
-    def create_input_df(self):
-        """Creates input df for test"""
-        input_cols = [
-            "reference",
-            "instance",
-            "cellnumber",
-            "709",
-            "uni_count",
-            "uni_employment",
-            "employment",
-            "outlier",
-        ]
-
-        data = [
-            [1, 0, 1, "12", 20, 5000, 66, True],
-            [2, 0, 2, 14, 4, 5000, 77, False],
-            [3, 0, 1, 1, 20, 5000, 11, False],
-            [4, 0, 4, 18, 3, 5000, 88, False],
-            [5, 0, 2, 14, 4, 5000, 22, False],
-            [6, 0, 1, 10, 20, 5000, 7, False],
-            [7, 0, 5, 20, 50, 5000, 20, False],
-            [8, 0, 2, np.nan, 4, 5000, 7, False],
-            [9, 0, 1, 5, 20, 5000, 44, False],
-            [10, 0, 1, 10, 20, 5000, 44, False],
-            [11, 0, 5, 20, 50, 5000, 20, False],
-        ]
-
-        input_df = pd.DataFrame(data=data, columns=input_cols)
-        return input_df
-
-    def create_expected_output(self):
-        """Creates expected df for test"""
-        expected_cols = [
-            "reference",
-            "instance",
-            "cellnumber",
-            "709",
-            "uni_count",
-            "uni_employment",
-            "employment",
-            "outlier",
-            "a_weight",
-            "g_weight",
-        ]
-
-        data = [
-            [1, 0, 1, "12", 20, 5000, 66, True, 1.0, 1.0],
-            [2, 0, 2, 14, 4, 5000, 77, False, 1.3, 35.4],
-            [3, 0, 1, 1, 20, 5000, 11, False, 4.8, 9.8],
-            [4, 0, 4, 18, 3, 5000, 88, False, 3.0, 18.9],
-            [5, 0, 2, 14, 4, 5000, 22, False, 1.3, 35.4],
-            [6, 0, 1, 10, 20, 5000, 7, False, 4.8, 9.8],
-            [7, 0, 5, 20, 50, 5000, 20, False, 25.0, 5.0],
-            [8, 0, 2, np.nan, 4, 5000, 7, False, 1.3, 35.4],
-            [9, 0, 1, 5, 20, 5000, 44, False, 4.8, 9.8],
-            [10, 0, 1, 10, 20, 5000, 44, False, 4.8, 9.8],
-            [11, 0, 5, 20, 50, 5000, 20, False, 25.0, 5.0],
-        ]
-        expected_df = pd.DataFrame(data=data, columns=expected_cols)
-        return expected_df
-
-    def create_expected_qa(self):
-        """Creates expected qa df for test"""
-        expected_qa_cols = [
-            "cellnumber",
-            "N",
-            "n",
-            "o",
-            "E",
-            "e",
-            "s",
-            "a_weight",
-            "g_weight",
-        ]
-
-        data = [
-            [1, 20, 5, 1, 5000, 172, 66, 4.8, 9.8],
-            [2, 4, 3, 0, 5000, 106, 0, 1.3, 35.4],
-            [4, 3, 1, 0, 5000, 88, 0, 3.0, 18.9],
-            [5, 50, 2, 0, 5000, 40, 0, 25.0, 5.0],
-        ]
-
-        expected_qa_df = pd.DataFrame(data=data, columns=expected_qa_cols)
-        return expected_qa_df
-
-    @pytest.mark.skip(reason="WIP: expected QA column names are being updated")
-    def test_calculate_weights_g_weight_true(self):
-        """Test for calculate_weights with g_weight set to True"""
-
-        input_df = self.create_input_df()
-        expected_df = self.create_expected_output()
-        expected_qa_df = self.create_expected_qa()
-        print(expected_qa_df.columns)
-        result_df, result_qa_df = run_estimation(
-            input_df,
-            "cellnumber",
-            "reference",
-            "uni_count",
-            "employment",
-            "uni_employment",
-            "outlier",
-            incl_g_wts=True,
-        )
-
-        for df in [result_qa_df, result_df]:
-            df["a_weight"] = df["a_weight"].round(1)
-            df["g_weight"] = df["g_weight"].round(1)
-
-        assert_frame_equal(result_df, expected_df, check_exact=False, rtol=0.01)
-        assert_frame_equal(result_qa_df, expected_qa_df, check_exact=False, rtol=0.01)
-
-    def test_calculate_weights_g_weight_false(self):
-        """Test for calculate_weights for filter
-        and np.nan taken out of calculation"""
-
-        input_df = self.create_input_df()
-        expected_df = self.create_expected_output()
-        expected_qa_df = self.create_expected_qa()
-
-        expected_df = expected_df.drop(columns=["g_weight"])
-        expected_qa_df = expected_qa_df.drop(columns=["E", "e", "s", "g_weight"])
-
-        result_df, result_qa_df = run_estimation(
-            input_df,
-            "cellnumber",
-            "reference",
-            "uni_count",
-            "employment",
-            "uni_employment",
-            "outlier",
-            incl_g_wts=False,
-        )
-
-        # Round specified columns in each DataFrame
-        for df in [result_qa_df, result_df]:
-            df["a_weight"] = df["a_weight"].round(1)
-
-        # Ensure both DataFrames have the same data type for the "709" column
-        result_df["709"] = result_df["709"].astype(float)
-        expected_df["709"] = expected_df["709"].astype(float)
-
-        assert_frame_equal(
-            result_df, expected_df, check_exact=False, rtol=0.01, check_dtype=False
-        )
-        assert_frame_equal(
-            result_qa_df,
-            expected_qa_df,
-            check_exact=False,
-            rtol=0.01,
-            check_dtype=False,
-        )
+@pytest.mark.skip(reason="WIP - Testing in new branch")
+def test_g_weight_expected(estimation_input, estimation_output):
+    """Test calculate_g_weights with expected output."""
+    df_a = calculate_a_weights(estimation_input, "cell_no", "ruref", "Nh")
+    result = calculate_g_weights(df_a, "k", "x", "sum_x")
+    # Extract only k and g_weight, one row per k
+    result_qa = (
+        result[["k", "g_weight"]]
+        .drop_duplicates()
+        .reset_index(drop=True)
+        .sort_values("k")
+        .reset_index(drop=True)
+    )
+    # Get expected from estimation_output
+    expected = (
+        estimation_output[["k", "g_wt_x"]]
+        .drop_duplicates()
+        .reset_index(drop=True)
+        .rename(columns={"g_wt_x": "g_weight"})
+        .sort_values("k")
+        .reset_index(drop=True)
+    )
+    assert_frame_equal(result_qa, expected, check_dtype=False, atol=1e-6)
 
 
-class TestOutlierWeight:
-    """Test for outlier_weights."""
+@pytest.mark.skip(reason="WIP - Testing in new branch")
+def test_calculate_g_weight_invalid_column(estimation_input):
+    """Test calculate_g_weights with invalid column."""
+    df_a = calculate_a_weights(estimation_input, "cell_no", "ruref", "Nh")
+    with pytest.raises(KeyError):
+        calculate_g_weights(df_a, "k", "invalid_column", "sum_x")
 
-    def create_input_df(self):
-        """Creates input df for test"""
-        input_cols = ["reference", "outlier"]
-        data = [
-            [1, True],
-            [2, False],
-            [2, True],
-            [4, True],
-            [1, False],
-        ]
 
-        input_df = pd.DataFrame(data=data, columns=input_cols)
-        return input_df
+@pytest.mark.skip(reason="WIP - Testing in new branch")
+def test_create_weights_qa_df_expected(estimation_input):
+    """Test create_weights_qa_df with expected output."""
+    df_a = calculate_a_weights(estimation_input, "cell_no", "ruref", "Nh")
+    df_g = calculate_g_weights(df_a, "k", "x", "sum_x")
+    result = create_weights_qa_df(df_g, "cell_no", True)
+    result = result.rename(
+        columns={
+            "N": "Nh",
+            "n": "nh",
+            "univ_aux_sum": "sum_x",
+            "aux_col_sum": "x_sum",
+            "a_weight": "a_wt",
+            "g_weight": "g_wt_x",
+        }
+    )
+    # Convert cell_no to int for proper numeric sorting
+    result["cell_no"] = result["cell_no"].astype(int)
+    result = result.sort_values("cell_no").reset_index(drop=True)
 
-    def create_expected_output(self):
-        """Creates expected df for test"""
-        expected_cols = ["reference", "outlier", "a_weight", "g_weight"]
+    expected_columns = [
+        "cell_no",
+        "Nh",
+        "nh",
+        "sum_x",
+        "x_sum",
+        "a_wt",
+        "g_wt_x",
+    ]
+    expected_data = [
+        [1, 8, 3, 40.0, 6.0, 2.666666667, 2.5],
+        [2, 9, 3, 278.0, 166.0, 3.0, 0.743315508],
+        [3, 1, 1, 278.0, 166.0, 1.0, 0.743315508],
+        [4, 1, 1, 305.0, 305.0, 1.0, 1.0],
+        [5, 1, 1, 1003.0, 1003.0, 1.0, 1.0],
+        [6, 4, 2, 273.0, 106.0, 2.0, 0.793604651],
+        [7, 10, 3, 273.0, 106.0, 3.333333333, 0.793604651],
+        [8, 5, 3, 443.0, 265.0, 1.666666667, 1.003018868],
+        [9, 2, 2, 977.0, 977.0, 1.0, 1.0],
+        [10, 2, 1, 159.0, 53.0, 2.0, 1.052980132],
+        [11, 6, 2, 159.0, 53.0, 3.0, 1.052980132],
+        [12, 9, 3, 728.0, 192.0, 3.0, 1.263888889],
+        [13, 2, 2, 5290.0, 5290.0, 1.0, 1.0],
+        [14, 10, 1, 53.0, 7.0, 10.0, 0.757142857],
+        [15, 17, 2, 439.0, 41.0, 8.5, 1.259684362],
+        [16, 10, 6, 1027.0, 715.0, 1.666666667, 0.861818182],
+        [17, 3, 3, 1980.0, 1980.0, 1.0, 1.0],
+    ]
+    expected = pd.DataFrame(columns=expected_columns, data=expected_data)
+    assert_frame_equal(result, expected, check_dtype=False, atol=1e-6)
 
-        data = [
-            [1, True, 1.0, 1.0],
-            [2, False, None, None],
-            [2, True, 1.0, 1.0],
-            [4, True, 1.0, 1.0],
-            [1, False, None, None],
-        ]
 
-        expected_df = pd.DataFrame(data=data, columns=expected_cols)
-        return expected_df
-
-    def test_outlier_weights(self):
-        """Test for outlier_weights."""
-        input_df = self.create_input_df()
-        expected_df = self.create_expected_output()
-
-        result_df = calw.outlier_weights(input_df, "outlier", incl_g_wts=True)
-        assert_frame_equal(result_df, expected_df)
+@pytest.mark.skip(reason="WIP - Testing in new branch")
+def test_create_weights_qa_df_invalid_column(estimation_input):
+    """Test create_weights_qa_df with invalid column."""
+    df_a = calculate_a_weights(estimation_input, "cell_no", "ruref", "Nh")
+    df_g = calculate_g_weights(df_a, "k", "x", "sum_x")
+    with pytest.raises(KeyError):
+        create_weights_qa_df(df_g, "invalid_column", True)

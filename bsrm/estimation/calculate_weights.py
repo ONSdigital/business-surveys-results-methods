@@ -24,24 +24,6 @@ def calc_lower_n(df: pd.DataFrame, ru_column: str) -> int:
     return n
 
 
-def calc_aux_col_sum(df: pd.DataFrame, aux_col: str) -> int:
-    """Calculate aux_col_sum: sum of auxiliary data for sampled units.
-
-    Parameters
-    ----------
-        df (pd.DataFrame): The input dataframe which contains survey data,
-            including auxiliary data.
-        aux_col (str): The name of the auxiliary column for this calculation.
-
-    Returns
-    -------
-        int: The sum of auxiliary data for sampled units.
-    """
-    aux_col_sum = df[aux_col].sum()
-
-    return aux_col_sum
-
-
 def a_weight(
     strata_group: pd.DataFrame, ru_column: str, univ_count_col: str
 ) -> pd.DataFrame:
@@ -91,25 +73,28 @@ def a_weight(
 def calc_g_weight(
     strata_group: pd.DataFrame, aux_col: str, univ_aux_col: str
 ) -> pd.DataFrame:
-    """Calculate the 'g' weighting factor for a stratum group.
+    """Calculate the 'g' weighting factor for a calibration group.
 
     The calculation for the g-weight is:
 
-    g = (univ_aux_col ) / a * (aux_col )
+    g =  univ_aux_sum / sum_ax
 
-    Where:
-        - univ_aux_col is the universe auxiliary total for all reporting
-            units in the stratum
-        - aux_col is the sample auxiliary total for all sampled valid
-            responses in the stratum
-        - a is the 'a' weighting factor for the stratum
+        sum_ax = Σ a_i * x_i
+
+        Where:
+        - univ_aux_sum is the sum of the auxiliary value for the universe over
+          the calibration group.
+        - sum_ax is the sum of the auxiliary value multiplied by its a_weight
+          for responders in the calibration group.
+        - x_i represents each auxiliary value.
+        - a_i represents the a_weight corresponding to x_i.
 
     Parameters
     ----------
-        strata_group (pd.DataFrame): The dataframe grouped by strata.
+        strata_group (pd.DataFrame): The dataframe grouped by calibration group.
         aux_col (str): The name of the column containing auxiliary employment data.
         univ_aux_col (str): The name of the column containing the total auxiliary
-            employment in the stratum.
+            employment in the calibration group.
 
     Returns
     -------
@@ -118,18 +103,19 @@ def calc_g_weight(
     if strata_group.empty:
         return strata_group
 
-    univ_aux_col_value = strata_group[univ_aux_col].iloc[0]  # noqa: N806
-    a_weight_value = strata_group["a_weight"].iloc[0]
-    aux_col_sum = calc_aux_col_sum(strata_group, aux_col)
+    univ_aux_sum = strata_group[univ_aux_col].iloc[0]
+    aux_col_sum = strata_group[aux_col].sum()
+    # sum_ax must be computed row-by-row (a_i * x_i) before summing
+    sum_ax = (strata_group["a_weight"] * strata_group[aux_col]).sum()
 
     # Calculate 'g' for this group
 
-    if aux_col_sum > 0:
-        g_weight = univ_aux_col_value / (a_weight_value * aux_col_sum)
+    if aux_col_sum > 0 and sum_ax > 0:
+        g_weight = univ_aux_sum / sum_ax
     else:
         g_weight = 1.0
 
-    strata_group["univ_aux_col_value"] = univ_aux_col_value
+    strata_group["univ_aux_sum"] = univ_aux_sum
     strata_group["aux_col_sum"] = aux_col_sum
 
     strata_group["g_weight"] = g_weight
@@ -153,15 +139,9 @@ def create_weights_qa_df(
         pd.DataFrame: The QA dataframe.
     """
     qa_cols_list = [strata_col, "N", "n"]
-    if incl_g_wts:
-        qa_cols_list += [
-            "univ_aux_col_value",
-            "aux_col_sum",
-            "a_weight",
-            "g_weight",
-        ]
-    else:
-        qa_cols_list += ["a_weight"]
+    g_weight_cols = ["univ_aux_sum", "aux_col_sum", "a_weight", "g_weight"]
+    a_weight_only_cols = ["a_weight"]
+    qa_cols_list = qa_cols_list + (g_weight_cols if incl_g_wts else a_weight_only_cols)
 
     qa_frame = df[qa_cols_list].groupby(strata_col).first()
     qa_frame = qa_frame.reset_index()
@@ -202,16 +182,16 @@ def calculate_a_weights(
 def calculate_g_weights(
     df: pd.DataFrame, strata_col: str, aux_col: str, univ_aux_col: str
 ) -> pd.DataFrame:
-    """Calculate the 'g' weight for each stratum in the data.
+    """Calculate the 'g' weight for each calibration group in the data.
 
     Parameters
     ----------
         df (pd.DataFrame): The input df containing survey data
-        strata_col (str): The name of the column containing stratum identifiers.
+        strata_col (str): The name of the column containing calibration
+            group identifiers (k).
         aux_col (str): The name of the column containing auxiliary employment data.
-        univ_aux_col (str): The name of the column containing the total number of
-            reporting units in the stratum for auxiliary data.
-        .
+        univ_aux_col (str): The name of the column containing the population
+            auxiliary total for each calibration group.
 
     Returns
     -------
