@@ -6,30 +6,20 @@ authors = [
     {name = "Reproducible Data Science and Analysis, ONS", email = "RDSA.Support@ons.gov.uk"},
 ]
 readme = "README.md"
-requires-python = "==3.11.0"
+requires-python = ">=3.11,<3.12"
 
 dependencies = [
     "rdsa-utils~=0.16.1",
-    "numpy~=1.26",
-    "pandas~=2.1.2",
-    "pyyaml",
-    "tomli~=2.0.1",
     "black>=26.5.0",
 ]
 
-
 [dependency-groups]
 dev = [
-    "detect-secrets",
-    "ipykernel~=6.29.5",
-    "pip~=25.2",
     "pre-commit~=2.17.0",
-    "pytest~=8.3.2",
     "pytest-cov~=4.0.0",
     "pytest-lazy-fixture~=0.6.0",
     "pytest-mock~=3.8.0",
-    "ruff~=0.12.2",
-    "setuptools~=80.9.0",
+    "ruff~=0.13.3",
 ]
 
 
