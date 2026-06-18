@@ -26,8 +26,7 @@ jobs:
       with:
         python-version: "3.11.0"
 
-    # NOTE: the regex below finds the uv.index section in our uv.toml
-    # file and removes it so git doesn't try to access artifactory
+    # Re-lock since Github Actions can't access Artifactory
     - name: Setup and install dependencies
       run: |
         uv lock --default-index https://pypi.org/simple
