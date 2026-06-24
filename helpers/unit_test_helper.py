@@ -235,8 +235,8 @@ def dataframe_to_string(
     data_string = "\n"
     for row in all_rows:
         row[0] = "(" + row[0]
-        data_string += row_format.format("", *row).removesuffix(",") + ")," + "\n"
-    data_string = f"return create_dataframe([{data_string}])\n"
+        data_string += row_format.format("", *row).removeprefix(" "*20).removesuffix(",") + "),\n"
+    data_string = f"df = create_dataframe([{data_string}])\nreturn df\n\n"
 
     logging.info(f"Data string generated for file: {file_name}")
 
@@ -314,7 +314,7 @@ def generate_test_code(
         "import pandas as pd\n"
         "import numpy as np\n"
         "import pytest\n"
-        "from iabs.helpers.WHATEVER import create_dataframe\n" #TODO Get the right import
+        "from iabs.utils.helpers import create_dataframe\n"
         f"from {module_name} import {function_name}\n"
     )
 
