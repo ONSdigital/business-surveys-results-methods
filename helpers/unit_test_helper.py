@@ -172,6 +172,7 @@ def dataframe_to_string(
         The number of decimal places to round float values.
     padding : int
         The number of spaces to pad each column in the output string for alignment.
+        NOTE: padding is used for the commented out alternative method for right alignment
 
     Returns
     -------
@@ -223,6 +224,7 @@ def dataframe_to_string(
     other_rows = [(row + ",") for row in df.to_numpy()]
     all_rows = [first_row, *other_rows]
 
+    # this method aligns each column on the left
     for row in all_rows:
         row[0] = "(" + row[0]
 
@@ -233,6 +235,16 @@ def dataframe_to_string(
     for row in all_rows:
         data_string += "    " + row_format.format(*row).rstrip().removesuffix(",") + "),\n"
     data_string = f"df = create_dataframe([{data_string}])\nreturn df\n\n"
+
+    # alternative method for columns that line up on the right, uaing a value for
+    # padding, which will be set in the config
+    # row_format = f"{{:>{padding}}}" * (1 + len(df.columns))
+
+    # data_string = "\n"
+    # for row in all_rows:
+    #     row[0] = "(" + row[0]
+    #     data_string += row_format.format("", *row).removesuffix(",") + ")," + "\n"
+    # data_string = f"return create_dataframe([{data_string}])\n"
 
     logging.info(f"Data string generated for file: {file_name}")
 
