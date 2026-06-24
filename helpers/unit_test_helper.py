@@ -223,12 +223,15 @@ def dataframe_to_string(
     other_rows = [(row + ",") for row in df.to_numpy()]
     all_rows = [first_row, *other_rows]
 
-    row_format = f"{{:>{padding}}}" * (1 + len(df.columns))
+    for row in all_rows:
+        row[0] = "(" + row[0]
+
+    col_widths = [max(len(str(row[c])) for row in all_rows) for c in range(len(df.columns))]
+    row_format = "".join(f"{{:<{w + 1}}}" for w in col_widths)
 
     data_string = "\n"
     for row in all_rows:
-        row[0] = "(" + row[0]
-        data_string += row_format.format("", *row).removeprefix(" " * 20).removesuffix(",") + "),\n"
+        data_string += "    " + row_format.format(*row).rstrip().removesuffix(",") + "),\n"
     data_string = f"df = create_dataframe([{data_string}])\nreturn df\n\n"
 
     logging.info(f"Data string generated for file: {file_name}")
