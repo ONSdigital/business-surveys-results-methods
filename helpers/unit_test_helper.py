@@ -66,16 +66,12 @@ def validate_configuration(
             raise TypeError(error_msg)
 
     all_files = input_files + expected_files
-    missing_files = [
-        file for file in all_files if not (Path(csv_directory) / file).is_file()
-    ]
+    missing_files = [file for file in all_files if not (Path(csv_directory) / file).is_file()]
 
     if missing_files:
         error_msg = f"File(s) not found: {', '.join(missing_files)}"
         raise FileNotFoundError(error_msg)
-    if any(
-        not isinstance(file, str) or not file.endswith(".csv") for file in all_files
-    ):  # noqa: E501
+    if any(not isinstance(file, str) or not file.endswith(".csv") for file in all_files):  # noqa: E501
         error_msg = "All files must be CSV files and must be strings"
         raise ValueError(error_msg)
 
@@ -89,9 +85,7 @@ def validate_configuration(
     if column_type_override is None:
         column_type_override = {}
 
-    example_err = (
-        "i.e column_type_override={'string': ['names', 'cars'], 'float': ['wts']}"
-    )
+    example_err = "i.e column_type_override={'string': ['names', 'cars'], 'float': ['wts']}"
     if not isinstance(column_type_override, dict):
         error_msg = f"column_type_override must be a dictionary {example_err}"
         raise TypeError(error_msg)
@@ -103,10 +97,7 @@ def validate_configuration(
             error_msg = f"Values in column_type_override must be lists {example_err}"
             raise TypeError(error_msg)
         if any(not isinstance(col, str) for col in value):
-            error_msg = (
-                "All column names in column_type_override must be strings "
-                f"{example_err}"
-            )
+            error_msg = f"All column names in column_type_override must be strings {example_err}"
             raise TypeError(error_msg)
 
 
@@ -161,6 +152,7 @@ def dataframe_to_string(
     file_name: str,
     column_type_override: dict[str, list[str]] | None = None,
     rounding_precision: int = 4,
+    padding: int = 20,
 ) -> str:
     """Convert a DataFrame to a formatted string representation suitable for unit tests.
 
@@ -178,6 +170,8 @@ def dataframe_to_string(
         Dictionary mapping column types to lists of columns. Defaults to None.
     rounding_precision : int
         The number of decimal places to round float values.
+    padding : int
+        The number of spaces to pad each column in the output string for alignment.
 
     Returns
     -------
@@ -229,13 +223,12 @@ def dataframe_to_string(
     other_rows = [(row + ",") for row in df.to_numpy()]
     all_rows = [first_row, *other_rows]
 
-    padding = 20 # Needs to be at least the length of the longest column or value, plus 4
     row_format = f"{{:>{padding}}}" * (1 + len(df.columns))
 
     data_string = "\n"
     for row in all_rows:
         row[0] = "(" + row[0]
-        data_string += row_format.format("", *row).removeprefix(" "*20).removesuffix(",") + "),\n"
+        data_string += row_format.format("", *row).removeprefix(" " * 20).removesuffix(",") + "),\n"
     data_string = f"df = create_dataframe([{data_string}])\nreturn df\n\n"
 
     logging.info(f"Data string generated for file: {file_name}")
@@ -255,9 +248,7 @@ def ensure_decimal(value: str) -> str:
 
 def build_fixture_definition(file_name: str, data_string: str) -> tuple[str, str]:
     """Build one top-level pytest fixture function."""
-    fixture_name = (
-        file_name.replace(".csv", "").replace("-", "_").replace(" ", "_").lower()
-    )
+    fixture_name = file_name.replace(".csv", "").replace("-", "_").replace(" ", "_").lower()
     fixture_defs = (
         f'\n@pytest.fixture(scope="function")\n'
         f"def {fixture_name}():\n"
@@ -350,6 +341,7 @@ def process_dataframe(
     function_name: str,
     module_name: str,
     column_type_override: dict[str, list[str]] | None = None,
+    padding: int = 20,
 ) -> None:
     """Process CSV files, generate unit test code, and save it to a Python (.py) file.
 
@@ -373,6 +365,8 @@ def process_dataframe(
         Module path for the function.
     column_type_override : dict[str, list[str]] | None
         Dictionary mapping column types to lists of columns. Defaults to None.
+    padding : int
+        Padding for formatting the output string representation of the DataFrame.
 
     Raises
     ------
@@ -390,19 +384,17 @@ def process_dataframe(
     for file_name in input_files:
         df = pd.read_csv(Path(csv_directory) / file_name)
         input_strings[file_name] = dataframe_to_string(
-            df, file_name, column_type_override
+            df, file_name, column_type_override, padding=padding
         )
         logging.info(f"Successfully read and processed file: {file_name}")
     for file_name in exp_output_files:
         df = pd.read_csv(Path(csv_directory) / file_name)
         output_strings[file_name] = dataframe_to_string(
-            df, file_name, column_type_override
+            df, file_name, column_type_override, padding=padding
         )
         logging.info(f"Successfully read and processed file: {file_name}")
 
-    test_code = generate_test_code(
-        function_name, module_name, input_strings, output_strings
-    )
+    test_code = generate_test_code(function_name, module_name, input_strings, output_strings)
     output_path = Path(output_directory) / f"test_{function_name}.py"
 
     try:
@@ -431,6 +423,8 @@ class TestConfig:
         Module path for the function.
     column_type_override : dict[str, list[str]]
         Dictionary mapping column types to lists of columns for type override.
+    padding : int
+        Padding for formatting the output string representation of the DataFrame.
     """
 
     csv_directory: str
@@ -440,6 +434,7 @@ class TestConfig:
     function_name: str
     module_name: str
     column_type_override: dict[str, list[str]]
+    padding: int = 20
 
 
 def main(config: TestConfig) -> None:
@@ -468,18 +463,19 @@ def main(config: TestConfig) -> None:
 
 if __name__ == "__main__":
     config = TestConfig(
-        # csv_directory="Q:/IABS project/Test data/estimation_tests/",
-        csv_directory="H:/Desktop/IABSCSV",
-        # output_directory="D:/coding_projects/iabs_test_data/",
-        output_directory="H:/Desktop/IABSCSV",
-        input_files=["testdataframe.csv"],
-        exp_output_files=["testdataframe_expected.csv"],
+        csv_directory="Q:/IABS project/Test data/estimation_tests/",
+        # csv_directory="H:/Desktop/IABSCSV",
+        output_directory="D:/coding_projects/iabs_test_data/",
+        # output_directory="H:/Desktop/IABSCSV",
+        input_files=["estimation_component_test_input.csv"],
+        exp_output_files=["estimation_component_test_expected_output.csv"],
         function_name="newdataframeformat",
         module_name="path.to.module",
         column_type_override={
             "string": ["ruref", "cell_no", "k", "rusic_2007"],
             "float": [],
         },
+        padding=10,  # Needs to be at least the length of the longest column or value, plus 4
     )
 
     main(config)
