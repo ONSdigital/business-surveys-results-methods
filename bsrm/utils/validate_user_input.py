@@ -50,9 +50,7 @@ def validate_run_estimation_input(
         raise TypeError(msg)
 
     # Check that column names are strings and in the data
-    _check_columns(
-        data, [strata_col, ru_col, univ_count_col, aux_col, univ_aux_col, outlier_col]
-    )
+    _check_columns(data, [strata_col, ru_col, univ_count_col, aux_col, univ_aux_col, outlier_col])
 
 
 def validate_apply_weights_input(
@@ -189,17 +187,12 @@ def _check_columns(data: pd.DataFrame, cols_list: list[str]) -> None:
     """
     not_strings = [col_name for col_name in cols_list if not isinstance(col_name, str)]
     if not_strings:
-        msg = (
-            f"Specified column name(s): {', '.join(map(str, not_strings))} "
-            "must be string(s)."
-        )
+        msg = f"Specified column name(s): {', '.join(map(str, not_strings))} must be string(s)."
         raise TypeError(msg)
 
     cols_list = [c for c in cols_list if len(c) > 0]  # remove empty strings
 
     missing = [col_name for col_name in cols_list if col_name not in data.columns]
     if missing:
-        msg = (
-            f"Specified column(s): {', '.join(missing)} must be column(s) in the data."
-        )
+        msg = f"Specified column(s): {', '.join(missing)} must be column(s) in the data."
         raise Exception(msg)
