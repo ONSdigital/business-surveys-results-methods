@@ -70,7 +70,7 @@ def a_weight(
     return strata_group
 
 
-def calc_g_weight(
+def g_weight(
     strata_group: pd.DataFrame, aux_col: str, univ_aux_col: str
 ) -> pd.DataFrame:
     """Calculate the 'g' weighting factor for a calibration group.
@@ -200,8 +200,6 @@ def calculate_g_weights(
     df = df.copy()
 
     df["g_weight"] = 1.0
-    df = df.groupby(strata_col, group_keys=False).apply(
-        calc_g_weight, aux_col, univ_aux_col
-    )
+    df = df.groupby(strata_col, group_keys=False).apply(g_weight, aux_col, univ_aux_col)
 
     return df
