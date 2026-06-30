@@ -41,9 +41,7 @@ def schema_name_from_filename(filename: str, config: dict) -> str:
     return toml_path
 
 
-def validate_with_schema(
-    df: pd.DataFrame, config: dict, filepath_name: str
-) -> pd.DataFrame:
+def validate_with_schema(df: pd.DataFrame, config: dict, filepath_name: str) -> pd.DataFrame:
     """
     Validate and coerce a DataFrame to match a schema definition.
 
@@ -97,8 +95,7 @@ def validate_with_schema(
                     df[col] = pd.to_numeric(df[col], errors="coerce")
                 elif df[col].isna().any():
                     ValidationLogger.warning(
-                        f"Column {col} contains NULLs but nullable=False. "
-                        "Cannot cast to int."
+                        f"Column {col} contains NULLs but nullable=False. Cannot cast to int."
                     )
                     df[col] = pd.to_numeric(df[col], errors="coerce")
                 else:
