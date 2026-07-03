@@ -27,18 +27,27 @@ def run_estimation(
 
     Parameters
     ----------
-        df (pd.DataFrame): The survey data were estimation will be applied.
-        strata_col (str): The column representing the strata.
-        ru_col (str): The column representing the reference unit.
-        aux_col (str): The column representing the auxiliary variable.
-        univ_count_col (str): The column representing the universe count.
-        univ_aux_col (str): The column representing the universe auxiliary variable.
-        incl_g_wts (bool): Whether to include g weights in the calculation.
-        round_val (int): The number of decimal places to round the final results to
+    df: pd.DataFrame
+        The survey data were estimation will be applied.
+    strata_col : str
+        The column representing the strata.
+    ru_col : str
+        The column representing the reference unit.
+    aux_col: str
+        The column representing the auxiliary variable.
+    univ_count_col : str
+        The column representing the universe count.
+    univ_aux_col : str
+        The column representing the universe auxiliary variable.
+    incl_g_wts : bool
+        Whether to include g weights in the calculation.
+    round_val :int
+        The number of decimal places to round the final results to
 
     Returns
     -------
-        pd.DataFrame: The main dataset after the application of estimation.
+    pd.DataFrame
+        The main dataset after the application of estimation.
     """
     EstMainLogger.info("Starting estimation weights calculation...")
 
@@ -47,18 +56,15 @@ def run_estimation(
 
     # if required also calculate g weights
     if incl_g_wts:
-        weighted_df = calculate_g_weights(
-            weighted_df, strata_col, aux_col, univ_aux_col
-        )
+        weighted_df = calculate_g_weights(weighted_df, strata_col, aux_col, univ_aux_col)
 
     # Create a QA dataframe
     qa_frame = create_weights_qa_df(weighted_df, strata_col, incl_g_wts)
 
     # drop intermediate calculation columns
-    drop_cols = ["N", "n"]
+    drop_cols = ["population_count", "sample_count"]
     if incl_g_wts:
         drop_cols += ["univ_aux_sum", "aux_col_sum"]
-
     weighted_df = weighted_df.drop(columns=drop_cols, axis=1)
 
     return weighted_df, qa_frame

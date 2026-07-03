@@ -79,7 +79,7 @@ lint.ignore = [
    # This complains about anything called df.
    "PD901",
 ]
-line-length = 88
+line-length = 100
 exclude = ["dev_utils/*","*tests/*"]
 
 [tool.ruff.lint.pydocstyle]
