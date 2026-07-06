@@ -24,9 +24,7 @@ def calc_lower_n(df: pd.DataFrame, ru_column: str) -> int:
     return n
 
 
-def a_weight(
-    strata_group: pd.DataFrame, ru_column: str, univ_count_col: str
-) -> pd.DataFrame:
+def a_weight(strata_group: pd.DataFrame, ru_column: str, univ_count_col: str) -> pd.DataFrame:
     """Calculate the 'a' weighting factor for a stratum group.
 
     The calculation here is:
@@ -70,9 +68,7 @@ def a_weight(
     return strata_group
 
 
-def calc_g_weight(
-    strata_group: pd.DataFrame, aux_col: str, univ_aux_col: str
-) -> pd.DataFrame:
+def g_weight(strata_group: pd.DataFrame, aux_col: str, univ_aux_col: str) -> pd.DataFrame:
     """Calculate the 'g' weighting factor for a calibration group.
 
     The calculation for the g-weight is:
@@ -172,9 +168,7 @@ def calculate_a_weights(
     """
     df = df.copy()
     df["a_weight"] = 1.0
-    df = df.groupby(strata_col, group_keys=False).apply(
-        a_weight, ru_col, univ_count_col
-    )
+    df = df.groupby(strata_col, group_keys=False).apply(a_weight, ru_col, univ_count_col)
 
     return df
 
@@ -200,8 +194,6 @@ def calculate_g_weights(
     df = df.copy()
 
     df["g_weight"] = 1.0
-    df = df.groupby(strata_col, group_keys=False).apply(
-        calc_g_weight, aux_col, univ_aux_col
-    )
+    df = df.groupby(strata_col, group_keys=False).apply(g_weight, aux_col, univ_aux_col)
 
     return df

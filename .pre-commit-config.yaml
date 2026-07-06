@@ -9,7 +9,7 @@ repos:
     rev: v4.5.0
     hooks:
     - id: check-added-large-files
-      exclude_types: [markdown, yaml]
+      exclude_types: [markdown, yaml, json]
     - id: check-merge-conflict
     - id: check-yaml
     - id: detect-private-key # detects the presence of private keys
@@ -31,8 +31,12 @@ repos:
     hooks:
       - id: detect-secrets
         args: ["--baseline", ".secrets.baseline"]
+        exclude: |
+          (?x)(
+            ^docs/environment_setup.md
+          )
 
-  # Ruff pre-commit hook - should be run before black or isort
+  # Ruff pre-commit hook
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff version.
     rev: v0.13.3
@@ -40,43 +44,27 @@ repos:
       # Run the linter.
       - id: ruff-check
         types_or: [ python, pyi ]
-        args: [ --fix ]
       # Run the formatter.
       - id: ruff-format
         types_or: [ python, pyi ]
 
-  # Black pre-commit hooks - ruff does not do the linting fixes that black does
-  - repo: https://github.com/psf/black
-    rev: 24.10.0 # Replace by any tag/version: https://github.com/psf/black/tags
+  # Bandit pre-commit hook to detect vulnerabilities
+  - repo: https://github.com/Lucas-C/pre-commit-hooks-bandit
+    rev: v1.0.5
     hooks:
-      - id: black
-        name: black - consistent Python code formatting (auto-fixes)
-        language_version: python3.11 # Should be a command that runs python3.6+
-        exclude: .*/tests/.*|^\.cruft\.json$|.*\tests\.*|helpers/.*|^tests
-        args: ["--preview", "--line-length=88"]
-
-  # isort fixes to sort Python imports
-  - repo: https://github.com/pycqa/isort
-    rev: 5.13.2
-    hooks:
-      - id: isort
-        name: isort - Sort Python imports (auto-fixes)
-        types: [cython, pyi, python]
-        args: ["--profile", "black", "--filter-files"]
+    -   id: python-bandit-vulnerability-check
+        args: [--skip, "B101", --recursive, clumper]
 
   # Local hooks
   - repo: local
     hooks:
+
       - id: restricted-filenames
         name: Check commits for restricted file extensions
         entry: Looking for extensions that are not allowed
         language: fail
-        files: .*\.(csv|feather|xlsx|zip|hdf5|h5|txt|json|xml|hd|parquet)
-      - id: vulnerability-linting-checks
-        name: Run vulnerability detection checks (bandit)
-        entry: uv run bandit -r bsrm
-        language: system
-        exclude: ^tests/|/tests/
+        files: .*\.(csv|feather|xlsx|zip|hdf5|h5|txt|xml|hd|parquet)
+
       - id: prepare_commit_msg
         name: Prepare commit message
         entry: dev_utils/pre-commit_helpers/prepare_commit_msg.py

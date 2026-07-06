@@ -47,9 +47,7 @@ def run_estimation(
 
     # if required also calculate g weights
     if incl_g_wts:
-        weighted_df = calculate_g_weights(
-            weighted_df, strata_col, aux_col, univ_aux_col
-        )
+        weighted_df = calculate_g_weights(weighted_df, strata_col, aux_col, univ_aux_col)
 
     # Create a QA dataframe
     qa_frame = create_weights_qa_df(weighted_df, strata_col, incl_g_wts)

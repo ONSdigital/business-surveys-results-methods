@@ -16,4 +16,4 @@ irps_70_component test: used example from methodology paper to do a component  t
 - update_environment_docs: modify the documentation for project setup<br>
 - update_environment_docs2: updates to relative paths in docs<br>
 - estimation_module : adapted estimation functions and tests from R&D<br>
-- unit_test_helper: helper to generate test scripts from csv inputs<br>
+- unit_test_helper: helper to generate test scripts from csv input files<br>
