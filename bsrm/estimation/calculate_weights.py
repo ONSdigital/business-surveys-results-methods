@@ -67,7 +67,7 @@ def a_weight(
     else:
         a_weight = 1.0
 
-    strata_group["population_count"] = population_count 
+    strata_group["population_count"] = population_count
     strata_group["sample_count"] = sample_count
 
     strata_group["a_weight"] = a_weight
