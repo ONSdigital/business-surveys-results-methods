@@ -102,3 +102,6 @@ inline-quotes = "double" #! CHECK everyone is happy with this
 "*/validation/*" = [
    "T201", "T203", # Allows print and pprint, useful for validation
 ]
+
+[tool.black]
+line-length = 120

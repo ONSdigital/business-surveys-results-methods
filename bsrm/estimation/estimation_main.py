@@ -53,7 +53,7 @@ def run_estimation(
     qa_frame = create_weights_qa_df(weighted_df, strata_col, incl_g_wts)
 
     # drop intermediate calculation columns
-    drop_cols = ["N", "n"]
+    drop_cols = ["population_count", "sample_count"]
     if incl_g_wts:
         drop_cols += ["univ_aux_sum", "aux_col_sum"]
 
@@ -92,6 +92,4 @@ if __name__ == "__main__":
 
     # call the method to return the dataframe with the new weights applied
     # to the specified columns, and qa dataframe
-    final_weighted_df = apply_weights(
-        weighted_df, a_weight_cols, g_weight_cols, incl_g_wts, round_val
-    )
+    final_weighted_df = apply_weights(weighted_df, a_weight_cols, g_weight_cols, incl_g_wts, round_val)
