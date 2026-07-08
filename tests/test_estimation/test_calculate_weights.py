@@ -89,14 +89,14 @@ def expected_qa_df():
         "cell_no",
         "N",
         "n",
+        "a_weight",
         "univ_aux_sum",
         "aux_col_sum",
-        "a_weight",
         "g_weight",
     ]
     data = [
-        [1, 6, 3, 40.0, 6.0, 2.0, 3.333],
-        [2, 6, 2, 60.0, 30.0, 3.0, 0.667],
+        [1, 6, 3, 2.0, 40.0, 6.0, 3.333],
+        [2, 6, 2, 3.0, 60.0, 30.0, 0.667],
     ]
     return pd.DataFrame(data=data, columns=cols)
 
@@ -124,18 +124,14 @@ def test_g_weight(expected_a_weights_df):
 
 def test_calculate_a_weights(input_data, expected_a_weights_df):
     """Test that the a weights are calculated correctly."""
-    result = calculate_a_weights(
-        df=input_data, strata_col="cell_no", ru_col="ruref", univ_count_col="N"
-    )
+    result = calculate_a_weights(df=input_data, strata_col="cell_no", ru_col="ruref", univ_count_col="N")
     assert_frame_equal(result, expected_a_weights_df, check_dtype=False, rtol=1e-6)
 
 
 def test_calculate_g_weights(expected_a_weights_df, expected_g_weights_df):
     """Test that the g weights are calculated correctly."""
     result = calculate_g_weights(expected_a_weights_df, "k", "x", "sum_x")
-    assert_frame_equal(
-        result.round(3), expected_g_weights_df, check_dtype=False, rtol=1e-6
-    )
+    assert_frame_equal(result.round(3), expected_g_weights_df, check_dtype=False, rtol=1e-6)
 
 
 def test_create_weights_qa_df(expected_g_weights_df, expected_qa_df):
