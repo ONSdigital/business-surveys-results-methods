@@ -3,12 +3,12 @@
 import logging
 import pandas as pd
 
-from business_surveys_results_methods.estimation.calculate_weights import (
+from bsrm.estimation.calculate_weights import (
     calculate_a_weights,
     calculate_g_weights,
     create_weights_qa_df,
 )
-from business_surveys_results_methods.estimation.apply_weights import apply_weights
+from bsrm.estimation.apply_weights import apply_weights
 
 EstMainLogger = logging.getLogger(__name__)
 

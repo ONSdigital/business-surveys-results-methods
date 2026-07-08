@@ -3,7 +3,7 @@
 import pytest
 import pandas as pd
 from pandas.testing import assert_frame_equal
-from business_surveys_results_methods.estimation.apply_weights import apply_weights
+from bsrm.estimation.apply_weights import apply_weights
 
 
 @pytest.fixture

@@ -16,7 +16,7 @@ import pandas as pd
 
 from pathlib import Path
 
-from business_surveys_results_methods.utils.io_mods import load_toml
+from bsrm.utils.io_mods import load_toml
 
 ValidationLogger = logging.getLogger(__name__)
 

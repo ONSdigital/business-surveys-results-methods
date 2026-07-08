@@ -27,11 +27,11 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-include = ["business_surveys_results_methods*"]
+include = ["bsrm*"]
 
 [tool.coverage.run]
 branch = true
-source = ["business_surveys_results_methods"]
+source = ["bsrm"]
 dynamic_context = 'test_function'
 
 [tool.coverage.report]
@@ -44,7 +44,7 @@ exclude_lines = [
 # List any filepaths here (relative to source defined above) to exclude from
 # the final coverage test report.
 omit = [
-   "business_surveys_results_methods/main.py",
+   "bsrm/main.py",
 ]
 skip_empty = true
 show_missing = true
