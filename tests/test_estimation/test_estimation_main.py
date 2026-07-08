@@ -66,23 +66,7 @@ def expected_output():
     """
     return create_test_dataframe(
         [
-            (
-                "ruref",
-                "cell_no",
-                "k",
-                "n",
-                "nk",
-                "rusic2007",
-                "region",
-                "y",
-                "x",
-                "N",
-                "Nk",
-                "sum_y",
-                "sum_x",
-                "a_weight",
-                "g_weight",
-            ),
+            ("ruref", "cell_no", "k", "n", "nk", "rusic2007", "region","y", "x", "N", "Nk", "sum_y", "sum_x", "a_weight", "g_weight"),  # noqa: E501
             (17, "1", 1, 3, 3, 11010, "AA", 10.2, 1.0, 8, 8, 416.4, 40.0, 2.6667, 2.5),
             (1, "1", 1, 3, 3, 11010, "AA", 30.0, 2.0, 8, 8, 416.4, 40.0, 2.6667, 2.5),
             (16, "1", 1, 3, 3, 11010, "AA", 30.6, 3.0, 8, 8, 416.4, 40.0, 2.6667, 2.5),
