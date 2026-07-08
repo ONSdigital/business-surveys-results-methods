@@ -22,13 +22,12 @@ dev = [
     "ruff~=0.13.3",
 ]
 
-
-[tool.setuptools]
-packages = ["business_surveys_results_methods"]
-
 [build-system]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["business_surveys_results_methods*"]
 
 [tool.coverage.run]
 branch = true
