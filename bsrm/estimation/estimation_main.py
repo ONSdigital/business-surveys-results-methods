@@ -53,11 +53,8 @@ def run_estimation(
     qa_frame = create_weights_qa_df(weighted_df, strata_col, incl_g_wts)
 
     # drop intermediate calculation columns
-    drop_cols = ["N", "n"]
     if incl_g_wts:
-        drop_cols += ["univ_aux_sum", "aux_col_sum"]
-
-    weighted_df = weighted_df.drop(columns=drop_cols, axis=1)
+        weighted_df = weighted_df.drop(columns=["univ_aux_sum", "aux_col_sum"], axis=1)
 
     return weighted_df, qa_frame
 

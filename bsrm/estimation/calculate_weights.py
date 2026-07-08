@@ -60,9 +60,6 @@ def a_weight(strata_group: pd.DataFrame, ru_column: str, univ_count_col: str) ->
     else:
         a_weight = 1.0
 
-    strata_group["N"] = N
-    strata_group["n"] = n
-
     strata_group["a_weight"] = a_weight
 
     return strata_group
@@ -134,10 +131,9 @@ def create_weights_qa_df(
     -------
         pd.DataFrame: The QA dataframe.
     """
-    qa_cols_list = [strata_col, "N", "n"]
-    g_weight_cols = ["univ_aux_sum", "aux_col_sum", "a_weight", "g_weight"]
-    a_weight_only_cols = ["a_weight"]
-    qa_cols_list = qa_cols_list + (g_weight_cols if incl_g_wts else a_weight_only_cols)
+    qa_cols_list = [strata_col, "N", "n", "a_weight"]
+    if incl_g_wts:
+        qa_cols_list += ["univ_aux_sum", "aux_col_sum", "g_weight"]
 
     qa_frame = df[qa_cols_list].groupby(strata_col).first()
     qa_frame = qa_frame.reset_index()
