@@ -9,8 +9,8 @@ Private Functions:
 
 import logging
 
-from bsrm.utils.io_mods import safeload_yaml
-from bsrm.utils.logger import logger_creator
+from business_surveys_results_methods.utils.io_mods import safeload_yaml
+from business_surveys_results_methods.utils.logger import logger_creator
 
 MappingMainLogger = logging.getLogger(__name__)
 

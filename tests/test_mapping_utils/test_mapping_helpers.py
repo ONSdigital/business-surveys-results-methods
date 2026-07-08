@@ -2,7 +2,7 @@ import pytest
 import re
 import pandas as pd
 
-from bsrm.mapping_utils.mapping_helpers import (
+from business_surveys_results_methods.mapping_utils.mapping_helpers import (
     mapper_null_checks,
     check_mapping_unique,
     join_with_null_check,

@@ -111,7 +111,7 @@ wheels = [
 
 [[package]]
 name = "business-surveys-results-methods"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "black" },
     { name = "rdsa-utils" },

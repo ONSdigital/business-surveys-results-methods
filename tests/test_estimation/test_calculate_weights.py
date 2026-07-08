@@ -3,7 +3,7 @@
 import pytest
 import pandas as pd
 from pandas.testing import assert_frame_equal
-from bsrm.estimation.calculate_weights import (
+from business_surveys_results_methods.estimation.calculate_weights import (
     calc_lower_n,
     a_weight,
     g_weight,

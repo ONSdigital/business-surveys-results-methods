@@ -2,7 +2,7 @@ name: Build and test
 on: [push, workflow_dispatch]
 
 env:
-  PROJECT_NAME: bsrm
+  PROJECT_NAME: business_surveys_results_methods
   ARTIFACTORY_PYPI_REPO: LR_EPDS_pypi
 permissions:
   contents: read
