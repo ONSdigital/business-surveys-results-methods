@@ -22,9 +22,12 @@ dev = [
     "ruff~=0.13.3",
 ]
 
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
 
-[tool.setuptools]
-packages = ["bsrm"]
+[tool.setuptools.packages.find]
+include = ["bsrm*"]
 
 [tool.coverage.run]
 branch = true
