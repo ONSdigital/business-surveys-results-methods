@@ -58,7 +58,7 @@ def a_weight(
     if strata_group.empty:
         return strata_group
 
-    N = strata_group[univ_count_col].iloc[0]
+    N = strata_group[univ_count_col].iloc[0] # noqa: N806 (allow capitals for vars)
     n = calc_lower_n(strata_group, ru_column)
 
     # Calculate 'a' for this group
