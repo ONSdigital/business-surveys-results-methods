@@ -35,11 +35,11 @@ def a_weight(
 
     The calculation here is:
 
-    a_weight = (population_count/sample_count)
+    a_weight = N/n
 
     Where:
-        population_count ("N" in method specs) is population or universe count for the stratum
-        sample_count ("n" in method specs) is the number of valid returns for the stratum
+        N is population or universe count for the stratum
+        n is the number of valid returns for the stratum
 
     Parameters
     ----------
@@ -58,12 +58,12 @@ def a_weight(
     if strata_group.empty:
         return strata_group
 
-    population_count = strata_group[univ_count_col].iloc[0]
-    sample_count = calc_lower_n(strata_group, ru_column)
+    N = strata_group[univ_count_col].iloc[0]
+    n = calc_lower_n(strata_group, ru_column)
 
     # Calculate 'a' for this group
-    if sample_count > 0:
-        a_weight = population_count / sample_count
+    if n > 0:
+        a_weight = N / n
     else:
         a_weight = 1.0
 
