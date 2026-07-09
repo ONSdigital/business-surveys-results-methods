@@ -67,15 +67,12 @@ def a_weight(
     else:
         a_weight = 1.0
 
-    strata_group["population_count"] = population_count
-    strata_group["sample_count"] = sample_count
-
     strata_group["a_weight"] = a_weight
 
     return strata_group
 
 
-def calc_g_weight(
+def g_weight(
     strata_group: pd.DataFrame,
     aux_col: str,
     univ_aux_col: str,
@@ -151,7 +148,7 @@ def create_weights_qa_df(
     pd.DataFrame
         The QA dataframe.
     """
-    qa_cols_list = [strata_col, "population_count", "sample_count", "a_weight"]
+    qa_cols_list = [strata_col, "N", "n", "a_weight"]
     if incl_g_wts:
         qa_cols_list += ["univ_aux_sum", "aux_col_sum", "g_weight"]
 
@@ -219,6 +216,6 @@ def calculate_g_weights(
     df = df.copy()
 
     df["g_weight"] = 1.0
-    df = df.groupby(strata_col, group_keys=False).apply(calc_g_weight, aux_col, univ_aux_col)
+    df = df.groupby(strata_col, group_keys=False).apply(g_weight, aux_col, univ_aux_col)
 
     return df

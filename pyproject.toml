@@ -22,9 +22,12 @@ dev = [
     "ruff~=0.13.3",
 ]
 
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
 
-[tool.setuptools]
-packages = ["bsrm"]
+[tool.setuptools.packages.find]
+include = ["bsrm*"]
 
 [tool.coverage.run]
 branch = true
@@ -102,3 +105,6 @@ inline-quotes = "double" #! CHECK everyone is happy with this
 "*/validation/*" = [
    "T201", "T203", # Allows print and pprint, useful for validation
 ]
+
+[tool.black]
+line-length = 120
