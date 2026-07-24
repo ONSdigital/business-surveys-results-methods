@@ -24,7 +24,7 @@ git clone https://github.com/ONSdigital/business-surveys-results-methods
 
 ## 2. Developer set up instructions
 
-See the [Setup Technical Details document](docs/contributor_guide/environment_setup.md) for detailed instructions on how to set up a virtual environment and install the project dependancies.
+For development puposes, a virtual environment can be installed using `uv`. ONS users can access a set up guide [via this link](https://github.com/ONSdigital/iabs-results-processing/blob/develop/docs/environment_setup.md), which can be used for this repository with minor changes.
 
 # License
 
