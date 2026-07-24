@@ -1,6 +1,17 @@
 # Methods for ONS business survey results processing
 
-This repository contains the code methods in development various business surveys, and primarily the Integrated Annual Business Survey (IABS)
+This repository provides code for statistical methods commonly used in ONS business surveys. The modules are designed to be as generic and reusable as possible for different applications.
+
+### Note
+This code is still in development and is not currently used in any production systems.
+
+### Methods included so far:
+- Esimation - in review
+
+### Planned future methods:
+- Ratio imputation methods including
+- Windsorisation for estimation outliering
+- Regional apportionment
 
 
 # Installation

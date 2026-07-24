@@ -33,7 +33,6 @@ After this you will need to restart your terminal.
 
 You are now ready to install uv:
 
-To learn more about `uv`, see the [technical documentation](https://github.com/ONSdigital/iabs-results-processing/blob/iabs_19_uv_docs/docs/uv_and_pipx.md).
 ```
 python3_11 -m pipx install uv
 ```
@@ -92,7 +91,7 @@ To activate the environment, run this:
 ```sh
 .venv\Scripts\activate
 ```
-You will now have a new folder named .venv at the root level of your repo to contain the version of Python and all other items to install for this project. You should also see `(iabs-results-processing)` at the beginning of each line in your terminal.
+You will now have a new folder named .venv at the root level of your repo to contain the version of Python and all other items to install for this project.
 
 Finally, you are now able to install all packages using the folling command:
 
