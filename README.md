@@ -10,7 +10,7 @@ This code is still in development and is not currently used in any production sy
 
 ### Planned future methods:
 - Ratio imputation methods including
-- Windsorisation for estimation outliering
+- Winsorisation for estimation outliering
 - Regional apportionment
 
 
@@ -24,7 +24,9 @@ git clone https://github.com/ONSdigital/business-surveys-results-methods
 
 ## 2. Developer set up instructions
 
-For development puposes, a virtual environment can be installed using `uv`. ONS users can access a set up guide [via this link](https://github.com/ONSdigital/iabs-results-processing/blob/develop/docs/environment_setup.md), which can be used for this repository with minor changes.
+For development puposes, a virtual environment can be installed using `uv`.
+### ONS users only
+ONS users can access a set up guide [via this link](https://github.com/ONSdigital/iabs-results-processing/blob/develop/docs/environment_setup.md), which will be suitable for this repository with minor changes.
 
 # License
 
