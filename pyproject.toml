@@ -6,39 +6,28 @@ authors = [
     {name = "Reproducible Data Science and Analysis, ONS", email = "RDSA.Support@ons.gov.uk"},
 ]
 readme = "README.md"
-requires-python = "==3.11.0"
+requires-python = ">=3.11,<3.12"
 
 dependencies = [
-    "codetiming~=1.4.0",
-    "rdsa-utils~=0.12.0",
-    "numpy~=1.26",
-    "pandas~=2.1.2",
-    "pyyaml",
-    "tomli~=2.0.1",
-    "black>=25.9.0",
-    "isort>=6.1.0",
-    "bandit>=1.8.6",
-    "detect-secrets>=1.5.0",
+    "rdsa-utils~=0.16.1",
+    "black>=26.5.0",
 ]
-
 
 [dependency-groups]
 dev = [
-    "detect-secrets",
-    "ipykernel~=6.29.5",
-    "pip~=25.2",
     "pre-commit~=2.17.0",
-    "pytest~=8.3.2",
     "pytest-cov~=4.0.0",
     "pytest-lazy-fixture~=0.6.0",
     "pytest-mock~=3.8.0",
-    "ruff~=0.12.2",
-    "setuptools~=80.9.0",
+    "ruff~=0.13.3",
 ]
 
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
 
-[tool.setuptools]
-packages = ["bsrm"]
+[tool.setuptools.packages.find]
+include = ["bsrm*"]
 
 [tool.coverage.run]
 branch = true
@@ -93,7 +82,7 @@ lint.ignore = [
    # This complains about anything called df.
    "PD901",
 ]
-line-length = 88
+line-length = 100
 exclude = ["dev_utils/*","*tests/*"]
 
 [tool.ruff.lint.pydocstyle]
@@ -116,3 +105,6 @@ inline-quotes = "double" #! CHECK everyone is happy with this
 "*/validation/*" = [
    "T201", "T203", # Allows print and pprint, useful for validation
 ]
+
+[tool.black]
+line-length = 120

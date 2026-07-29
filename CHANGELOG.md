@@ -12,3 +12,13 @@ and this project adheres to [semantic versioning](https://semver.org/spec/v2.0.0
 - update_environment_docs2: updates to relative paths in docs
 - unit_test_helper: helper to generate test scripts from csv inputs
 - imputation_module: adapt mean of ratios script from research_and_development
+irps_51_update_variables : Renamed variable to match estimation paper nomenclature<br>
+irps_50_remove_reference_outliers: Removed all reference to outliers from the existing code to align with the estimation paper from methodologist. <br>
+irps_54_fix_aux_calc : Fixed calibration auxiliary-weight for combined groups. <br>
+irps_70_component test: used example from methodology paper to do a component  test <br>
+
+- mapping_utils : add unit tests for mapping_helpers.py <br>
+- update_environment_docs: modify the documentation for project setup<br>
+- update_environment_docs2: updates to relative paths in docs<br>
+- estimation_module : adapted estimation functions and tests from R&D<br>
+- unit_test_helper: helper to generate test scripts from csv input files<br>
