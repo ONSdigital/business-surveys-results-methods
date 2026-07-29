@@ -1,6 +1,17 @@
 # Methods for ONS business survey results processing
 
-This repository contains the code methods in development various business surveys, and primarily the Integrated Annual Business Survey (IABS)
+This repository provides code for statistical methods commonly used in ONS business surveys. The modules are designed to be as generic and reusable as possible for different applications.
+
+### Note
+This code is still in development and is not currently used in any production systems.
+
+### Methods included so far:
+- Esimation - in review
+
+### Planned future methods:
+- Ratio imputation methods including
+- Winsorisation for estimation outliering
+- Regional apportionment
 
 
 # Installation
@@ -13,7 +24,9 @@ git clone https://github.com/ONSdigital/business-surveys-results-methods
 
 ## 2. Developer set up instructions
 
-See the [Setup Technical Details document](docs/contributor_guide/environment_setup.md) for detailed instructions on how to set up a virtual environment and install the project dependancies.
+For development puposes, a virtual environment can be installed using `uv`.
+### ONS users only
+ONS users can access a set up guide [via this link](https://github.com/ONSdigital/iabs-results-processing/blob/develop/docs/environment_setup.md), which will be suitable for this repository with minor changes.
 
 # License
 
