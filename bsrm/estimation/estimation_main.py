@@ -27,18 +27,27 @@ def run_estimation(
 
     Parameters
     ----------
-        df (pd.DataFrame): The survey data were estimation will be applied.
-        strata_col (str): The column representing the strata.
-        ru_col (str): The column representing the reference unit.
-        aux_col (str): The column representing the auxiliary variable.
-        univ_count_col (str): The column representing the universe count.
-        univ_aux_col (str): The column representing the universe auxiliary variable.
-        incl_g_wts (bool): Whether to include g weights in the calculation.
-        round_val (int): The number of decimal places to round the final results to
+    df: pd.DataFrame
+        The survey data were estimation will be applied.
+    strata_col : str
+        The column representing the strata.
+    ru_col : str
+        The column representing the reference unit.
+    aux_col: str
+        The column representing the auxiliary variable.
+    univ_count_col : str
+        The column representing the universe count.
+    univ_aux_col : str
+        The column representing the universe auxiliary variable.
+    incl_g_wts : bool
+        Whether to include g weights in the calculation.
+    round_val :int
+        The number of decimal places to round the final results to
 
     Returns
     -------
-        pd.DataFrame: The main dataset after the application of estimation.
+    pd.DataFrame
+        The main dataset after the application of estimation.
     """
     EstMainLogger.info("Starting estimation weights calculation...")
 
