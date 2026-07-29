@@ -320,7 +320,7 @@ def generate_test_code(
         "import pandas as pd\n"
         "import numpy as np\n"
         "import pytest\n"
-        "from iabs.utils.helpers import create_dataframe\n"
+        "from bsrm.utils.helpers import create_dataframe\n"
         f"from {module_name} import {function_name}\n"
     )
 
@@ -478,12 +478,13 @@ def main(config: TestConfig) -> None:
 
 if __name__ == "__main__":
     config = TestConfig(
-        csv_directory="Q:/IABS project/Test data/estimation_tests/",
-        # csv_directory="H:/Desktop/IABSCSV",
-        output_directory="D:/coding_projects/iabs_test_data/",
-        # output_directory="H:/Desktop/IABSCSV",
+        csv_directory="",
+        output_directory="",
         input_files=["estimation_component_test_input.csv"],
-        exp_output_files=["estimation_component_test_expected_output.csv"],
+        exp_output_files=[
+            "estimation_component_test_expected_final_output.csv",
+            "estimation_component_test_expected_qa_output.csv",
+        ],
         function_name="newdataframeformat",
         module_name="path.to.module",
         column_type_override={
