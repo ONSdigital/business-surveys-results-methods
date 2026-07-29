@@ -1,4 +1,7 @@
-"""Functions for the Mean of Ratios (MoR) methods."""
+"""WIP: Functions for the Mean of Ratios (MoR) methods.
+
+This script is old work that has been paused and will be re-worked in future
+"""
 
 import itertools
 import pandas as pd
@@ -115,9 +118,7 @@ def carry_forwards(
     return merged_df
 
 
-def calculate_growth_rates(
-    merged_df: pd.DataFrame, target_vars: list[str]
-) -> pd.DataFrame:
+def calculate_growth_rates(merged_df: pd.DataFrame, target_vars: list[str]) -> pd.DataFrame:
     """Calculate the growth rates between previous and current data.
 
     Growth rates are caclucated for "matched pairs": where the reference and imp_class
@@ -145,8 +146,7 @@ def calculate_growth_rates(
             & (growth_df[target] != 0)
         )
         growth_df.loc[valid_mask, f"{target}_gr"] = (
-            growth_df.loc[valid_mask, target]
-            / growth_df.loc[valid_mask, f"{target}_prev"]
+            growth_df.loc[valid_mask, target] / growth_df.loc[valid_mask, f"{target}_prev"]
         )
     return growth_df
 
@@ -292,8 +292,7 @@ def apply_links(
             mask = matched_mask & no_zero_mask
             # Apply the links to the previous values
             cf_df.loc[mask, f"{value}_imputed"] = (
-                cf_df.loc[mask, f"{value}_imputed"]
-                * cf_df.loc[mask, f"{target_var}_link"]
+                cf_df.loc[mask, f"{value}_imputed"] * cf_df.loc[mask, f"{target_var}_link"]
             )
             cf_df.loc[matched_mask, "imp_marker"] = "MoR"
 
@@ -340,8 +339,6 @@ def run_mor(
     gr_df = calculate_growth_rates(carried_forwards_df, target_vars)
     links_df = calculate_links(gr_df, target_vars, imp_class_col, link_threshold)
 
-    imputed_df = apply_links(
-        carried_forwards_df, links_df, imputed_vars_dict, imp_class_col
-    )
+    imputed_df = apply_links(carried_forwards_df, links_df, imputed_vars_dict, imp_class_col)
 
     return imputed_df, links_df
