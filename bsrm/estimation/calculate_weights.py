@@ -7,19 +7,17 @@ CalcWeights_Logger = logging.getLogger(__name__)
 
 
 def calc_lower_n(df: pd.DataFrame, ru_column: str) -> int:
-    """Calculate the number of unique reporting units (RUs) ("n") in the dataset.
+    """Calculate 'n' which is a number of unique reporting units (RUs) in the dataset.
 
     Parameters
     ----------
-    df : pd.DataFrame
-        The input dataframe which contains survey data, including expenditure data
-    ru_column : str
-        The name of the column containing reporting unit identifiers.
+        df (pd.DataFrame): The input dataframe which contains survey data,
+            including expenditure data
+        ru_column (str): The name of the column containing reporting unit identifiers.
 
     Returns
     -------
-    int
-        The number of unique reporting units (RUs).
+        int: The number of unique reporting units (RUs).
     """
     n = df[ru_column].nunique()
 
@@ -27,36 +25,37 @@ def calc_lower_n(df: pd.DataFrame, ru_column: str) -> int:
 
 
 def a_weight(
-    strata_group: pd.DataFrame,
-    ru_column: str,
-    univ_count_col: str,
+    strata_group: pd.DataFrame, ru_column: str, univ_count_col: str, strata_col: str | None = None
 ) -> pd.DataFrame:
-    """Calculate the a-weights for a stratum group.
+    """Calculate the 'a' weighting factor for a stratum group.
 
     The calculation here is:
 
-    a_weight = N/n
+    a = (N/n)
 
     Where:
-        N is population or universe count for the stratum
+        N is population (universe) count for the stratum
         n is the number of valid returns for the stratum
+
 
     Parameters
     ----------
-    strata_group : pd.DataFrame
-        The dataframe grouped by strata.
-    ru_column : str
-        The name of the column containing reporting unit identifiers.
-    univ_count_col : str
-        The name of the column containing the total number of reporting units in the stratum.
+        strata_group (pd.DataFrame): The dataframe grouped by strata.
+        ru_column (str): The name of the column containing reporting unit identifiers.
+        univ_count_col (str): The name of the column containing the total number of
+            reporting units in the stratum.
+        strata_col (str | None): The name of the column the data is grouped by. Pass
+            this to keep that column in the result. Leave as None when calling directly.
 
     Returns
     -------
-    pd.DataFrame
-        The dataframe with the a-weights calculated.
+        pd.DataFrame: The dataframe with the 'a' weighting factor calculated.
     """
     if strata_group.empty:
         return strata_group
+
+    if strata_col is not None:
+        strata_group[strata_col] = strata_group.name
 
     N = strata_group[univ_count_col].iloc[0]  # noqa: N806 (allow capitals for vars)
     n = calc_lower_n(strata_group, ru_column)
@@ -73,47 +72,49 @@ def a_weight(
 
 
 def g_weight(
-    strata_group: pd.DataFrame,
-    aux_col: str,
-    univ_aux_col: str,
+    strata_group: pd.DataFrame, aux_col: str, univ_aux_col: str, strata_col: str | None = None
 ) -> pd.DataFrame:
-    """Calculate the g-weights for a calibration group.
+    """Calculate the 'g' weighting factor for a calibration group.
 
     The calculation for the g-weight is:
 
     g =  univ_aux_sum / sum_ax
-    sum_ax = Σ a_i * x_i
 
-    Where:
-    - univ_aux_sum is the sum of the auxiliary value for the universe over the calibration group.
-    - sum_ax is the sum of the auxiliary value multiplied by its a_weight for responders in the
-        calibration group.
-    - x_i represents each auxiliary value.
-    - a_i represents the a_weight corresponding to x_i.
+        sum_ax = Σ a_i * x_i
+
+        Where:
+        - univ_aux_sum is the sum of the auxiliary value for the universe over
+          the calibration group.
+        - sum_ax is the sum of the auxiliary value multiplied by its a_weight
+          for responders in the calibration group.
+        - x_i represents each auxiliary value.
+        - a_i represents the a_weight corresponding to x_i.
 
     Parameters
     ----------
-    strata_group : pd.DataFrame
-        The dataframe grouped by calibration group.
-    aux_col : str
-        The name of the column containing auxiliary employment data.
-    univ_aux_col : str
-        The name of the column containing the total auxiliary employment in the calibration group.
+        strata_group (pd.DataFrame): The dataframe grouped by calibration group.
+        aux_col (str): The name of the column containing auxiliary employment data.
+        univ_aux_col (str): The name of the column containing the total auxiliary
+            employment in the calibration group.
+        strata_col (str | None): The name of the column the data is grouped by. Pass
+            this to keep that column in the result. Leave as None when calling directly.
 
     Returns
     -------
-    pd.DataFrame
-        The dataframe with the g-weights calculated.
+        pd.DataFrame: The dataframe with the 'g' weighting factor calculated.
     """
     if strata_group.empty:
         return strata_group
+    if strata_col is not None:
+        strata_group[strata_col] = strata_group.name
 
     univ_aux_sum = strata_group[univ_aux_col].iloc[0]
     aux_col_sum = strata_group[aux_col].sum()
     # sum_ax must be computed row-by-row (a_i * x_i) before summing
     sum_ax = (strata_group["a_weight"] * strata_group[aux_col]).sum()
 
-    # Calculate g-weight for this group
+    # Calculate 'g' for this group
+
     if aux_col_sum > 0 and sum_ax > 0:
         g_weight = univ_aux_sum / sum_ax
     else:
@@ -128,34 +129,28 @@ def g_weight(
 
 
 def create_weights_qa_df(
-    df: pd.DataFrame,
-    strata_col: str,
-    incl_g_wts: bool = True,
+    df: pd.DataFrame, strata_col: str, incl_g_wts: bool = True
 ) -> pd.DataFrame:
     """Create a QA dataframe for the weight calculation.
 
     Parameters
     ----------
-    df : pd.DataFrame
-        The dataframe containing the weights columns.
-    strata_col : str
-        The name of the column containing stratum identifiers.
-    incl_g_wts : bool, optional
-        Whether g weights were calculated.
+        df (pd.DataFrame): The dataframe containing the weights columns.
+        strata_col (str): The name of the column containing stratum identifiers.
+        incl_g_wts (bool, optional): Whether g weights were calculated.
 
     Returns
     -------
-    pd.DataFrame
-        The QA dataframe.
+        pd.DataFrame: The QA dataframe.
     """
     qa_cols_list = [strata_col, "N", "n", "a_weight"]
     if incl_g_wts:
         qa_cols_list += ["univ_aux_sum", "aux_col_sum", "g_weight"]
 
-    qa_df = df[qa_cols_list].groupby(strata_col).first()
-    qa_df = qa_df.reset_index()
+    qa_frame = df[qa_cols_list].groupby(strata_col).first()
+    qa_frame = qa_frame.reset_index()
 
-    return qa_df
+    return qa_frame
 
 
 def calculate_a_weights(
@@ -168,15 +163,11 @@ def calculate_a_weights(
 
     Parameters
     ----------
-    df : pd.DataFrame
-        The input df containing survey data.
-    strata_col : str
-        The name of the column containing stratum identifiers.
-    ru_col : str
-        The name of the column containing reference unit data.
-    univ_count_col : str
-        The name of the column containing the total number of reporting units in the stratum.
-
+        df (pd.DataFrame): The input df containing survey data.
+        strata_col (str): The name of the column containing stratum identifiers.
+        ru_col (str): The name of the column containing reference unit data.
+        univ_count_col (str): The name of the column containing the total number of
+            reporting units in the stratum.
 
     Returns
     -------
@@ -184,38 +175,34 @@ def calculate_a_weights(
     """
     df = df.copy()
     df["a_weight"] = 1.0
-    df = df.groupby(strata_col, group_keys=False).apply(a_weight, ru_col, univ_count_col)
+    df = df.groupby(strata_col, group_keys=False).apply(
+        a_weight, ru_col, univ_count_col, strata_col
+    )
 
     return df
 
 
 def calculate_g_weights(
-    df: pd.DataFrame,
-    strata_col: str,
-    aux_col: str,
-    univ_aux_col: str,
+    df: pd.DataFrame, strata_col: str, aux_col: str, univ_aux_col: str
 ) -> pd.DataFrame:
-    """Calculate the g-weight for each calibration group in the data.
+    """Calculate the 'g' weight for each calibration group in the data.
 
     Parameters
     ----------
-    df : pd.DataFrame
-        The input df containing survey data
-    strata_col : str
-        The name of the column containing calibration group identifiers (k).
-    aux_col : str
-        The name of the column containing auxiliary employment data.
-    univ_aux_col : str
-        The name of the column containing the population auxiliary total for each calibration group.
+        df (pd.DataFrame): The input df containing survey data
+        strata_col (str): The name of the column containing calibration
+            group identifiers (k).
+        aux_col (str): The name of the column containing auxiliary employment data.
+        univ_aux_col (str): The name of the column containing the population
+            auxiliary total for each calibration group.
 
     Returns
     -------
-    pd.DataFrame
-        The full dataframe with the added new column "g_weight".
+        pd.DataFrame: The full dataframe with the added new column "g_weight".
     """
     df = df.copy()
 
     df["g_weight"] = 1.0
-    df = df.groupby(strata_col, group_keys=False).apply(g_weight, aux_col, univ_aux_col)
+    df = df.groupby(strata_col, group_keys=False).apply(g_weight, aux_col, univ_aux_col, strata_col)
 
     return df
