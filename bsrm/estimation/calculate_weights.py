@@ -30,6 +30,7 @@ def a_weight(
     strata_group: pd.DataFrame,
     ru_column: str,
     univ_count_col: str,
+    strata_col: str | None = None,
 ) -> pd.DataFrame:
     """Calculate the a-weights for a stratum group.
 
@@ -49,6 +50,8 @@ def a_weight(
         The name of the column containing reporting unit identifiers.
     univ_count_col : str
         The name of the column containing the total number of reporting units in the stratum.
+    strata_col : str | None
+        The name of the column the data is grouped by. Pass this to keep that column in the result.
 
     Returns
     -------
@@ -57,6 +60,9 @@ def a_weight(
     """
     if strata_group.empty:
         return strata_group
+
+    if strata_col is not None:
+        strata_group[strata_col] = strata_group.name
 
     N = strata_group[univ_count_col].iloc[0]  # noqa: N806 (allow capitals for vars)
     n = calc_lower_n(strata_group, ru_column)
@@ -76,6 +82,7 @@ def g_weight(
     strata_group: pd.DataFrame,
     aux_col: str,
     univ_aux_col: str,
+    strata_col: str | None = None,
 ) -> pd.DataFrame:
     """Calculate the g-weights for a calibration group.
 
@@ -99,14 +106,19 @@ def g_weight(
         The name of the column containing auxiliary employment data.
     univ_aux_col : str
         The name of the column containing the total auxiliary employment in the calibration group.
+    strata_col : str | None
+        The name of the column the data is grouped by. Pass this to keep that column in the result.
 
-    Returns
+    Return
     -------
     pd.DataFrame
         The dataframe with the g-weights calculated.
     """
     if strata_group.empty:
         return strata_group
+
+    if strata_col is not None:
+        strata_group[strata_col] = strata_group.name
 
     univ_aux_sum = strata_group[univ_aux_col].iloc[0]
     aux_col_sum = strata_group[aux_col].sum()
@@ -184,7 +196,9 @@ def calculate_a_weights(
     """
     df = df.copy()
     df["a_weight"] = 1.0
-    df = df.groupby(strata_col, group_keys=False).apply(a_weight, ru_col, univ_count_col)
+    df = df.groupby(strata_col, group_keys=False).apply(
+        a_weight, ru_col, univ_count_col, strata_col
+    )
 
     return df
 
@@ -216,6 +230,6 @@ def calculate_g_weights(
     df = df.copy()
 
     df["g_weight"] = 1.0
-    df = df.groupby(strata_col, group_keys=False).apply(g_weight, aux_col, univ_aux_col)
+    df = df.groupby(strata_col, group_keys=False).apply(g_weight, aux_col, univ_aux_col, strata_col)
 
     return df
