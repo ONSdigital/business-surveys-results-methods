@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 
-def calculate_ratio_estimation(
+def calculate_ratio_estimation_threshold(
     df: pd.DataFrame,
     a_weight_col: str,
     g_weight_col: str,
@@ -30,16 +30,23 @@ def calculate_ratio_estimation(
 
     Parameters
     ----------
-    df (pd.DataFrame) : Input dataframe.
-    a_weight_col (str) : Name of the design weight column.
-    g_weight_col (str) : Name of the calibration weight column.
-    predicted_unit_value_col (str) : Name of the predicted unit value column.
-    l_values_col (str) : Name of the tuning parameter column.
-    non_winsorisable_marker_col (str) : Name of the column marking units where a_i * g_i <= 1.
+    df : pd.DataFrame
+        Input dataframe.
+    a_weight_col : str
+        Name of the design weight column.
+    g_weight_col : str
+        Name of the calibration weight column.
+    predicted_unit_value_col : str
+        Name of the predicted unit value column.
+    l_values_col : str
+        Name of the tuning parameter column.
+    non_winsorisable_marker_col : str
+        Name of the column marking units where a_i * g_i <= 1.
 
     Returns
     -------
-    pd.DataFrame: Dataframe with an added ratio_estimation_threshold column (k_i in the paper).
+    pd.DataFrame
+         Dataframe with an added ratio_estimation_threshold column (k_i in the paper).
     """
     df = df.copy()
     df["ag_product"] = df[a_weight_col] * df[g_weight_col]

@@ -6,10 +6,10 @@ from bsrm.outlier.calculate_predicted_unit_value import (
     calculate_predicted_unit_value,
 )
 from bsrm.outlier.calculate_ratio_estimation import (
-    calculate_ratio_estimation,
+    calculate_ratio_estimation_threshold,
 )
 from bsrm.outlier.calculate_winsorised_weight import (
-    calculate_winsorised_weight,
+    calculate_ratio_winsorised_weight,
 )
 from bsrm.outlier.flag_for_winsorisation import winsorisation_flag
 
@@ -40,21 +40,33 @@ def winsorise(
 
     Parameters
     ----------
-    df (pd.DataFrame) : Input dataframe.
-    calibration_group_col (str) : Name of the calibration group column (j in the spec).
-    aux_col (str) : Name of the auxiliary variable column (x_i in the spec).
-    a_weight_col (str) : Name of the design weight column (a_i in the spec).
-    g_weight_col (str) : Name of the calibration weight column (g_i in the spec).
-    target_col (str) : Name of the target variable column (y_i in the spec).
-    l_values_col (str) : Name of the tuning parameter column (L in the spec).
+    df : pd.DataFrame
+        Input dataframe.
+    calibration_group_col : str
+       Name of the calibration group column (j in the spec).
+    aux_col : str
+        Name of the auxiliary variable column (x_i in the spec).
+    a_weight_col : str
+        Name of the design weight column (a_i in the spec).
+    g_weight_col : str
+        Name of the calibration weight column (g_i in the spec).
+    target_col : str
+        Name of the target variable column (y_i in the spec).
+    l_values_col : str
+        Name of the tuning parameter column (L in the spec).
 
     Returns
     -------
-    pd.DataFrame: Dataframe with added outlier_weight (o_i) and
+    pd.DataFrame
+        Dataframe with added outlier_weight (o_i) and
         adjusted_return (y*_i) columns.
     """
     winsorised_df = (
-        df.pipe(winsorisation_flag, a_weight_col, g_weight_col)
+        df.pipe(
+            winsorisation_flag,
+            a_weight_col,
+            g_weight_col,
+        )
         .pipe(
             calculate_predicted_unit_value,
             calibration_group_col,
@@ -64,7 +76,7 @@ def winsorise(
             "non_winsorisable_marker",
         )
         .pipe(
-            calculate_ratio_estimation,
+            calculate_ratio_estimation_threshold,
             a_weight_col,
             g_weight_col,
             "predicted_unit_value",
@@ -72,7 +84,7 @@ def winsorise(
             "non_winsorisable_marker",
         )
         .pipe(
-            calculate_winsorised_weight,
+            calculate_ratio_winsorised_weight,
             a_weight_col,
             g_weight_col,
             target_col,

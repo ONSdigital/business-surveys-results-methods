@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 
-def calculate_winsorised_weight(
+def calculate_ratio_winsorised_weight(
     df: pd.DataFrame,
     a_weight_col: str,
     g_weight_col: str,
@@ -14,6 +14,7 @@ def calculate_winsorised_weight(
 ) -> pd.DataFrame:
     """Calculate the adjusted return (y*_i) and outlier weight (o_i) for each unit.
 
+    This function implements the ratio estimation method for Winsorisation.
     Formula provided in the paper (provided by methodology):
 
         y*_i = y_i + (a_i * g_i - 1) * k_i / (a_i * g_i)
@@ -37,16 +38,23 @@ def calculate_winsorised_weight(
 
     Parameters
     ----------
-    df (pd.DataFrame) : Input dataframe.
-    a_weight_col (str) : Name of the design weight column (a_i in the spec).
-    g_weight_col (str) : Name of the calibration weight column (g_i in the spec).
-    target_col (str) : Name of the target variable column (y_i in the spec).
-    ratio_estimation_threshold_col (str) : Name of the ratio threshold column.
-    non_winsorisable_marker_col (str) : Name of the column marking units where a_i * g_i <= 1.
+    df : pd.DataFrame
+        Input dataframe.
+    a_weight_col : str
+        Name of the design weight column (a_i in the spec).
+    g_weight_col : str
+        Name of the calibration weight column (g_i in the spec).
+    target_col : str
+        Name of the target variable column (y_i in the spec).
+    ratio_estimation_threshold_col : str
+        Name of the ratio threshold column (k_i in the spec).
+    non_winsorisable_marker_col : str
+        Name of the column marking units where a_i * g_i <= 1.
 
     Returns
     -------
-    pd.DataFrame: Dataframe with added adjusted_return (y*_i) and outlier_weight (o_i) columns.
+    pd.DataFrame
+         Dataframe with added adjusted_return (y*_i) and outlier_weight (o_i) columns.
     """
     df["ag_product"] = df[a_weight_col] * df[g_weight_col]
 

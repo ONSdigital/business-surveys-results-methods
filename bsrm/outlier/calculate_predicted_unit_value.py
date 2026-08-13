@@ -16,7 +16,7 @@ def calculate_predicted_unit_value(
 
     Formula from the paper ( provided by methodology):
 
-        mu_i = x_i * sum(a_i * x_i) / sum(a_i * y_i)
+        mu_i = x_i * sum(a_i * y_i) / sum(a_i * x_i)
 
     where sums are taken over calibration group j. Units marked as
     non-winsorisable (a_i * g_i <= 1) receive NaN.
@@ -31,19 +31,25 @@ def calculate_predicted_unit_value(
 
     Parameters
     ----------
-    df (pd.DataFrame) : Input dataframe.
-    calibration_group_col (str) : Name of the calibration group column.
-    aux_col (str) : Name of the auxiliary variable column.
-    a_weight_col (str) : Name of the design weight column.
-    target_col (str) : Name of the target variable column.
-    non_winsorisable_marker_col (str) : Name of the column marking units where a_i * g_i <= 1.
+    df:pd.DataFrame
+        Input dataframe.
+    calibration_group_col: str
+      Name of the calibration group column.
+    aux_col : str
+      Name of the auxiliary variable column.
+    a_weight_col : str
+      Name of the design weight column.
+    target_col : str
+      Name of the target variable column.
+    non_winsorisable_marker_col : str
+      Name of the column marking units where a_i * g_i <= 1.
 
     Returns
     -------
-    pd.DataFrame: Dataframe with an added predicted_unit_value column.
+    pd.DataFrame
+      Dataframe with an added predicted_unit_value column.
     """
-    winsorised = ~df[non_winsorisable_marker_col]
-    filtered_df = df.copy().loc[winsorised]
+    filtered_df = df.copy().loc[~df[non_winsorisable_marker_col]]
 
     filtered_df["weighted_target_values"] = filtered_df[a_weight_col] * filtered_df[target_col]
     filtered_df["weighted_auxiliary_values"] = filtered_df[a_weight_col] * filtered_df[aux_col]
@@ -68,7 +74,7 @@ def calculate_predicted_unit_value(
     final_df = df.merge(total_sum_weighted, on=calibration_group_col, how="left")
 
     final_df["predicted_unit_value"] = final_df[aux_col] * (
-        final_df["sum_weighted_auxiliary_values"] / final_df["sum_weighted_target_values"]
+        final_df["sum_weighted_target_values"] / final_df["sum_weighted_auxiliary_values"]
     )
 
     final_df = final_df.drop(
