@@ -16,16 +16,18 @@ jobs:
   #   # Checks for updates to CHANGELOG.md
   #   # Source: https://github.com/marketplace/actions/changelog-enforcer
   #   - uses: dangoslen/changelog-enforcer@v3
- # Run pre-commit on all files to do ruff, YAML checking, etc.
+  # Run pre-commit on all files to do ruff, YAML checking, etc.
   pre-commit:
-      runs-on: ubuntu-latest
-      steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v3
-        with:
-          python-version: "3.11"
-      - uses: astral-sh/setup-uv@v6
-        with:
-          enable-cache: true
-      - uses: pre-commit/action@v3.0.0
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+    - name: Set up Python 3.11.0
+      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+      with:
+        python-version: "3.11.0"  # exact patch version used for ONS python
+
+    - name: Pre-commit
+      uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd  # v3.0.1
        
