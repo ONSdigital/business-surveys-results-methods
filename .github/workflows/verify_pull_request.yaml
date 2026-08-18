@@ -28,12 +28,6 @@ jobs:
       with:
         python-version: "3.11.0"  # exact patch version used for ONS python
 
-    - name: Install uv
-      uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
-      with:
-        # remember to update this if we have a later version of uv
-        enable-cache: true
-
     - name: Pre-commit
       uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd  # v3.0.1
        
