@@ -134,7 +134,7 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "pre-commit", specifier = "~=2.17.0" },
+    { name = "pre-commit", specifier = "~=4.0" },
     { name = "pytest-cov", specifier = "~=4.0.0" },
     { name = "pytest-lazy-fixture", specifier = "~=0.6.0" },
     { name = "pytest-mock", specifier = "~=3.8.0" },
@@ -973,19 +973,18 @@ wheels = [
 
 [[package]]
 name = "pre-commit"
-version = "2.17.0"
+version = "4.6.2"
 source = { registry = "https://onsart-01/artifactory/api/pypi/yr-python/simple" }
 dependencies = [
     { name = "cfgv" },
     { name = "identify" },
     { name = "nodeenv" },
     { name = "pyyaml" },
-    { name = "toml" },
     { name = "virtualenv" },
 ]
-sdist = { url = "https://onsart-01/artifactory/api/pypi/yr-python/packages/packages/32/ea/13bb25c70e6d04b5788c42e0d3fcc82b06bc89f5d44c3c5606ef1af5a7cc/pre_commit-2.17.0.tar.gz", hash = "sha256:c1a8040ff15ad3d648c70cc3e55b93e4d2d5b687320955505587fd79bbaed06a" }
+sdist = { url = "https://onsart-01/artifactory/api/pypi/yr-python/packages/packages/74/89/1f3e8e1fc3e97de0fa963495832f581f025f29471602a309e48808244292/pre_commit-4.6.2.tar.gz", hash = "sha256:8f5d7bfb021ecdbcd9d49d89847082dd24172ccde534390081a679ad046e2441" }
 wheels = [
-    { url = "https://onsart-01/artifactory/api/pypi/yr-python/packages/packages/d6/a0/9c06353771c8dae6db437dd513a885eccdb1566cb332569130484eddf4e7/pre_commit-2.17.0-py2.py3-none-any.whl", hash = "sha256:725fa7459782d7bec5ead072810e47351de01709be838c2ce1726b9591dad616" },
+    { url = "https://onsart-01/artifactory/api/pypi/yr-python/packages/packages/45/e2/bbb7129c9e7999a6b8ee9cca3b66486c25c423ab5a75f34071798b74ce94/pre_commit-4.6.2-py2.py3-none-any.whl", hash = "sha256:e2dde9a75d3bce11bd3831c26d134df00a2803c1d818be6a0383c3dcda25dc4e" },
 ]
 
 [[package]]
@@ -1463,15 +1462,6 @@ dependencies = [
 sdist = { url = "https://onsart-01/artifactory/api/pypi/yr-python/packages/packages/7a/fd/7a5ee21fd08ff70d3d33a5781c255cbe779659bd03278feb98b19ee550f4/tinycss2-1.4.0.tar.gz", hash = "sha256:10c0972f6fc0fbee87c3edb76549357415e94548c1ae10ebccdea16fb404a9b7" }
 wheels = [
     { url = "https://onsart-01/artifactory/api/pypi/yr-python/packages/packages/e6/34/ebdc18bae6aa14fbee1a08b63c015c72b64868ff7dae68808ab500c492e2/tinycss2-1.4.0-py3-none-any.whl", hash = "sha256:3a49cf47b7675da0b15d0c6e1df8df4ebd96e9394bb905a5775adb0d884c5289" },
-]
-
-[[package]]
-name = "toml"
-version = "0.10.2"
-source = { registry = "https://onsart-01/artifactory/api/pypi/yr-python/simple" }
-sdist = { url = "https://onsart-01/artifactory/api/pypi/yr-python/packages/packages/be/ba/1f744cdc819428fc6b5084ec34d9b30660f6f9daaf70eead706e3203ec3c/toml-0.10.2.tar.gz", hash = "sha256:b3bda1d108d5dd99f4a20d24d9c348e91c4db7ab1b749200bded2f839ccbe68f" }
-wheels = [
-    { url = "https://onsart-01/artifactory/api/pypi/yr-python/packages/packages/44/6f/7120676b6d73228c96e17f1f794d8ab046fc910d781c8d151120c3f1569e/toml-0.10.2-py2.py3-none-any.whl", hash = "sha256:806143ae5bfb6a3c6e736a764057db0e6a0e05e338b5630894a5f779cabb4f9b" },
 ]
 
 [[package]]
