@@ -64,8 +64,9 @@ def calculate_ratio_winsorised_weight(
 
     mask = df[target_col] <= df[ratio_estimation_threshold_col]
     df["adjusted_return"] = np.where(mask, df[target_col], df["adjusted_value"])
+    df["outlier_flag"] = (~mask).astype(int)
 
-    df["outlier_weight"] = df["adjusted_return"] / df[target_col]
+    df["outlier_weight"] = df["adjusted_return"] / df[target_col].replace(0, np.nan)
 
     df = df.drop(["ag_product", "adjusted_value"], axis=1)
 
@@ -73,6 +74,7 @@ def calculate_ratio_winsorised_weight(
     division_with_0 = ~non_winsorisable & (df[target_col] == 0)
 
     df["outlier_weight"] = df["outlier_weight"].mask(non_winsorisable | division_with_0, 1)
-    df["adjusted_return"] = df["adjusted_return"].mask(non_winsorisable | division_with_0, np.nan)
+    df["adjusted_return"] = df["adjusted_return"].mask(non_winsorisable | division_with_0, 0)
+    df["outlier_flag"] = df["outlier_flag"].mask(non_winsorisable | division_with_0, 0)
 
     return df
