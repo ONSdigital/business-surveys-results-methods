@@ -18,8 +18,8 @@ def calculate_predicted_unit_value(
 
         mu_i = x_i * sum(a_i * y_i) / sum(a_i * x_i)
 
-    where sums are taken over calibration group j. Units marked as
-    non-winsorisable (a_i * g_i <= 1) receive NaN.
+    where sums are taken over calibration group j. Units where both
+    a_i == 1 and g_i == 1 (non-winsorisable) receive NaN.
 
     Mapping to paper notation:
 
@@ -31,23 +31,23 @@ def calculate_predicted_unit_value(
 
     Parameters
     ----------
-    df:pd.DataFrame
+    df : pd.DataFrame
         Input dataframe.
-    calibration_group_col: str
-      Name of the calibration group column.
+    calibration_group_col : str
+        Name of the calibration group column.
     aux_col : str
-      Name of the auxiliary variable column.
+        Name of the auxiliary variable column.
     a_weight_col : str
-      Name of the design weight column.
+        Name of the design weight column.
     target_col : str
-      Name of the target variable column.
+        Name of the target variable column.
     non_winsorisable_marker_col : str
-      Name of the column marking units where a_i * g_i <= 1.
+        Name of the column marking non-winsorisable units.
 
     Returns
     -------
     pd.DataFrame
-      Dataframe with an added predicted_unit_value column.
+        Dataframe with an added predicted_unit_value column.
     """
     filtered_df = df.copy().loc[~df[non_winsorisable_marker_col]]
 
