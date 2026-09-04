@@ -1,12 +1,12 @@
 # Precommit hooks.
 # install using `pre-commit install`
 # skip using `git commit -m "message" --no-verify`
-default_stages: [pre-commit, pre-push]
+default_stages: [commit, push]
 
 repos:
   # Default provided pre-commit hooks
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c  # v6.0.0 # pragma: allowlist secret
+    rev: v4.5.0
     hooks:
     - id: check-added-large-files
       exclude_types: [markdown, yaml, json]
