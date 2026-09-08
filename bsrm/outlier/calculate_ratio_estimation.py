@@ -8,44 +8,49 @@ def calculate_ag_product(
     df: pd.DataFrame,
     a_weight_col: str,
     g_weight_col: str,
-) -> pd.Series:
+) -> pd.DataFrame:
     """Calculate the combined design and calibration weight.
 
     In the paper this is denoted as a_i * g_i for each unit.
+    Adds 'ag_product' column to dataframe.
     """
-    ag_product = df[a_weight_col] * df[g_weight_col]
-
-    return ag_product
+    df["ag_product"] = df[a_weight_col] * df[g_weight_col]
+    return df
 
 
 def calculate_ratio_threshold(
-    predicted_unit_values: pd.Series,
-    l_values: pd.Series,
-    ag_product: pd.Series,
-) -> pd.Series:
+    df: pd.DataFrame,
+    predicted_unit_col: str,
+    l_values_col: str,
+    ag_product_col: str,
+) -> pd.DataFrame:
     """Calculate the ratio estimation threshold before masking.
 
     Formula from the paper:
 
         k_i = mu_i + L / (a_i * g_i - 1)
-     In the paper k_i is the ratio estimation threshold, mu_i is the
+
+    In the paper k_i is the ratio estimation threshold, mu_i is the
     predicted unit value, L is the tuning parameter and a_i * g_i is the
     combined design and calibration weight.
-    """
-    denominator = ag_product - 1
-    ratio_threshold = predicted_unit_values + (l_values / denominator)
 
-    return ratio_threshold
+    Adds 'ratio_threshold' column to dataframe.
+    """
+    denominator = df[ag_product_col] - 1
+    # Replace zero denominators with NaN to avoid division by zero
+    denominator = denominator.mask(denominator == 0)
+    df["ratio_threshold"] = df[predicted_unit_col] + (df[l_values_col] / denominator)
+    return df
 
 
 def apply_non_winsorisable_mask(
-    ratio_threshold: pd.Series,
-    non_winsorisable_marker: pd.Series,
-) -> pd.Series:
+    df: pd.DataFrame,
+    ratio_threshold_col: str,
+    non_winsorisable_col: str,
+) -> pd.DataFrame:
     """Set ratio thresholds to NaN for non-winsorisable units."""
-    masked_ratio_threshold = ratio_threshold.mask(non_winsorisable_marker, np.nan)
-
-    return masked_ratio_threshold
+    df["masked_ratio_threshold"] = df[ratio_threshold_col].mask(df[non_winsorisable_col], np.nan)
+    return df
 
 
 def calculate_ratio_estimation_threshold(
@@ -89,23 +94,25 @@ def calculate_ratio_estimation_threshold(
     """
     df = df.copy()
 
-    ag_product = calculate_ag_product(
+    df = calculate_ag_product(
         df,
         a_weight_col,
         g_weight_col,
     )
 
-    ratio_threshold = calculate_ratio_threshold(
-        df[predicted_unit_value_col],
-        df[l_values_col],
-        ag_product,
+    df = calculate_ratio_threshold(
+        df,
+        predicted_unit_value_col,
+        l_values_col,
+        "ag_product",
     )
 
-    masked_ratio_threshold = apply_non_winsorisable_mask(
-        ratio_threshold,
-        df[non_winsorisable_marker_col],
+    df = apply_non_winsorisable_mask(
+        df,
+        "ratio_threshold",
+        non_winsorisable_marker_col,
     )
 
-    df["ratio_estimation_threshold"] = masked_ratio_threshold
+    df["ratio_estimation_threshold"] = df["masked_ratio_threshold"]
 
     return df
