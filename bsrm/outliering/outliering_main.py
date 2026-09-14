@@ -2,7 +2,7 @@
 
 import pandas as pd
 
-from bsrm.outlier.winsorisation_main import winsorise
+from bsrm.outliering.winsorisation import winsorise
 
 
 def detect_outlier(
