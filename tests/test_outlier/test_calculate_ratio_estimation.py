@@ -82,13 +82,14 @@ def expected_ratio_threshold_df():
                 "predicted_unit_value",
                 "non_winsorisable_marker",
                 "ag_product",
+                "denominator_k_i",
                 "ratio_threshold",
             ),
-            (1, 1, 10, 5, 20, 2.5, 0.8, 10, 10, False, 2.0, 20),
-            (1, 1, 11, 10, 25, 2.5, 0.8, 10, 20, False, 2.0, 30),
-            (1, 1, 12, 15, 30, 2.5, 0.8, 10, 30, False, 2.0, 40),
-            (2, 2, 20, 20, 40, 2.0, 0.5, 10, 40, False, 1.0, None),
-            (2, 2, 21, 25, 50, 2.0, 0.5, 10, 50, True, 1.0, None),
+            (1, 1, 10, 5, 20, 2.5, 0.8, 10, 10, False, 2.0, 1.0, 20),
+            (1, 1, 11, 10, 25, 2.5, 0.8, 10, 20, False, 2.0, 1.0, 30),
+            (1, 1, 12, 15, 30, 2.5, 0.8, 10, 30, False, 2.0, 1.0, 40),
+            (2, 2, 20, 20, 40, 2.0, 0.5, 10, 40, False, 1.0, None, None),
+            (2, 2, 21, 25, 50, 2.0, 0.5, 10, 50, True, 1.0, None, None),
         ]
     )
 
@@ -110,14 +111,15 @@ def expected_masked_ratio_threshold_df():
                 "predicted_unit_value",
                 "non_winsorisable_marker",
                 "ag_product",
+                "denominator_k_i",
                 "ratio_threshold",
                 "masked_ratio_threshold",
             ),
-            (1, 1, 10, 5, 20, 2.5, 0.8, 10, 10, False, 2.0, 20, 20),
-            (1, 1, 11, 10, 25, 2.5, 0.8, 10, 20, False, 2.0, 30, 30),
-            (1, 1, 12, 15, 30, 2.5, 0.8, 10, 30, False, 2.0, 40, 40),
-            (2, 2, 20, 20, 40, 2.0, 0.5, 10, 40, False, 1.0, None, None),
-            (2, 2, 21, 25, 50, 2.0, 0.5, 10, 50, True, 1.0, None, None),
+            (1, 1, 10, 5, 20, 2.5, 0.8, 10, 10, False, 2.0, 1.0, 20, 20),
+            (1, 1, 11, 10, 25, 2.5, 0.8, 10, 20, False, 2.0, 1.0, 30, 30),
+            (1, 1, 12, 15, 30, 2.5, 0.8, 10, 30, False, 2.0, 1.0, 40, 40),
+            (2, 2, 20, 20, 40, 2.0, 0.5, 10, 40, False, 1.0, None, None, None),
+            (2, 2, 21, 25, 50, 2.0, 0.5, 10, 50, True, 1.0, None, None, None),
         ]
     )
 

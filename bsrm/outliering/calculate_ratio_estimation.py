@@ -24,7 +24,11 @@ def calculate_ratio_threshold(
     l_values_col: str,
     ag_product_col: str,
 ) -> pd.DataFrame:
-    """Calculate the ratio estimation threshold before masking.
+    """Calculate the intermediate ratio threshold (k_i) for each unit.
+
+    This function applies the ratio-estimation formula before the
+    non-winsorisable mask is applied. The complete calculation, including
+    masking, is performed by calculate_ratio_estimation_threshold().
 
     Formula from the paper:
 
@@ -34,12 +38,12 @@ def calculate_ratio_threshold(
     predicted unit value, L is the tuning parameter and a_i * g_i is the
     combined design and calibration weight.
 
-    Adds 'ratio_threshold' column to dataframe.
+    Adds denominator_k_i and ratio_threshold columns to dataframe.
     """
-    denominator = df[ag_product_col] - 1
+    df["denominator_k_i"] = df[ag_product_col] - 1
     # Replace zero denominators with NaN to avoid division by zero
-    denominator = denominator.mask(denominator == 0)
-    df["ratio_threshold"] = df[predicted_unit_col] + (df[l_values_col] / denominator)
+    df["denominator_k_i"] = df["denominator_k_i"].mask(df["denominator_k_i"] == 0)
+    df["ratio_threshold"] = df[predicted_unit_col] + (df[l_values_col] / df["denominator_k_i"])
     return df
 
 
@@ -48,7 +52,11 @@ def apply_non_winsorisable_mask(
     ratio_threshold_col: str,
     non_winsorisable_col: str,
 ) -> pd.DataFrame:
-    """Set ratio thresholds to NaN for non-winsorisable units."""
+    """Set the ratio threshold to NaN for non-winsorisable units.
+
+    This keeps those units in the dataframe while marking their threshold as
+    not applicable because they represent themselves and cannot be outliers.
+    """
     df["masked_ratio_threshold"] = df[ratio_threshold_col].mask(df[non_winsorisable_col], np.nan)
     return df
 
@@ -61,7 +69,11 @@ def calculate_ratio_estimation_threshold(
     l_values_col: str,
     non_winsorisable_marker_col: str,
 ) -> pd.DataFrame:
-    """Calculate the ratio estimation threshold for each unit.
+    """Calculate the final ratio-estimation threshold for each unit.
+
+    This function runs the complete process: it calculates the combined
+    weight, calculates the intermediate ratio threshold (k_i), and masks the
+    threshold for non-winsorisable units.
 
     Adds the ratio_estimation_threshold column used by the Winsorisation
     pipeline.
