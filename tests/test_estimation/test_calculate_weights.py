@@ -115,11 +115,11 @@ def test_a_weight(input_data):
     assert result["a_weight"].iloc[0] == 2.0
 
 
-def test_a_weight_with_strata_col(input_data):
-    """Test that strata_col is preserved when passed."""
+def test_a_weight_with_a_weight_col(input_data):
+    """Test that a_weight_col is preserved when passed."""
     cell_1 = input_data[input_data["cell_no"] == 1].copy()
     cell_1.name = 1
-    result = a_weight(cell_1, "ruref", "N", strata_col="cell_no")
+    result = a_weight(cell_1, "ruref", "N", a_weight_col="cell_no")
     assert result["a_weight"].iloc[0] == 2.0
     assert result["cell_no"].iloc[0] == 1
 
@@ -131,18 +131,18 @@ def test_g_weight(expected_a_weights_df):
     assert result["g_weight"].iloc[0] == pytest.approx(40.0 / 12.0, abs=1e-4)
 
 
-def test_g_weight_with_strata_col(expected_a_weights_df):
-    """Test that strata_col is preserved when passed."""
+def test_g_weight_with_a_weight_col(expected_a_weights_df):
+    """Test that a_weight_col is preserved when passed."""
     cell_1 = expected_a_weights_df[expected_a_weights_df["cell_no"] == 1].copy()
     cell_1.name = 1
-    result = g_weight(cell_1, "x", "sum_x", strata_col="cell_no")
+    result = g_weight(cell_1, "x", "sum_x", a_weight_col="cell_no")
     assert result["g_weight"].iloc[0] == pytest.approx(40.0 / 12.0, abs=1e-4)
     assert result["cell_no"].iloc[0] == 1
 
 
 def test_calculate_a_weights(input_data, expected_a_weights_df):
     """Test that the a weights are calculated correctly."""
-    result = calculate_a_weights(df=input_data, strata_col="cell_no", ru_col="ruref", univ_count_col="N")
+    result = calculate_a_weights(df=input_data, a_weight_col="cell_no", ru_col="ruref", univ_count_col="N")
     assert_frame_equal(result, expected_a_weights_df, check_dtype=False, rtol=1e-6)
 
 

@@ -14,7 +14,7 @@ from warnings import warn
 
 def validate_run_estimation_input(
     data: pd.DataFrame,
-    strata_col: str,
+    a_weight_col: str,
     ru_col: str,
     univ_count_col: str,
     aux_col: str,
@@ -28,7 +28,7 @@ def validate_run_estimation_input(
     Parameters
     ----------
     - data (pd.DataFrame): The main dataset
-    - strata_col (str),
+    - a_weight_col (str),
     - ru_col (str),
     - univ_count_col (str),
     - aux_col (str),
@@ -50,7 +50,7 @@ def validate_run_estimation_input(
         raise TypeError(msg)
 
     # Check that column names are strings and in the data
-    _check_columns(data, [strata_col, ru_col, univ_count_col, aux_col, univ_aux_col, outlier_col])
+    _check_columns(data, [a_weight_col, ru_col, univ_count_col, aux_col, univ_aux_col, outlier_col])
 
 
 def validate_apply_weights_input(
