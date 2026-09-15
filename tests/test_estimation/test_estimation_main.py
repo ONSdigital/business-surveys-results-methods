@@ -149,7 +149,7 @@ def test_run_estimation(component_input, expected_output, expected_qa_output):
     """run_estimation returns the correct weighted df and QA df."""
     weighted_df, qa_df = run_estimation(
         df=component_input,
-        strata_col="cell_no",
+        a_weight_col="cell_no",
         ru_col="ruref",
         univ_count_col="N",
         aux_col="x",

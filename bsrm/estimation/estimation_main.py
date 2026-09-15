@@ -15,7 +15,7 @@ EstMainLogger = logging.getLogger(__name__)
 
 def run_estimation(
     df: pd.DataFrame,
-    strata_col: str,
+    a_weight_col: str,
     ru_col: str,
     univ_count_col: str,
     aux_col: str = "",
@@ -29,7 +29,7 @@ def run_estimation(
     ----------
     df: pd.DataFrame
         The survey data were estimation will be applied.
-    strata_col : str
+    a_weight_col : str
         The column representing the strata.
     ru_col : str
         The column representing the reference unit.
@@ -52,14 +52,14 @@ def run_estimation(
     EstMainLogger.info("Starting estimation weights calculation...")
 
     # calculate the weights
-    weighted_df = calculate_a_weights(df, strata_col, ru_col, univ_count_col)
+    weighted_df = calculate_a_weights(df, a_weight_col, ru_col, univ_count_col)
 
     # if required also calculate g weights
     if incl_g_wts:
-        weighted_df = calculate_g_weights(weighted_df, strata_col, aux_col, univ_aux_col)
+        weighted_df = calculate_g_weights(weighted_df, a_weight_col, aux_col, univ_aux_col)
 
     # Create a QA dataframe
-    qa_frame = create_weights_qa_df(weighted_df, strata_col, incl_g_wts)
+    qa_frame = create_weights_qa_df(weighted_df, a_weight_col, incl_g_wts)
 
     # drop intermediate calculation columns
     if incl_g_wts:
@@ -83,12 +83,12 @@ if __name__ == "__main__":
     univ_count_col = "uni_count"
     aux_col = "employment"
     univ_aux_col = "uni_employment"
-    strata_col = "cellnumber"
+    a_weight_col = "cellnumber"
 
     # call the method to return the dataframe with new weights columns, and qa dataframe
     weighted_df, qa_df = run_estimation(
         df,
-        strata_col,
+        a_weight_col,
         ru_col,
         univ_count_col,
         aux_col,
