@@ -49,7 +49,9 @@ def apply_non_winsorisable_mask(
     non_winsorisable_col: str,
 ) -> pd.DataFrame:
     """Set ratio thresholds to NaN for non-winsorisable units."""
-    df["masked_ratio_threshold"] = df[ratio_threshold_col].mask(df[non_winsorisable_col], np.nan)
+    df["ratio_estimation_threshold"] = df[ratio_threshold_col].mask(
+        df[non_winsorisable_col], np.nan
+    )
     return df
 
 
@@ -112,7 +114,5 @@ def calculate_ratio_estimation_threshold(
         "ratio_threshold",
         non_winsorisable_marker_col,
     )
-
-    df = df.rename(columns={"masked_ratio_threshold": "ratio_estimation_threshold"})
 
     return df

@@ -111,7 +111,7 @@ def expected_masked_ratio_threshold_df():
                 "non_winsorisable_marker",
                 "ag_product",
                 "ratio_threshold",
-                "masked_ratio_threshold",
+                "ratio_estimation_threshold",
             ),
             (1, 1, 10, 5, 20, 2.5, 0.8, 10, 10, False, 2.0, 20, 20),
             (1, 1, 11, 10, 25, 2.5, 0.8, 10, 20, False, 2.0, 30, 30),
