@@ -55,8 +55,8 @@ def validate_run_estimation_input(
 
 def validate_apply_weights_input(
     data: pd.DataFrame,
-    a_weight_cols: list[str],
-    g_weight_cols: list[str],
+    a_weight_columns: list[str],
+    g_weight_columns: list[str],
     calc_g_weight: bool,
     round_val: int,
 ) -> None:
@@ -66,8 +66,8 @@ def validate_apply_weights_input(
     Parameters
     ----------
     - data (pd.DataFrame): The main dataset
-    - a_weight_cols (list[str])
-    - g_weight_cols (list[str])
+    - a_weight_columns (list[str])
+    - g_weight_columns (list[str])
     - calc_g_weight (bool)
     - round_val (int)
 
@@ -89,13 +89,13 @@ def validate_apply_weights_input(
 
     # Raise exception if no g_weights specified when calc_g_weight is True or
     # if g_weights specified when calc_g_weight is False
-    if calc_g_weight and (len(g_weight_cols) == 0):
+    if calc_g_weight and (len(g_weight_columns) == 0):
         msg = (
             "No g_weight columns have been specified but calc_g_weight is True. "
             "Please check whether g_weights are required."
         )
         raise Exception(msg)
-    if (not calc_g_weight) and (len(g_weight_cols) > 0):
+    if (not calc_g_weight) and (len(g_weight_columns) > 0):
         msg = (
             "g_weight columns have been specified but calc_g_weight is False. "
             "Please check whether g_weights are required."
@@ -103,11 +103,11 @@ def validate_apply_weights_input(
         raise Exception(msg)
 
     # Validate weights specified
-    _validate_weights(data, a_weight_cols, g_weight_cols)
+    _validate_weights(data, a_weight_columns, g_weight_columns)
 
 
 def _validate_weights(
-    data: pd.DataFrame, a_weight_cols: list[str], g_weight_cols: list[str]
+    data: pd.DataFrame, a_weight_columns: list[str], g_weight_columns: list[str]
 ) -> None:
     """
     Validate weights specified by user.
@@ -120,28 +120,28 @@ def _validate_weights(
     Parameters
     ----------
     - data (pd.DataFrame): The main dataset
-    - a_weight_cols (list[str])
-    - g_weight_cols (list[str])
+    - a_weight_columns (list[str])
+    - g_weight_columns (list[str])
 
     Raises
     ------
     - Exception if specified columns are not in data or if no weights are specified
     - Warning if only a_weights or only g_weights will be applied
     """
-    _check_is_list("a_weight_cols", a_weight_cols)
-    _check_is_list("g_weight_cols", g_weight_cols)
+    _check_is_list("a_weight_columns", a_weight_columns)
+    _check_is_list("g_weight_columns", g_weight_columns)
 
-    _check_columns(data, a_weight_cols + g_weight_cols)
+    _check_columns(data, a_weight_columns + g_weight_columns)
 
     # Raise error if no weights specified
-    if not (a_weight_cols or g_weight_cols):
+    if not (a_weight_columns or g_weight_columns):
         msg = "No a_weights or g_weights have been specified. Cannot apply Estimation."
         raise Exception(msg)
 
     # Warning if only a_weights or only g_weights
-    elif not a_weight_cols:
+    elif not a_weight_columns:
         warn("No a_weights have been specified. Applying g_weights only.", stacklevel=3)
-    elif not g_weight_cols:
+    elif not g_weight_columns:
         warn("No g_weights have been specified. Applying a_weights only.", stacklevel=3)
 
 

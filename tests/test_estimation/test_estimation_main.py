@@ -150,10 +150,11 @@ def test_run_estimation(component_input, expected_output, expected_qa_output):
     weighted_df, qa_df = run_estimation(
         df=component_input,
         a_weight_col="cell_no",
+        g_weight_col="cell_no",
         ru_col="ruref",
         univ_count_col="N",
-        aux_col="x",
-        univ_aux_col="sum_x",
+        aux_cols=["x"],
+        univ_aux_cols=["sum_x"],
         incl_g_wts=True,
     )
     assert_frame_equal(weighted_df.round(4), expected_output, check_dtype=False, atol=1e-4)
