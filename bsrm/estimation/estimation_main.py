@@ -1,4 +1,13 @@
-"""Main file for the estimation module."""
+"""Main file for the estimation module.
+
+In general pipeline use, individual functions from this module could be imported and used
+separately with appropriate filtering and preprocessing steps.
+
+This script acts as a runner for the estimation functions to be run in sequence.
+
+To use this script and run it directly, provide the appropriate input and output file paths
+and variable names in the section under `if __name__ == "__main__":`.
+"""
 
 import logging
 import pandas as pd
@@ -128,6 +137,9 @@ def run_estimation(
 # example usage
 if __name__ == "__main__":
     input_path = "path/to/input.csv"
+    qa_output_path = "path/to/qa_output.csv"
+    data_with_weights_output_path = "path/to/output.csv"
+    data_with_weights_applied_output_path = "path/to/final_output.csv"
 
     df = pd.read_csv(input_path)
 
@@ -165,3 +177,8 @@ if __name__ == "__main__":
         calc_g_weight=config.incl_g_wts,
         round_val=config.round_val,
     )
+
+    # save the intermediate and final outputs
+    weighted_df.to_csv(data_with_weights_output_path, index=False)
+    qa_df.to_csv(qa_output_path, index=False)
+    final_weighted_df.to_csv(data_with_weights_applied_output_path, index=False)
