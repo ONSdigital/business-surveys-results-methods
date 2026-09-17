@@ -67,8 +67,8 @@ def test_apply_a_and_g_weights(input_df, expected_a_and_g_df):
     """Test applying both a_weight and g_weight to y."""
     result = apply_weights(
         df=input_df.copy(),
-        a_weight_cols=["y"],
-        g_weight_cols=["y"],
+        a_weight_columns=["y"],
+        g_weight_columns=["y"],
         calc_g_weight=True,
         round_val=4,
     )
@@ -79,7 +79,7 @@ def test_apply_a_weight_only(input_df, expected_a_only_df):
     """Test applying only a_weight when calc_g_weight is False."""
     result = apply_weights(
         df=input_df.copy().drop(columns=["g_weight"]),
-        a_weight_cols=["y"],
+        a_weight_columns=["y"],
         calc_g_weight=False,
         round_val=4,
     )
@@ -91,7 +91,7 @@ def test_apply_weights_invalid_column(input_df):
     with pytest.raises(KeyError):
         apply_weights(
             df=input_df.copy(),
-            a_weight_cols=["invalid_column"],
+            a_weight_columns=["invalid_column"],
             calc_g_weight=False,
             round_val=4,
         )
