@@ -10,6 +10,7 @@ def apply_weights(
     df: pd.DataFrame,
     a_weight_columns: list[str],
     g_weight_columns: list[str] | None = None,
+    aux_cols: list[str] | None = None,
     calc_g_weight: bool = True,
     round_val: int = 4,
 ) -> pd.DataFrame:
@@ -20,7 +21,7 @@ def apply_weights(
         df (pd.DataFrame): The survey dataframe weights are calculated for.
         a_weight_columns (list[str]): List of columns to apply a_weight to.
         g_weight_columns (list[str]): List of columns to apply g_weight to.
-        for_qa (bool): If True, keep the values before and after weights are applied.
+        aux_cols (list[str] | None): List of auxiliary columns related to g weights.
         round_val (int): The number of dec places we round to
         calc_g_weight (bool): Whether g weights are to be applied.
 
@@ -30,8 +31,9 @@ def apply_weights(
     """
     for col in a_weight_columns:
         df[col] = round(df[col] * df["a_weight"], round_val)
-    if calc_g_weight and g_weight_columns is not None:
+    if calc_g_weight and g_weight_columns is not None and aux_cols is not None:
         for col in g_weight_columns:
-            df[col] = round(df[col] * df["g_weight"], round_val)
+            for aux_col in aux_cols:
+                df[col] = round(df[col] * df[f"g_weight_{aux_col}"], round_val)
 
     return df

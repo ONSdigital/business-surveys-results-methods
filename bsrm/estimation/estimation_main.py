@@ -150,24 +150,25 @@ def run_estimation(
 
 # example usage
 if __name__ == "__main__":
-    input_path = "path/to/input.csv"
-    qa_output_path = "path/to/qa_output.csv"
-    data_with_weights_output_path = "path/to/output.csv"
-    data_with_weights_applied_output_path = "path/to/final_output.csv"
+    root_path = "Q:/IABS project/Test data/estimation_tests/"
+    input_path = root_path + "estimation_component_test_input.csv"
+    qa_output_path = root_path + "estimation_component_test_qa_output.csv"
+    data_with_weights_output_path = root_path + "estimation_component_test_output.csv"
+    data_with_weights_applied_output_path = root_path + "estimation_component_test_final_output.csv"
 
     df = pd.read_csv(input_path)
 
     config = EstimationConfig(
-        a_wgt_band_col="cellnumber",
-        g_wgt_band_col="cellnumber",
-        a_weight_columns=["question1", "question2"],
-        g_weight_columns=["question3"],
+        a_wgt_band_col="a_wt_band",
+        g_wgt_band_col="g_wt_band",
+        a_weight_columns=["question"],
+        g_weight_columns=["question"],
         incl_g_wts=True,
         round_val=2,
-        ru_col="reference",
-        univ_count_col="uni_count",
-        aux_cols=["turnover", "employment"],
-        univ_aux_cols=["uni_turnover", "uni_employment"],
+        ru_col="ruref",
+        univ_count_col="N",
+        aux_cols=["turnover"],
+        univ_aux_cols=["univ_turnover_sum"],
     )
 
     # call the method to return the dataframe with new weights columns, and qa dataframe
@@ -186,6 +187,7 @@ if __name__ == "__main__":
     # to the specified columns, and qa dataframe
     final_weighted_df = apply_weights(
         weighted_df,
+        aux_cols=config.aux_cols,
         a_weight_columns=config.a_weight_columns,
         g_weight_columns=config.g_weight_columns,
         calc_g_weight=config.incl_g_wts,
