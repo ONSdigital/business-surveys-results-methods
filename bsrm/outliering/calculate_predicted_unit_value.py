@@ -35,19 +35,12 @@ def calculate_group_sums(
         Weighted target and auxiliary sums for each calibration group.
     """
     filtered_df = df.loc[~df[non_winsorisable_marker_col]].copy()
-    filtered_df["weighted_target_values"] = (
-        filtered_df[a_weight_col] * filtered_df[target_col]
-    )
-    filtered_df["weighted_auxiliary_values"] = (
-        filtered_df[a_weight_col] * filtered_df[aux_col]
-    )
+    filtered_df["weighted_target_values"] = filtered_df[a_weight_col] * filtered_df[target_col]
+    filtered_df["weighted_auxiliary_values"] = filtered_df[a_weight_col] * filtered_df[aux_col]
 
-    group_sums = (
-        filtered_df.groupby(calibration_group_col, as_index=False)
-        .agg(
-            sum_weighted_target_values=("weighted_target_values", "sum"),
-            sum_weighted_auxiliary_values=("weighted_auxiliary_values", "sum"),
-        )
+    group_sums = filtered_df.groupby(calibration_group_col, as_index=False).agg(
+        sum_weighted_target_values=("weighted_target_values", "sum"),
+        sum_weighted_auxiliary_values=("weighted_auxiliary_values", "sum"),
     )
     return group_sums
 
@@ -70,8 +63,7 @@ def calculate_predicted_unit_values_from_group_sums(
         Predicted unit values.
     """
     predicted_unit_values = merged_df[aux_col] * (
-        merged_df["sum_weighted_target_values"]
-        / merged_df["sum_weighted_auxiliary_values"]
+        merged_df["sum_weighted_target_values"] / merged_df["sum_weighted_auxiliary_values"]
     )
     predicted_unit_values.name = "predicted_unit_value"
     return predicted_unit_values
