@@ -184,7 +184,7 @@ if __name__ == "__main__":
     # call the method to return the dataframe with the new weights applied
     # to the specified columns, and qa dataframe
     final_weighted_df = apply_weights(
-        weighted_df,
+        weighted_df.copy(),
         aux_cols=config.aux_cols,
         a_weight_columns=config.a_weight_columns,
         g_weight_columns=config.g_weight_columns,
