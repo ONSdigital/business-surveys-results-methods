@@ -98,8 +98,6 @@ def run_estimation(
         The columns representing the universe auxiliary variables.
     incl_g_wts: bool
         Whether to include g weights in the calculation.
-    round_val: int
-        The number of decimal places to round the final results to
 
     Returns
     -------
