@@ -9,7 +9,7 @@ from bsrm.estimation.apply_weights import apply_weights
 @pytest.fixture
 def input_df():
     """Small sample data used across apply_weights tests."""
-    cols = ["ruref", "cell_no", "y", "a_weight", "g_weight"]
+    cols = ["ruref", "cell_no", "y", "a_weight", "g_weight_turnover"]
     data = [
         ["A", 1, 10.0, 2.0, 3.3333],
         ["B", 1, 20.0, 2.0, 3.3333],
@@ -30,7 +30,7 @@ def expected_a_and_g_df():
               = 10.0  * 2.0      * 3.3333
               = 66.666 (rounded to 4dp)
     """
-    cols = ["ruref", "cell_no", "y", "a_weight", "g_weight"]
+    cols = ["ruref", "cell_no", "y", "a_weight", "g_weight_turnover"]
     data = [
         ["A", 1, 66.666, 2.0, 3.3333],
         ["B", 1, 133.332, 2.0, 3.3333],
@@ -67,8 +67,9 @@ def test_apply_a_and_g_weights(input_df, expected_a_and_g_df):
     """Test applying both a_weight and g_weight to y."""
     result = apply_weights(
         df=input_df.copy(),
-        a_weight_cols=["y"],
-        g_weight_cols=["y"],
+        a_weight_columns=["y"],
+        g_weight_columns=["y"],
+        aux_cols=["turnover"],
         calc_g_weight=True,
         round_val=4,
     )
@@ -78,8 +79,8 @@ def test_apply_a_and_g_weights(input_df, expected_a_and_g_df):
 def test_apply_a_weight_only(input_df, expected_a_only_df):
     """Test applying only a_weight when calc_g_weight is False."""
     result = apply_weights(
-        df=input_df.copy().drop(columns=["g_weight"]),
-        a_weight_cols=["y"],
+        df=input_df.copy().drop(columns=["g_weight_turnover"]),
+        a_weight_columns=["y"],
         calc_g_weight=False,
         round_val=4,
     )
@@ -91,7 +92,7 @@ def test_apply_weights_invalid_column(input_df):
     with pytest.raises(KeyError):
         apply_weights(
             df=input_df.copy(),
-            a_weight_cols=["invalid_column"],
+            a_weight_columns=["invalid_column"],
             calc_g_weight=False,
             round_val=4,
         )
