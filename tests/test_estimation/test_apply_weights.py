@@ -68,7 +68,7 @@ def test_apply_a_and_g_weights(input_df, expected_a_and_g_df):
     result = apply_weights(
         df=input_df.copy(),
         a_weight_columns=["y"],
-        g_weight_columns=["y"],
+        g_weight_columns={"turnover": ["y"]},
         aux_cols=["turnover"],
         calc_g_weight=True,
         round_val=4,
@@ -88,8 +88,11 @@ def test_apply_a_weight_only(input_df, expected_a_only_df):
 
 
 def test_apply_weights_invalid_column(input_df):
-    """Raise KeyError for a column that does not exist."""
-    with pytest.raises(KeyError):
+    """Raise an error for a column that does not exist."""
+    with pytest.raises(
+        Exception,
+        match=r"Specified column\(s\): invalid_column must be column\(s\) in the data\.",
+    ):
         apply_weights(
             df=input_df.copy(),
             a_weight_columns=["invalid_column"],

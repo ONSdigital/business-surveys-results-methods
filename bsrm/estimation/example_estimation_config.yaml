@@ -1,0 +1,24 @@
+# This is an example of a config file where two auxilliary variables
+# are used for the g_weights
+ru_col: ruref
+univ_count_col: uni_count
+round_val: 2
+incl_g_wts: true
+
+a_wgt_band: a_weight_band
+g_wgt_band: a_weight_band  # note: sometimes we specify a_ and g_ bands to be the same
+
+
+a_weight_columns :
+  apply_cols:
+    ["Q101", "Q102", "Q103"]
+
+g_weight_columns:
+  aux_var1:
+    aux_col: turnover
+    univ_aux_col: univ_turnover
+    apply_cols: ["Q101", "Q102"]
+  aux_var2:
+    aux_col: employment
+    univ_aux_col: univ_employment
+    apply_cols: ["Q103"]
