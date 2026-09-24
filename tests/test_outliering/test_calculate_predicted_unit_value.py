@@ -6,7 +6,7 @@ from pandas.testing import assert_frame_equal, assert_series_equal
 
 from bsrm.outliering.calculate_predicted_unit_value import (
     calculate_group_sums,
-    calculate_predicted_unit_values,
+    calculate_predicted_unit_value,
     calculate_predicted_unit_values_from_group_sums,
 )
 
@@ -57,15 +57,15 @@ def test_calculate_predicted_unit_values_from_group_sums_returns_prediction_colu
     )
 
     result = calculate_predicted_unit_values_from_group_sums(merged_df, "aux")
-    expected = pd.Series([10.0, 30.0], name="predicted_unit_value")
+    expected = merged_df.assign(predicted_unit_value=[10.0, 30.0])
 
-    assert_series_equal(result, expected)
+    assert_frame_equal(result, expected)
 
 
-def test_calculate_predicted_unit_values_masks_non_winsorisable_rows() -> None:
+def test_calculate_predicted_unit_value_masks_non_winsorisable_rows() -> None:
     """The main calculation should return NaN for non-winsorisable rows."""
     input_df = create_input_data()
-    result = calculate_predicted_unit_values(
+    result = calculate_predicted_unit_value(
         input_df,
         "group",
         "aux",
@@ -79,3 +79,5 @@ def test_calculate_predicted_unit_values_masks_non_winsorisable_rows() -> None:
     )
 
     assert_series_equal(result["predicted_unit_value"], expected)
+
+

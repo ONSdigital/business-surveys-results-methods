@@ -47,7 +47,7 @@ def calculate_group_sums(
 
 def calculate_predicted_unit_values_from_group_sums(
     merged_df: pd.DataFrame, aux_col: str
-) -> pd.Series:
+) -> pd.DataFrame:
     """Calculate predicted unit values from the merged dataframe.
 
     Parameters
@@ -59,17 +59,17 @@ def calculate_predicted_unit_values_from_group_sums(
 
     Returns
     -------
-    pd.Series
-        Predicted unit values.
+    pd.DataFrame
+        Dataframe with an added predicted_unit_value column.
     """
-    predicted_unit_values = merged_df[aux_col] * (
+    result_df = merged_df.copy()
+    result_df["predicted_unit_value"] = merged_df[aux_col] * (
         merged_df["sum_weighted_target_values"] / merged_df["sum_weighted_auxiliary_values"]
     )
-    predicted_unit_values.name = "predicted_unit_value"
-    return predicted_unit_values
+    return result_df
 
 
-def calculate_predicted_unit_values(
+def calculate_predicted_unit_value(
     df: pd.DataFrame,
     calibration_group_col: str,
     aux_col: str,
@@ -123,7 +123,7 @@ def calculate_predicted_unit_values(
         non_winsorisable_marker_col,
     )
     final_df = df.merge(group_sums, on=calibration_group_col, how="left")
-    final_df["predicted_unit_value"] = calculate_predicted_unit_values_from_group_sums(
+    final_df = calculate_predicted_unit_values_from_group_sums(
         final_df,
         aux_col,
     )
