@@ -4,6 +4,71 @@ import numpy as np
 import pandas as pd
 
 
+def calculate_group_sums(
+    df: pd.DataFrame,
+    calibration_group_col: str,
+    aux_col: str,
+    a_weight_col: str,
+    target_col: str,
+    non_winsorisable_marker_col: str,
+) -> pd.DataFrame:
+    """Filter non winsorisable rows and calculate group sums.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Input dataframe.
+    calibration_group_col : str
+        Name of the calibration group column.
+    aux_col : str
+        Name of the auxiliary variable column.
+    a_weight_col : str
+        Name of the design weight column.
+    target_col : str
+        Name of the target variable column.
+    non_winsorisable_marker_col : str
+        Name of the column marking non-winsorisable units.
+
+    Returns
+    -------
+    pd.DataFrame
+        Weighted target and auxiliary sums for each calibration group.
+    """
+    filtered_df = df.loc[~df[non_winsorisable_marker_col]].copy()
+    filtered_df["weighted_target_values"] = filtered_df[a_weight_col] * filtered_df[target_col]
+    filtered_df["weighted_auxiliary_values"] = filtered_df[a_weight_col] * filtered_df[aux_col]
+
+    group_sums = filtered_df.groupby(calibration_group_col, as_index=False).agg(
+        sum_weighted_target_values=("weighted_target_values", "sum"),
+        sum_weighted_auxiliary_values=("weighted_auxiliary_values", "sum"),
+    )
+    return group_sums
+
+
+def calculate_predicted_unit_values_from_group_sums(
+    merged_df: pd.DataFrame, aux_col: str
+) -> pd.DataFrame:
+    """Calculate predicted unit values from the merged dataframe.
+
+    Parameters
+    ----------
+    merged_df : pd.DataFrame
+        Dataframe containing auxiliary values and weighted group sums.
+    aux_col : str
+        Name of the auxiliary variable column.
+
+    Returns
+    -------
+    pd.DataFrame
+        Dataframe with an added predicted_unit_value column.
+    """
+    result_df = merged_df.copy()
+    result_df["predicted_unit_value"] = merged_df[aux_col] * (
+        merged_df["sum_weighted_target_values"] / merged_df["sum_weighted_auxiliary_values"]
+    )
+    return result_df
+
+
 def calculate_predicted_unit_value(
     df: pd.DataFrame,
     calibration_group_col: str,
@@ -49,32 +114,18 @@ def calculate_predicted_unit_value(
     pd.DataFrame
         Dataframe with an added predicted_unit_value column.
     """
-    filtered_df = df.copy().loc[~df[non_winsorisable_marker_col]]
-
-    filtered_df["weighted_target_values"] = filtered_df[a_weight_col] * filtered_df[target_col]
-    filtered_df["weighted_auxiliary_values"] = filtered_df[a_weight_col] * filtered_df[aux_col]
-
-    sum_weighted_target_values = (
-        filtered_df.groupby(calibration_group_col)["weighted_target_values"]
-        .sum()
-        .reset_index(name="sum_weighted_target_values")
+    group_sums = calculate_group_sums(
+        df,
+        calibration_group_col,
+        aux_col,
+        a_weight_col,
+        target_col,
+        non_winsorisable_marker_col,
     )
-    sum_weighted_auxiliary_values = (
-        filtered_df.groupby(calibration_group_col)["weighted_auxiliary_values"]
-        .sum()
-        .reset_index(name="sum_weighted_auxiliary_values")
-    )
-
-    total_sum_weighted = sum_weighted_target_values.merge(
-        sum_weighted_auxiliary_values,
-        on=calibration_group_col,
-        how="left",
-    )
-
-    final_df = df.merge(total_sum_weighted, on=calibration_group_col, how="left")
-
-    final_df["predicted_unit_value"] = final_df[aux_col] * (
-        final_df["sum_weighted_target_values"] / final_df["sum_weighted_auxiliary_values"]
+    final_df = df.merge(group_sums, on=calibration_group_col, how="left")
+    final_df = calculate_predicted_unit_values_from_group_sums(
+        final_df,
+        aux_col,
     )
 
     final_df = final_df.drop(
