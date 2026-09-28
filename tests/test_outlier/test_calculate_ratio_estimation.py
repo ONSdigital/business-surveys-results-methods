@@ -17,7 +17,7 @@ def input_data():
     return create_test_dataframe(
         [
             (
-                "cell",
+                "stratum",
                 "calibration_group",
                 "unit_ref",
                 "target",
@@ -28,11 +28,11 @@ def input_data():
                 "predicted_unit_value",
                 "non_winsorisable_marker",
             ),
-            (1, 1, 10, 5, 20, 2.5, 0.8, 10, 10, False),
-            (1, 1, 11, 10, 25, 2.5, 0.8, 10, 20, False),
-            (1, 1, 12, 15, 30, 2.5, 0.8, 10, 30, False),
-            (2, 2, 20, 20, 40, 2.0, 0.5, 10, 40, False),
-            (2, 2, 21, 25, 50, 2.0, 0.5, 10, 50, True),
+            (1, 1, 1110, 5, 20, 2.5, 0.8, 10, 10, False),
+            (1, 1, 1111, 10, 25, 2.5, 0.8, 10, 20, False),
+            (1, 1, 1112, 15, 30, 2.5, 0.8, 10, 30, False),
+            (2, 2, 2110, 20, 40, 2.0, 0.5, 10, 40, False),
+            (2, 2, 2111, 25, 50, 2.0, 0.5, 10, 50, True),
         ]
     )
 
@@ -43,7 +43,7 @@ def expected_ag_product_df():
     return create_test_dataframe(
         [
             (
-                "cell",
+                "stratum",
                 "calibration_group",
                 "unit_ref",
                 "target",
@@ -55,11 +55,11 @@ def expected_ag_product_df():
                 "non_winsorisable_marker",
                 "ag_product",
             ),
-            (1, 1, 10, 5, 20, 2.5, 0.8, 10, 10, False, 2.0),
-            (1, 1, 11, 10, 25, 2.5, 0.8, 10, 20, False, 2.0),
-            (1, 1, 12, 15, 30, 2.5, 0.8, 10, 30, False, 2.0),
-            (2, 2, 20, 20, 40, 2.0, 0.5, 10, 40, False, 1.0),
-            (2, 2, 21, 25, 50, 2.0, 0.5, 10, 50, True, 1.0),
+            (1, 1, 1110, 5, 20, 2.5, 0.8, 10, 10, False, 2.0),
+            (1, 1, 1111, 10, 25, 2.5, 0.8, 10, 20, False, 2.0),
+            (1, 1, 1112, 15, 30, 2.5, 0.8, 10, 30, False, 2.0),
+            (2, 2, 2110, 20, 40, 2.0, 0.5, 10, 40, False, 1.0),
+            (2, 2, 2111, 25, 50, 2.0, 0.5, 10, 50, True, 1.0),
         ]
     )
 
@@ -71,7 +71,7 @@ def expected_ratio_threshold_df():
     return create_test_dataframe(
         [
             (
-                "cell",
+                "stratum",
                 "calibration_group",
                 "unit_ref",
                 "target",
@@ -85,11 +85,11 @@ def expected_ratio_threshold_df():
                 "denominator_k_i",
                 "ratio_threshold",
             ),
-            (1, 1, 10, 5, 20, 2.5, 0.8, 10, 10, False, 2.0, 1.0, 20),
-            (1, 1, 11, 10, 25, 2.5, 0.8, 10, 20, False, 2.0, 1.0, 30),
-            (1, 1, 12, 15, 30, 2.5, 0.8, 10, 30, False, 2.0, 1.0, 40),
-            (2, 2, 20, 20, 40, 2.0, 0.5, 10, 40, False, 1.0, None, None),
-            (2, 2, 21, 25, 50, 2.0, 0.5, 10, 50, True, 1.0, None, None),
+            (1, 1, 1110, 5, 20, 2.5, 0.8, 10, 10, False, 2.0, 1.0, 20),
+            (1, 1, 1111, 10, 25, 2.5, 0.8, 10, 20, False, 2.0, 1.0, 30),
+            (1, 1, 1112, 15, 30, 2.5, 0.8, 10, 30, False, 2.0, 1.0, 40),
+            (2, 2, 2110, 20, 40, 2.0, 0.5, 10, 40, False, 1.0, None, None),
+            (2, 2, 2111, 25, 50, 2.0, 0.5, 10, 50, True, 1.0, None, None),
         ]
     )
 
@@ -100,7 +100,7 @@ def expected_masked_ratio_threshold_df():
     return create_test_dataframe(
         [
             (
-                "cell",
+                "stratum",
                 "calibration_group",
                 "unit_ref",
                 "target",
@@ -115,11 +115,11 @@ def expected_masked_ratio_threshold_df():
                 "ratio_threshold",
                 "masked_ratio_threshold",
             ),
-            (1, 1, 10, 5, 20, 2.5, 0.8, 10, 10, False, 2.0, 1.0, 20, 20),
-            (1, 1, 11, 10, 25, 2.5, 0.8, 10, 20, False, 2.0, 1.0, 30, 30),
-            (1, 1, 12, 15, 30, 2.5, 0.8, 10, 30, False, 2.0, 1.0, 40, 40),
-            (2, 2, 20, 20, 40, 2.0, 0.5, 10, 40, False, 1.0, None, None, None),
-            (2, 2, 21, 25, 50, 2.0, 0.5, 10, 50, True, 1.0, None, None, None),
+            (1, 1, 1110, 5, 20, 2.5, 0.8, 10, 10, False, 2.0, 1.0, 20, 20),
+            (1, 1, 1111, 10, 25, 2.5, 0.8, 10, 20, False, 2.0, 1.0, 30, 30),
+            (1, 1, 1112, 15, 30, 2.5, 0.8, 10, 30, False, 2.0, 1.0, 40, 40),
+            (2, 2, 2110, 20, 40, 2.0, 0.5, 10, 40, False, 1.0, None, None, None),
+            (2, 2, 2111, 25, 50, 2.0, 0.5, 10, 50, True, 1.0, None, None, None),
         ]
     )
 
@@ -130,7 +130,7 @@ def expected_ratio_estimation_threshold_df():
     return create_test_dataframe(
         [
             (
-                "cell",
+                "stratum",
                 "calibration_group",
                 "unit_ref",
                 "target",
@@ -142,11 +142,11 @@ def expected_ratio_estimation_threshold_df():
                 "non_winsorisable_marker",
                 "ratio_estimation_threshold",
             ),
-            (1, 1, 10, 5, 20, 2.5, 0.8, 10, 10, False, 20),
-            (1, 1, 11, 10, 25, 2.5, 0.8, 10, 20, False, 30),
-            (1, 1, 12, 15, 30, 2.5, 0.8, 10, 30, False, 40),
-            (2, 2, 20, 20, 40, 2.0, 0.5, 10, 40, False, None),
-            (2, 2, 21, 25, 50, 2.0, 0.5, 10, 50, True, None),
+            (1, 1, 1110, 5, 20, 2.5, 0.8, 10, 10, False, 20),
+            (1, 1, 1111, 10, 25, 2.5, 0.8, 10, 20, False, 30),
+            (1, 1, 1112, 15, 30, 2.5, 0.8, 10, 30, False, 40),
+            (2, 2, 2110, 20, 40, 2.0, 0.5, 10, 40, False, None),
+            (2, 2, 2111, 25, 50, 2.0, 0.5, 10, 50, True, None),
         ]
     )
 
@@ -157,7 +157,7 @@ def test_calculate_ag_product(input_data, expected_ag_product_df):
     assert_frame_equal(result, expected_ag_product_df, check_dtype=False, rtol=1e-5)
 
 
-def test_expected_ratio_threshold_df(expected_ag_product_df, expected_ratio_threshold_df):
+def test_calculate_ratio_threshold(expected_ag_product_df, expected_ratio_threshold_df):
     """Test that ratio_threshold is calculated from predicted, l_value, and ag_product."""
     result = calculate_ratio_threshold(
         expected_ag_product_df.copy(),
