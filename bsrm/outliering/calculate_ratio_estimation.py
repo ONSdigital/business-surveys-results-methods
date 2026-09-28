@@ -125,6 +125,4 @@ def calculate_ratio_estimation_threshold(
         non_winsorisable_marker_col,
     )
 
-    df = df.rename(columns={"masked_ratio_threshold": "ratio_estimation_threshold"})
-
     return df
