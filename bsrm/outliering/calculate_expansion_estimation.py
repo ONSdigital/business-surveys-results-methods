@@ -9,16 +9,16 @@ def calculate_stratum_mean(
     strata_col: str,
     target_col: str,
 ) -> pd.DataFrame:
-    """Calculate the mean response for each stratum and adds stratum_mean to the dataframe.
+    """Calculate the mean response for each stratum and add stratum mean to the dataframe.
 
     Parameters
     ----------
     df : pd.DataFrame
         Input dataframe.
     strata_col : str
-        The column name for the strata which is cell.
+        The column name identifying each stratum (cell).
     target_col : str
-        The column name for the target variable which is y.
+        The column name for the target variable (y).
 
     Returns
     -------
@@ -45,20 +45,24 @@ def calculate_expansion_estimation_threshold(
     k_h = expansion_estimation_threshold
     ȳ_h = stratum_mean_col
     L = l_values_col
-    a_h = a_weight_col
+    a_weights = a_weight_col
+
+    we have implement the following:
+    denominator = (a_h-1)
+    expansion_estimation_threshold = stratum_mean_col + l_values_col / denominator
 
     Parameters
     ----------
     df : pd.DataFrame
         Input dataframe.
     a_weight_col : str
-        The column name for the a_h weights.
+        The column name for the a_weight for the stratum (a_h).
     stratum_mean_col : str
         The column name for the stratum means (ȳ_h).
     l_values_col : str
         The column name for the L values.
     non_winsorisable_marker_col : str
-        The column name indicating non-winsorisable units.
+        The column name indicating units previously identified as non-winsorisable.
 
     Returns
     -------
@@ -67,11 +71,13 @@ def calculate_expansion_estimation_threshold(
     """
     df = df.copy()
     denominator = df[a_weight_col] - 1
+    # Replace zero denominators with NaN to avoid division by zero.
     denominator = denominator.mask(denominator == 0)
 
     df["expansion_estimation_threshold"] = df[stratum_mean_col] + df[l_values_col] / denominator
 
-    # non-winsorisable are marekd as NaN
+    # units already identified as non-winsorisable are marked as NaN
+    ## Leave the threshold missing for units that cannot be winsorised.
     df["expansion_estimation_threshold"] = df["expansion_estimation_threshold"].mask(
         df[non_winsorisable_marker_col], np.nan
     )
