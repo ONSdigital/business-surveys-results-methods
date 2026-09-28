@@ -73,14 +73,14 @@ def run_estimation(
     EstMainLogger.info("Starting estimation weights calculation...")
 
     validate_run_estimation_input(
-        data=df,
-        a_weight_col=a_wgt_band_col,
-        ru_col=ru_col,
-        univ_count_col=univ_count_col,
-        g_weight_col=g_wgt_band_col,
-        aux_cols=aux_cols,
-        univ_aux_cols=univ_aux_cols,
-        incl_g_wts=incl_g_wts,
+        df,
+        a_wgt_band_col,
+        ru_col,
+        univ_count_col,
+        g_wgt_band_col,
+        aux_cols,
+        univ_aux_cols,
+        incl_g_wts,
     )
 
     # calculate the weights

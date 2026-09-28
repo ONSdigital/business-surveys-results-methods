@@ -13,7 +13,7 @@ def apply_weights(
     a_weight_columns: list[str],
     g_weight_columns: dict[str, list[str]] | None = None,
     aux_cols: list[str] | None = None,
-    calc_g_weight: bool = True,
+    calc_g_weight: bool = False,
     round_val: int = 4,
 ) -> pd.DataFrame:
     """Apply the estimation weights to survey questions.
@@ -33,12 +33,12 @@ def apply_weights(
         pd.DataFrame: The dataframe with the estimated values.
     """
     validate_apply_weights_input(
-        data=df,
-        a_weight_columns=a_weight_columns,
-        g_weight_columns=g_weight_columns,
-        aux_cols=aux_cols,
-        calc_g_weight=calc_g_weight,
-        round_val=round_val,
+        df,
+        a_weight_columns,
+        g_weight_columns,
+        aux_cols,
+        calc_g_weight,
+        round_val,
     )
 
     # apply a weights to the columns specified for a weights
