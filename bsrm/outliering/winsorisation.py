@@ -2,21 +2,23 @@
 
 import pandas as pd
 
-from bsrm.outlier.calculate_predicted_unit_value import (
+from bsrm.outliering.calculate_predicted_unit_value import (
     calculate_predicted_unit_value,
 )
-from bsrm.outlier.calculate_ratio_estimation import (
+from bsrm.outliering.calculate_ratio_estimation import (
     calculate_ratio_estimation_threshold,
 )
-from bsrm.outlier.calculate_winsorised_weight import (
+
+from bsrm.outliering.calculate_winsorised_weight import (
     calculate_ratio_winsorised_weight,
 )
-from bsrm.outlier.flag_for_winsorisation import winsorisation_flag
+from bsrm.outliering.flag_for_winsorisation import winsorisation_flag
 
 
 def winsorise(
     df: pd.DataFrame,
     calibration_group_col: str,
+    strata_col: str,
     aux_col: str,
     a_weight_col: str,
     g_weight_col: str,
@@ -24,6 +26,14 @@ def winsorise(
     l_values_col: str,
 ) -> pd.DataFrame:
     """Apply one-sided Winsorisation to the input dataframe.
+
+    The pipeline calculates predicted unit values and thresholds within
+    calibration groups. Calibration weights are calculated by calibration
+    group, not by stratum.
+
+    Non-winsorisable units have both design(a_i) and calibration(g_i) weights equal to
+    1. They represent themselves only and are therefore not treated as
+    outliers.
 
     Pipes the dataframe through four steps: flag non-winsorisable units,
     calculate the predicted unit value (mu_i), calculate the ratio threshold
@@ -44,6 +54,9 @@ def winsorise(
         Input dataframe.
     calibration_group_col : str
        Name of the calibration group column (j in the spec).
+       Calibration weights and predicted unit values are calculated within this group.
+    strata_col : str
+        Name of the stratum or cell column (h in the spec).
     aux_col : str
         Name of the auxiliary variable column (x_i in the spec).
     a_weight_col : str
@@ -85,8 +98,6 @@ def winsorise(
         )
         .pipe(
             calculate_ratio_winsorised_weight,
-            a_weight_col,
-            g_weight_col,
             target_col,
             "ratio_estimation_threshold",
             "non_winsorisable_marker",
