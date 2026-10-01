@@ -16,7 +16,7 @@ def calculate_predicted_unit_value(
 
     Formula from the paper ( provided by methodology):
 
-        mu_i = x_i * sum(a_i * y_i) / sum(a_i * x_i)
+        mu_i = x_i * sum(a_i * x_i) / sum(a_i * y_i)
 
     where sums are taken over calibration group j. Units where both
     a_i == 1 and g_i == 1 (non-winsorisable) receive NaN.
@@ -74,7 +74,7 @@ def calculate_predicted_unit_value(
     final_df = df.merge(total_sum_weighted, on=calibration_group_col, how="left")
 
     final_df["predicted_unit_value"] = final_df[aux_col] * (
-        final_df["sum_weighted_target_values"] / final_df["sum_weighted_auxiliary_values"]
+        final_df["sum_weighted_auxiliary_values"] / final_df["sum_weighted_target_values"]
     )
 
     final_df = final_df.drop(
@@ -83,7 +83,7 @@ def calculate_predicted_unit_value(
     )
 
     final_df["predicted_unit_value"] = final_df["predicted_unit_value"].mask(
-        df[non_winsorisable_marker_col], np.nan
+        final_df[non_winsorisable_marker_col], np.nan
     )
 
     return final_df
