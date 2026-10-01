@@ -2,16 +2,16 @@
 
 import pandas as pd
 
-from bsrm.outlier.calculate_predicted_unit_value import (
+from bsrm.outliering.calculate_predicted_unit_value import (
     calculate_predicted_unit_value,
 )
-from bsrm.outlier.calculate_ratio_estimation import (
+from bsrm.outliering.calculate_ratio_estimation import (
     calculate_ratio_estimation_threshold,
 )
-from bsrm.outlier.calculate_winsorised_weight import (
+from bsrm.outliering.calculate_winsorised_weight import (
     calculate_ratio_winsorised_weight,
 )
-from bsrm.outlier.flag_for_winsorisation import winsorisation_flag
+from bsrm.outliering.flag_for_winsorisation import winsorisation_flag
 
 
 def winsorise(
@@ -25,7 +25,7 @@ def winsorise(
 ) -> pd.DataFrame:
     """Apply one-sided Winsorisation to the input dataframe.
 
-    Pipes the dataframe through four steps: flag non-winsorisable units,
+    flag non-winsorisable units,
     calculate the predicted unit value (mu_i), calculate the ratio threshold
     (k_i), then compute adjusted returns (y*_i) and outlier weights (o_i).
 
@@ -61,35 +61,30 @@ def winsorise(
         Dataframe with added outlier_weight (o_i) and
         adjusted_return (y*_i) columns.
     """
-    winsorised_df = (
-        df.pipe(
-            winsorisation_flag,
-            a_weight_col,
-            g_weight_col,
-        )
-        .pipe(
-            calculate_predicted_unit_value,
-            calibration_group_col,
-            aux_col,
-            a_weight_col,
-            target_col,
-            "non_winsorisable_marker",
-        )
-        .pipe(
-            calculate_ratio_estimation_threshold,
-            a_weight_col,
-            g_weight_col,
-            "predicted_unit_value",
-            l_values_col,
-            "non_winsorisable_marker",
-        )
-        .pipe(
-            calculate_ratio_winsorised_weight,
-            a_weight_col,
-            g_weight_col,
-            target_col,
-            "ratio_estimation_threshold",
-            "non_winsorisable_marker",
-        )
+    df = winsorisation_flag(df, a_weight_col, g_weight_col)
+    df = calculate_predicted_unit_value(
+        df,
+        calibration_group_col,
+        aux_col,
+        a_weight_col,
+        target_col,
+        "non_winsorisable_marker",
     )
-    return winsorised_df
+    df = calculate_ratio_estimation_threshold(
+        df,
+        a_weight_col,
+        g_weight_col,
+        "predicted_unit_value",
+        l_values_col,
+        "non_winsorisable_marker",
+    )
+    df = calculate_ratio_winsorised_weight(
+        df,
+        a_weight_col,
+        g_weight_col,
+        target_col,
+        "ratio_estimation_threshold",
+        "non_winsorisable_marker",
+    )
+
+    return df
