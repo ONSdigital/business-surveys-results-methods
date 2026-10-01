@@ -74,7 +74,8 @@ def calculate_ratio_winsorised_weight(
     division_with_0 = ~non_winsorisable & (df[target_col] == 0)
 
     df["outlier_weight"] = df["outlier_weight"].mask(non_winsorisable | division_with_0, 1)
-    df["adjusted_return"] = df["adjusted_return"].mask(non_winsorisable | division_with_0, 0)
+    df["adjusted_return"] = df["adjusted_return"].mask(non_winsorisable, df[target_col])
+    df["adjusted_return"] = df["adjusted_return"].mask(division_with_0, 0)
     df["outlier_flag"] = df["outlier_flag"].mask(non_winsorisable | division_with_0, 0)
 
     return df
