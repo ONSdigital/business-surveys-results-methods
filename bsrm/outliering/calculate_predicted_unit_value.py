@@ -74,7 +74,7 @@ def calculate_predicted_unit_values_from_group_sums(
     return merged_df
 
 
-def calculate_predicted_unit_values(
+def calculate_predicted_unit_value(
     df: pd.DataFrame,
     calibration_group_col: str,
     aux_col: str,
@@ -128,7 +128,10 @@ def calculate_predicted_unit_values(
         non_winsorisable_marker_col,
     )
     final_df = df.merge(group_sums, on=calibration_group_col, how="left")
-    final_df = calculate_predicted_unit_values_from_group_sums(final_df, aux_col)
+    final_df = calculate_predicted_unit_values_from_group_sums(
+        final_df,
+        aux_col,
+    )
 
     final_df = final_df.drop(
         ["sum_weighted_target_values", "sum_weighted_auxiliary_values"],
