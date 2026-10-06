@@ -2,16 +2,16 @@
 
 import pandas as pd
 
-from bsrm.outlier.calculate_predicted_unit_value import (
+from bsrm.outliering.calculate_predicted_unit_value import (
     calculate_predicted_unit_value,
 )
-from bsrm.outlier.calculate_ratio_estimation import (
+from bsrm.outliering.calculate_ratio_estimation import (
     calculate_ratio_estimation_threshold,
 )
-from bsrm.outlier.calculate_winsorised_weight import (
+from bsrm.outliering.calculate_winsorised_weight import (
     calculate_ratio_winsorised_weight,
 )
-from bsrm.outlier.flag_for_winsorisation import winsorisation_flag
+from bsrm.outliering.flag_for_winsorisation import winsorisation_flag
 
 
 def winsorise(
