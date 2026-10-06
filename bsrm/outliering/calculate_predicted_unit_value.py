@@ -86,7 +86,7 @@ def calculate_predicted_unit_value(
 
     Formula from the paper ( provided by methodology):
 
-        mu_i = x_i * sum(a_i * x_i) / sum(a_i * y_i)
+        mu_i = x_i * sum(a_i * y_i) / sum(a_i * x_i)
 
     where sums are taken over calibration group j. Units where both
     a_i == 1 and g_i == 1 (non-winsorisable) receive NaN.
