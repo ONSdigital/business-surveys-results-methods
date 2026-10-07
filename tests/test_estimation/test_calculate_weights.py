@@ -68,9 +68,9 @@ def expected_g_weights_df():
         "Nk",
         "sum_x",
         "a_weight",
-        "g_weight",
-        "univ_aux_sum",
-        "aux_col_sum",
+        "g_weight_x",
+        "sum_x_sum",
+        "x_sum",
     ]
     data = [
         ["A", 1, 1, 3, 5, 10.0, 2.0, 6, 20, 40.0, 2.0, 3.333, 40.0, 6.0],
@@ -90,13 +90,13 @@ def expected_qa_df():
         "N",
         "n",
         "a_weight",
-        "univ_aux_sum",
-        "aux_col_sum",
-        "g_weight",
+        "x_sum",
+        "sum_x_sum",
+        "g_weight_x",
     ]
     data = [
-        [1, 6, 3, 2.0, 40.0, 6.0, 3.333],
-        [2, 6, 2, 3.0, 60.0, 30.0, 0.667],
+        [1, 6, 3, 2.0, 6.0, 40.0, 3.333],
+        [2, 6, 2, 3.0, 30.0, 60.0, 0.667],
     ]
     return pd.DataFrame(data=data, columns=cols)
 
@@ -110,39 +110,46 @@ def test_calc_lower_n(input_data):
 
 def test_a_weight(input_data):
     """Test for a weight calculation."""
-    cell_1 = input_data[input_data["cell_no"] == 1]
-    result = a_weight(cell_1, "ruref", "N")
+    cell_1 = input_data[input_data["cell_no"] == 1].copy()
+    cell_1.name = 1
+    result = a_weight(cell_1, "ruref", "N", "cell_no")
     assert result["a_weight"].iloc[0] == 2.0
 
 
-def test_a_weight_with_strata_col(input_data):
-    """Test that strata_col is preserved when passed."""
+def test_a_weight_with_a_weight_col(input_data):
+    """Test that a_wgt_band_col is preserved when passed."""
     cell_1 = input_data[input_data["cell_no"] == 1].copy()
     cell_1.name = 1
-    result = a_weight(cell_1, "ruref", "N", strata_col="cell_no")
+    result = a_weight(cell_1, "ruref", "N", a_wgt_band_col="cell_no")
     assert result["a_weight"].iloc[0] == 2.0
     assert result["cell_no"].iloc[0] == 1
 
 
 def test_g_weight(expected_a_weights_df):
     """Test for g weight calculation."""
-    cell_1 = expected_a_weights_df[expected_a_weights_df["cell_no"] == 1]
-    result = g_weight(cell_1, "x", "sum_x")
-    assert result["g_weight"].iloc[0] == pytest.approx(40.0 / 12.0, abs=1e-4)
-
-
-def test_g_weight_with_strata_col(expected_a_weights_df):
-    """Test that strata_col is preserved when passed."""
     cell_1 = expected_a_weights_df[expected_a_weights_df["cell_no"] == 1].copy()
     cell_1.name = 1
-    result = g_weight(cell_1, "x", "sum_x", strata_col="cell_no")
-    assert result["g_weight"].iloc[0] == pytest.approx(40.0 / 12.0, abs=1e-4)
+    result = g_weight(cell_1, "x", "sum_x", "cell_no")
+    assert result["g_weight_x"].iloc[0] == pytest.approx(40.0 / 12.0, abs=1e-4)
+
+
+def test_g_weight_with_a_weight_col(expected_a_weights_df):
+    """Test that g_wgt_band_col is preserved when passed."""
+    cell_1 = expected_a_weights_df[expected_a_weights_df["cell_no"] == 1].copy()
+    cell_1.name = 1
+    result = g_weight(cell_1, "x", "sum_x", g_wgt_band_col="cell_no")
+    assert result["g_weight_x"].iloc[0] == pytest.approx(40.0 / 12.0, abs=1e-4)
     assert result["cell_no"].iloc[0] == 1
 
 
 def test_calculate_a_weights(input_data, expected_a_weights_df):
     """Test that the a weights are calculated correctly."""
-    result = calculate_a_weights(df=input_data, strata_col="cell_no", ru_col="ruref", univ_count_col="N")
+    result = calculate_a_weights(
+        df=input_data,
+        a_wgt_band_col="cell_no",
+        ru_col="ruref",
+        univ_count_col="N",
+    )
     assert_frame_equal(result, expected_a_weights_df, check_dtype=False, rtol=1e-6)
 
 
@@ -154,5 +161,13 @@ def test_calculate_g_weights(expected_a_weights_df, expected_g_weights_df):
 
 def test_create_weights_qa_df(expected_g_weights_df, expected_qa_df):
     """Test that the QA dataframe is created correctly."""
-    result = create_weights_qa_df(expected_g_weights_df, "cell_no", incl_g_wts=True)
+    result = create_weights_qa_df(
+        expected_g_weights_df,
+        a_wgt_band_col="cell_no",
+        univ_count_col="N",
+        incl_g_wts=True,
+        g_wgt_band_col="cell_no",
+        aux_cols=["x"],
+        univ_aux_cols=["sum_x"],
+    )
     assert_frame_equal(result.round(3), expected_qa_df, check_dtype=False, rtol=1e-6)
