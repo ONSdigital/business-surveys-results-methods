@@ -107,7 +107,8 @@ def validate_run_estimation_input(
     TypeError
         If the input data or parameter types are invalid.
     ValueError
-        If g-weight inputs are missing or inconsistent when g weights are enabled.
+        If required input columns contain missing values, or g-weight inputs are
+        missing or inconsistent when g weights are enabled.
     Exception
         If one or more specified columns are not present in the dataframe.
     """
@@ -119,23 +120,24 @@ def validate_run_estimation_input(
         msg = "Specified value for incl_g_wts must be a Boolean."
         raise TypeError(msg)
 
-    _check_columns(df, [a_wgt_band_col, ru_col, univ_count_col])
+    required_cols = [a_wgt_band_col, ru_col, univ_count_col]
 
-    if not incl_g_wts:
-        return
+    if incl_g_wts:
+        if g_wgt_band_col is None or aux_cols is None or univ_aux_cols is None:
+            msg = "G weights cannot be calculated due to missing columns."
+            raise ValueError(msg)
 
-    if g_wgt_band_col is None or aux_cols is None or univ_aux_cols is None:
-        msg = "G weights cannot be calculated due to missing columns."
-        raise ValueError(msg)
+        _check_is_list("aux_cols", aux_cols)
+        _check_is_list("univ_aux_cols", univ_aux_cols)
 
-    _check_is_list("aux_cols", aux_cols)
-    _check_is_list("univ_aux_cols", univ_aux_cols)
+        if len(aux_cols) != len(univ_aux_cols):
+            msg = "aux_cols and univ_aux_cols must be the same length."
+            raise ValueError(msg)
 
-    if len(aux_cols) != len(univ_aux_cols):
-        msg = "aux_cols and univ_aux_cols must be the same length."
-        raise ValueError(msg)
+        required_cols.extend([g_wgt_band_col, *aux_cols, *univ_aux_cols])
 
-    _check_columns(df, [g_wgt_band_col, *aux_cols, *univ_aux_cols])
+    _check_columns(df, required_cols)
+    _check_missing_values(df, required_cols)
 
 
 def validate_g_weighting_input(
@@ -204,6 +206,9 @@ def validate_apply_weights_input(
     ------
     TypeError
         If the input data or parameter types are invalid.
+    ValueError
+        If required input columns contain missing values or g-weight inputs are
+        inconsistent.
     Exception
         If the g-weight configuration is inconsistent with calc_g_weight.
     """
@@ -302,6 +307,7 @@ def _validate_weights(
         raise ValueError(msg)
 
     _check_columns(df, a_weight_columns + flattened_g_weight_columns)
+    _check_missing_values(df, a_weight_columns + flattened_g_weight_columns)
 
     # Raise error if no weights specified
     if not (a_weight_columns or flattened_g_weight_columns):
@@ -368,3 +374,13 @@ def _check_columns(df: pd.DataFrame, cols_list: list[str]) -> None:
     if missing:
         msg = f"Specified column(s): {', '.join(missing)} must be column(s) in the data."
         raise Exception(msg)
+
+
+def _check_missing_values(df: pd.DataFrame, cols_list: list[str]) -> None:
+    """Raise an error when required input columns contain missing values."""
+    missing_counts = df[cols_list].isna().sum()
+    missing_counts = missing_counts[missing_counts > 0]
+    if not missing_counts.empty:
+        details = ", ".join(f"{column} ({count})" for column, count in missing_counts.items())
+        msg = f"Missing values found in required input columns: {details}."
+        raise ValueError(msg)

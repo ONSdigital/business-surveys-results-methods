@@ -99,3 +99,16 @@ def test_apply_weights_invalid_column(input_df):
             calc_g_weight=False,
             round_val=4,
         )
+
+
+def test_apply_weights_fails_when_response_data_is_missing(input_df):
+    """Missing response values should fail before weights are applied."""
+    input_df.loc[0, "y"] = float("nan")
+
+    with pytest.raises(ValueError, match="y"):
+        apply_weights(
+            df=input_df.copy(),
+            a_weight_columns=["y"],
+            calc_g_weight=False,
+            round_val=4,
+        )

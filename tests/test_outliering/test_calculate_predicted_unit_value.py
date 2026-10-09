@@ -103,11 +103,26 @@ def test_calculate_predicted_unit_value_masks_non_winsorisable_rows(
         "target",
         "non_winsorisable_marker",
     )
-    expected = input_data.assign(
-        predicted_unit_value=[8.0, 10.0, 12.0, 20.0, np.nan]
-    )
+    expected = input_data.assign(predicted_unit_value=[8.0, 10.0, 12.0, 20.0, np.nan])
 
     assert_frame_equal(result, expected, check_dtype=False)
+
+
+def test_calculate_predicted_unit_value_fails_for_missing_input_data(
+    input_data: pd.DataFrame,
+) -> None:
+    """Missing calculation inputs should fail with a useful error message."""
+    input_data.loc[0, "target"] = np.nan
+
+    with pytest.raises(ValueError, match=r"target \(1\)"):
+        calculate_predicted_unit_value(
+            input_data,
+            "calibration_group",
+            "aux",
+            "a_weight",
+            "target",
+            "non_winsorisable_marker",
+        )
 
 
 def test_calculate_predicted_unit_values_returns_nan_for_zero_auxiliary_total() -> None:
