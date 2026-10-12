@@ -1,7 +1,6 @@
 """Tests for flagging non-winsorisable units."""
 
 import numpy as np
-import pandas as pd
 import pytest
 from pandas.testing import assert_frame_equal
 
@@ -64,20 +63,20 @@ def test_winsorisation_flag_uses_custom_columns_without_mutating_input() -> None
     """Preserve source data and recalculate an existing marker in the result."""
     input_df = create_test_dataframe(
         [
-            ("design", "calibration", "reference", "non_winsorisable_marker"),
+            ("design", "calibration", "unit_ref", "non_winsorisable_marker"),
             (1, 1, "unit-1", False),
             (2, 2, "unit-2", True),
         ],
         index=[10, 20],
     )
-    original = input_df.copy(deep=True)
+    original = input_df.copy()
 
     result = winsorisation_flag(input_df, "design", "calibration")
 
     assert_frame_equal(input_df, original)
     expected = create_test_dataframe(
         [
-            ("design", "calibration", "reference", "non_winsorisable_marker"),
+            ("design", "calibration", "unit_ref", "non_winsorisable_marker"),
             (1, 1, "unit-1", True),
             (2, 2, "unit-2", False),
         ],
