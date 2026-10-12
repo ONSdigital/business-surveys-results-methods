@@ -25,7 +25,15 @@ def winsorise(
 ) -> pd.DataFrame:
     """Apply one-sided Winsorisation to the input dataframe.
 
-    flag non-winsorisable units,
+    The pipeline calculates predicted unit values and thresholds within
+    calibration groups. Calibration weights are calculated by calibration
+    group, not by stratum.
+
+    Non-winsorisable units have both design(a_i) and calibration(g_i) weights equal to
+    1. They represent themselves only and are therefore not treated as
+    outliers.
+
+    Processes the dataframe in four steps: flag non-winsorisable units,
     calculate the predicted unit value (mu_i), calculate the ratio threshold
     (k_i), then compute adjusted returns (y*_i) and outlier weights (o_i).
 
@@ -44,6 +52,7 @@ def winsorise(
         Input dataframe.
     calibration_group_col : str
        Name of the calibration group column (j in the spec).
+       Calibration weights and predicted unit values are calculated within this group.
     aux_col : str
         Name of the auxiliary variable column (x_i in the spec).
     a_weight_col : str
@@ -80,11 +89,8 @@ def winsorise(
     )
     df = calculate_ratio_winsorised_weight(
         df,
-        a_weight_col,
-        g_weight_col,
         target_col,
         "ratio_estimation_threshold",
         "non_winsorisable_marker",
     )
-
     return df
