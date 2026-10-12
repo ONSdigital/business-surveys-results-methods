@@ -1,0 +1,19 @@
+# This is a simple estimation config matching the test data
+# used in the component test found in test_estimation_main.py
+ru_col: ruref
+univ_count_col: N
+round_val: 2
+incl_g_wts: true
+
+a_wgt_band: a_wt_band
+g_wgt_band: g_wt_band
+
+a_weight_columns :
+  apply_cols:
+    ["question"]
+
+g_weight_columns:
+  aux_var1:
+    aux_col: turnover
+    univ_aux_col: univ_turnover_sum
+    apply_cols: ["question"]

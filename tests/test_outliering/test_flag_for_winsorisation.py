@@ -15,7 +15,7 @@ def test_winsorisation_flag_marks_only_rows_where_both_weights_equal_one() -> No
             ("a_weight", "g_weight"),
             (1, 1),
             (1, 2),
-            
+
             (2, 1),
             (2, 2),
         ]
