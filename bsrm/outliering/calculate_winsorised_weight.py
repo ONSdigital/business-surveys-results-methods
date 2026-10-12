@@ -63,7 +63,7 @@ def calculate_ratio_winsorised_weight(
 
     df["outlier_weight"] = df["adjusted_return"] / df[target_col].replace(0, np.nan)
 
-    df = df.drop(["adjusted_value"], axis=1)
+    df = df.drop(columns=["mask", "adjusted_value"])
 
     non_winsorisable = df[non_winsorisable_marker_col]
     division_with_0 = ~non_winsorisable & (df[target_col] == 0)
