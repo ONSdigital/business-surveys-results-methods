@@ -28,11 +28,11 @@ def safeload_yaml(file_path: str) -> dict:
     dict: The loaded yaml file as as dictionary.
     """
     if not Path(file_path).exists():
-        e = f"Attempted to load yaml at: {file_path}. File does not exist."
+        e = "Attempted to load yaml at: {file_path}. File does not exist."
         raise FileNotFoundError(e)
 
     if Path(file_path).suffix != ".yaml":
-        e = f"Expected a .yaml file. Got {Path(file_path).suffix}"
+        e = "Expected a .yaml file. Got {ext}"
         raise TypeError(e)
 
     try:
