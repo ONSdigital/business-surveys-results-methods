@@ -17,13 +17,13 @@ def calculate_ratio_winsorised_weight(
     This function implements the ratio estimation method for Winsorisation.
     Formula provided in the paper (provided by methodology):
 
-        y*_i = (y_i + (a_i - 1) * k_i) / a_i
+        y*_i = y_i + (a_i * g_i - 1) * k_i / (a_i * g_i)
         o_i  = y*_i / y_i
 
     Calculation based on the appendix example (Cell 1, Unit 1):
 
-        y_i = 14, k_i = 13.158, a_i = 2.667
-        y*_i = (14 + (2.667 - 1) * 13.158) / 2.667 = 13.474
+        y_i = 14, k_i = 13.389, a_i * g_i = 2.667 * 2.206 = 5.882
+        y*_i = 14 + (5.882 - 1) * 13.389 / 5.882 = 25.11
 
     Units marked as non-winsorisable (a_i * g_i <= 1) receive outlier_weight = 1.
 
@@ -56,9 +56,11 @@ def calculate_ratio_winsorised_weight(
     pd.DataFrame
          Dataframe with added adjusted_return (y*_i) and outlier_weight (o_i) columns.
     """
-    df["adjusted_value"] = (
-        df[target_col] + (df[a_weight_col] - 1) * df[ratio_estimation_threshold_col]
-    ) / df[a_weight_col]
+    df["ag_product"] = df[a_weight_col] * df[g_weight_col]
+
+    df["adjusted_value"] = df[target_col] + (
+        (df["ag_product"] - 1) * df[ratio_estimation_threshold_col] / df["ag_product"]
+    )
 
     mask = df[target_col] <= df[ratio_estimation_threshold_col]
     df["adjusted_return"] = np.where(mask, df[target_col], df["adjusted_value"])
@@ -66,15 +68,13 @@ def calculate_ratio_winsorised_weight(
 
     df["outlier_weight"] = df["adjusted_return"] / df[target_col].replace(0, np.nan)
 
-    df = df.drop(["adjusted_value"], axis=1)
+    df = df.drop(["ag_product", "adjusted_value"], axis=1)
 
     non_winsorisable = df[non_winsorisable_marker_col]
     division_with_0 = ~non_winsorisable & (df[target_col] == 0)
 
     df["outlier_weight"] = df["outlier_weight"].mask(non_winsorisable | division_with_0, 1)
-    df["adjusted_return"] = df["adjusted_return"].mask(
-        non_winsorisable | division_with_0, df[target_col]
-    )
+    df["adjusted_return"] = df["adjusted_return"].mask(non_winsorisable | division_with_0, 0)
     df["outlier_flag"] = df["outlier_flag"].mask(non_winsorisable | division_with_0, 0)
 
     return df
