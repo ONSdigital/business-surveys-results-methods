@@ -24,7 +24,8 @@ def impute_capex(
         wholesale (wa)
     Q311 is calculated only for production and construction (acp)
     """
-    cond = group["empment"] > 99 #? This should "IDBR employment" according to spec, different col?
+    # This should "IDBR employment" according to spec, is that a different col?
+    cond = group["empment"] > 99
 
     if sector in ["acp", "mt", "wa"]:
         group = get_imputed_estimate(group, "Q601", "Q600", cond, adjusted=True)
@@ -65,7 +66,7 @@ def get_imputed_estimate(
     """
     # Calculate the growth factor for rows where the condition is true
     growth_factor = f"{col1}_growth_factor"
-    df.loc[cond, growth_factor] = df[col1]/df[col2]
+    df.loc[cond, growth_factor] = df[col1] / df[col2]
 
     # Calculate the median
     median = df.loc[cond][growth_factor].median()
@@ -74,12 +75,12 @@ def get_imputed_estimate(
     if adjusted:
         numerator = len(df[df[col1] > 0])
         denominator = len(df[df[col1] >= 0])
-        median = (numerator/denominator)*median
+        median = (numerator / denominator) * median
 
     # Add the median into the dataframe
     df[f"{col1}_median_growth_factor"] = median
 
     # Impute the value using the median
-    df.loc[df[col1].isna(), f"{col1}_imputed_estimate"] = df[col2]*median
+    df.loc[df[col1].isna(), f"{col1}_imputed_estimate"] = df[col2] * median
 
     return df
