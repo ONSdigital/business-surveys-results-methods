@@ -36,7 +36,7 @@ def expected_df():
     """Create dataframe with data that has been imputed."""
     return create_test_dataframe(
         [
-            # Growth rates should be ~0.8 and ~1.2 but not exactly 
+            # Growth rates should be ~0.8 and ~1.2 but not exactly
             ("ruref", "imp_class", "turnover", "empment", "Q311", "Q399", "Q600", "Q601", "Q311_growth_factor", "Q601_growth_factor", "Q311_median_growth_factor", "Q601_median_growth_factor", "Q311_imputed_estimate", "Q601_imputed_estimate"),
             (1,          "class1",          0,       101,     98,    123,    100,  None, 0.796747967479674796,                 None,        0.799746514575411913,        1.250847457627118644,                    None,    125.0847457627118644),
             (2,          "class1",          0,       101,    365,    456,    118,   147, 0.800438596491228070, 1.245762711864406779,        0.799746514575411913,        1.250847457627118644,                    None,                    None),
@@ -70,11 +70,5 @@ def test_impute_capex(
 
     # Reorder the columns since the output of the function doesn't preserve column order
     result = result[expected_df.columns]
-
-    with pd.option_context('display.max_columns', None):
-        print("===EXPECTED===")
-        print(expected_df)
-        print("====RESULT====")
-        print(result)
 
     assert_frame_equal(result, expected_df)
