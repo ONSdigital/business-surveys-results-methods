@@ -42,7 +42,7 @@ def get_imputed_estimate(
     cond: pd.Series = SERIES_ALL_TRUE,
     adjusted: bool = False,
 ) -> pd.DataFrame:
-    """Calculate the imputed estimate of a column via the ratio of means.
+    """Calculate the imputed estimate of a column via the median of ratios.
 
     Parameters
     ----------
