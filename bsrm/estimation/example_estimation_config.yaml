@@ -11,7 +11,7 @@ g_wgt_band: a_weight_band  # note: sometimes we specify a_ and g_ bands to be th
 
 a_weight_columns :
   apply_cols:
-    ["Q101", "Q102", "Q103"]
+    ["Q101", "Q102", "Q103", "Q401"]
 
 g_weight_columns:
   aux_var1:
@@ -22,3 +22,6 @@ g_weight_columns:
     aux_col: employment
     univ_aux_col: univ_employment
     apply_cols: ["Q103"]
+
+outliering:
+  expansion_methods: ["Q401"]
