@@ -25,3 +25,5 @@ g_weight_columns:
 
 outliering:
   expansion_methods: ["Q401"]
+  expansion_l_value: 100.0
+  ratio_l_value: 15.0

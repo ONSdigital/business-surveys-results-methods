@@ -16,7 +16,8 @@ def detect_outlier(
     a_weight_col: str,
     g_weight_col: str,
     target_col: str,
-    l_value: float,
+    expansion_l_value: float,
+    ratio_l_value: float,
 ) -> pd.DataFrame:
     """Apply Winsorisation to identify and weight outliers.
 
@@ -44,8 +45,10 @@ def detect_outlier(
         Name of the calibration factor column.
     target_col : str
         Name of the target variable column.
-    l_value : float
-        Tuning parameter for Winsorisation.
+    expansion_l_value : float
+        Tuning parameter for expansion Winsorisation.
+    ratio_l_value : float
+        Tuning parameter for ratio Winsorisation.
 
     Returns
     -------
@@ -56,8 +59,10 @@ def detect_outlier(
     def winsorise_group(group: pd.DataFrame) -> pd.DataFrame:
         """Apply expansion or ratio method Winsorisation to a single question group."""
         question = group[question_no_col].iloc[0]
+        group = group.copy()
 
         if question in expansion_methods:
+            group["l_value"] = expansion_l_value
             winsorised = winsorise_expansion(
                 group,
                 strata_col,
@@ -65,7 +70,9 @@ def detect_outlier(
                 a_weight_col,
                 "l_value",
             )
+            winsorised["approach"] = "expansion"
         else:
+            group["l_value"] = ratio_l_value
             winsorised = winsorise_ratio(
                 group,
                 calibration_group_col,
@@ -75,10 +82,10 @@ def detect_outlier(
                 target_col,
                 "l_value",
             )
+            winsorised["approach"] = "ratio"
         return winsorised
 
     df = df.copy()
-    df["l_value"] = l_value
 
     post_win = df.groupby(question_no_col).apply(winsorise_group)
     post_win = post_win.reset_index(drop=True)
@@ -96,21 +103,12 @@ if __name__ == "__main__":
     input_path = root_path / "outliering_component_test_input.csv"
     output_path = root_path / "outliering_component_test_output.csv"
 
-    l_value = 15.0
+    expansion_l_value = config["expansion_l_value"]
+    ratio_l_value = config["ratio_l_value"]
 
     df = pd.read_csv(input_path)
 
     expansion_methods = config["expansion_methods"]
-
-    if not isinstance(expansion_methods, list) or not all(
-        isinstance(question, str) for question in expansion_methods
-    ):
-        message = "outliering.expansion_methods must be a list of string question identifiers."
-        raise ValueError(message)
-
-    if df["question"].isna().any():
-        message = "Input question identifiers must not be missing."
-        raise ValueError(message)
 
     # call the method to return the dataframe with outlier weights
     outliered_df = detect_outlier(
@@ -123,7 +121,8 @@ if __name__ == "__main__":
         a_weight_col="ai",
         g_weight_col="gi",
         target_col="response",
-        l_value=l_value,
+        expansion_l_value=expansion_l_value,
+        ratio_l_value=ratio_l_value,
     )
 
     # save the output
