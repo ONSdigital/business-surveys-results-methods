@@ -18,17 +18,19 @@ def calculate_ratio_winsorised_weight(
         y*_i = [y_i + (a_i * g_i - 1) * k_i] / (a_i * g_i)
         o_i  = y*_i / y_i
 
-    Calculation based on the appendix example (Cell 1, Unit 1):
+    Calculation based on the paper example (Cell 1, Unit 1):
 
-        y_i = 14, k_i = 13.157, a_i * g_i = 2.66 * 2.205 = 5.86
-        y*_i = [14 + (5.86 - 1) * 13.157] / 5.86, approximately 13.493
+        y_i = 14, k_i = 13.15766243
+        a_i = 2.666666667, g_i = 2.205508475
+        y*_i = [14 + (2.666666667 * 2.205508475 - 1) * 13.15766243]
+               / (2.666666667 * 2.205508475)
+         y*_i =  13.30088409
+        o_i = 13.30088409 / 14
+        o_i =  0.950063149
 
     Units with both a_i == 1 and g_i == 1 are non-winsorisable.
     They retain their original return, receive outlier_weight = 1 and
     receive outlier_flag = 0.
-
-    The dataframe must already contain the ag_product column, calculated
-    earlier by calculate_ratio_estimation_threshold().
 
     Mapping to paper notation:
 
@@ -56,21 +58,8 @@ def calculate_ratio_winsorised_weight(
     pd.DataFrame
          Dataframe with added adjusted_return (y*_i) and outlier_weight (o_i) columns.
 
-    Raises
-    ------
-    ValueError
-        If a winsorisable unit has a missing or infinite ratio threshold.
     """
     non_winsorisable = df[non_winsorisable_marker_col]
-    threshold = df[ratio_estimation_threshold_col]
-    invalid_threshold = ~non_winsorisable & (threshold.isna() | ~np.isfinite(threshold))
-    if invalid_threshold.any():
-        message = (
-            "Ratio Winsorisation requires a finite threshold for every "
-            "winsorisable unit. Check estimation weights, auxiliary totals "
-            "and tuning values."
-        )
-        raise ValueError(message)
 
     df["adjusted_value"] = (
         df[target_col] + (df["ag_product"] - 1) * df[ratio_estimation_threshold_col]
