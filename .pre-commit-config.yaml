@@ -1,7 +1,7 @@
 # Precommit hooks.
 # install using `pre-commit install`
 # skip using `git commit -m "message" --no-verify`
-default_stages: [commit, push]
+default_stages: [pre-commit, pre-push]
 
 repos:
   # Default provided pre-commit hooks
