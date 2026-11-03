@@ -6,6 +6,40 @@ from bsrm.outliering.winsorisation import winsorise_ratio, winsorise_expansion
 from bsrm.utils.io_mods import safeload_yaml
 
 
+def winsorise_group(
+    group: pd.DataFrame,
+    strata_col: str,
+    calibration_group_col: str,
+    aux_col: str,
+    a_weight_col: str,
+    g_weight_col: str,
+    target_col: str,
+) -> pd.DataFrame:
+    """Apply the appropriate winsorisation method to one question group."""
+    group = group.copy()
+    method = group["method"].iloc[0]
+    if method == "expansion":
+        winsorised_df = winsorise_expansion(
+            group,
+            strata_col,
+            target_col,
+            a_weight_col,
+            "l_value",
+        )
+    else:
+        winsorised_df = winsorise_ratio(
+            group,
+            calibration_group_col,
+            aux_col,
+            a_weight_col,
+            g_weight_col,
+            target_col,
+            "l_value",
+        )
+
+    return winsorised_df
+
+
 def detect_outlier(
     df: pd.DataFrame,
     question_no_col: str,
@@ -55,42 +89,52 @@ def detect_outlier(
     pd.DataFrame
         Dataframe with added outlier_weight and outlier_flag columns.
     """
-
-    def winsorise_group(group: pd.DataFrame) -> pd.DataFrame:
-        """Apply expansion or ratio method Winsorisation to a single question group."""
-        question = group[question_no_col].iloc[0]
-        group = group.copy()
-
-        if question in expansion_methods:
-            group["l_value"] = expansion_l_value
-            winsorised = winsorise_expansion(
-                group,
-                strata_col,
-                target_col,
-                a_weight_col,
-                "l_value",
-            )
-            winsorised["approach"] = "expansion"
-        else:
-            group["l_value"] = ratio_l_value
-            winsorised = winsorise_ratio(
-                group,
-                calibration_group_col,
-                aux_col,
-                a_weight_col,
-                g_weight_col,
-                target_col,
-                "l_value",
-            )
-            winsorised["approach"] = "ratio"
-        return winsorised
-
     df = df.copy()
 
-    post_win = df.groupby(question_no_col).apply(winsorise_group)
-    post_win = post_win.reset_index(drop=True)
+    ratio_method = [
+        question for question in df[question_no_col].unique() if question not in expansion_methods
+    ]
 
-    return post_win
+    ratio_df = df[df[question_no_col].isin(ratio_method)].copy()
+    expansion_df = df[df[question_no_col].isin(expansion_methods)].copy()
+
+    ratio_df["method"] = "ratio"
+    ratio_df["l_value"] = ratio_l_value
+
+    expansion_df["method"] = "expansion"
+    expansion_df["l_value"] = expansion_l_value
+
+    ratio_results = []
+    for _question, group_df in ratio_df.groupby(question_no_col):
+        winsorised_group = winsorise_group(
+            group_df,
+            strata_col=strata_col,
+            calibration_group_col=calibration_group_col,
+            aux_col=aux_col,
+            a_weight_col=a_weight_col,
+            g_weight_col=g_weight_col,
+            target_col=target_col,
+        )
+        ratio_results.append(winsorised_group)
+
+    expansion_results = []
+    for _question, group_df in expansion_df.groupby(question_no_col):
+        winsorised_group = winsorise_group(
+            group_df,
+            strata_col=strata_col,
+            calibration_group_col=calibration_group_col,
+            aux_col=aux_col,
+            a_weight_col=a_weight_col,
+            g_weight_col=g_weight_col,
+            target_col=target_col,
+        )
+        expansion_results.append(winsorised_group)
+
+    # Concat results
+    post_winsorisation_df = pd.concat(ratio_results + expansion_results, ignore_index=True)
+    post_winsorisation_df = post_winsorisation_df.drop(columns=["method"])
+
+    return post_winsorisation_df
 
 
 if __name__ == "__main__":
@@ -117,10 +161,10 @@ if __name__ == "__main__":
         strata_col="cell_no",
         expansion_methods=expansion_methods,
         calibration_group_col="calibration_group_j",
-        aux_col="xi",
-        a_weight_col="ai",
-        g_weight_col="gi",
-        target_col="response",
+        aux_col="aux_var",
+        a_weight_col="a_weight",
+        g_weight_col="g_weight",
+        target_col="value",
         expansion_l_value=expansion_l_value,
         ratio_l_value=ratio_l_value,
     )

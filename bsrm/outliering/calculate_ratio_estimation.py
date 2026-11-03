@@ -127,4 +127,6 @@ def calculate_ratio_estimation_threshold(
 
     df = df.rename(columns={"masked_ratio_threshold": "ratio_estimation_threshold"})
 
+    df = df.drop(columns=["ratio_threshold", "masked_ratio_threshold"], errors="ignore")
+
     return df

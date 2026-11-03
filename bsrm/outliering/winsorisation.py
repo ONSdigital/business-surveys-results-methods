@@ -103,6 +103,19 @@ def winsorise_ratio(
         "ratio_estimation_threshold",
         "non_winsorisable_marker",
     )
+
+    df = df.rename(
+        columns={
+            "predicted_unit_value": "mu_i",
+            "mu_factor": "mu_factor",
+            "ratio_estimation_threshold": "ki",
+            "adjusted_return": "yi*",
+            "outlier_weight": "oi",
+        }
+    )
+
+    df = df.drop(columns=["ag_product", "denominator_k_i", "non_winsorisable_marker"])
+
     return df
 
 
@@ -181,4 +194,16 @@ def winsorise_expansion(
         a_weight_col,
         "non_winsorisable_marker",
     )
+
+    winsorised_df = winsorised_df.rename(
+        columns={
+            "stratum_mean": "mean_yi",
+            "expansion_estimation_threshold": "ki",
+            "adjusted_return": "yi*",
+            "outlier_weight": "oi",
+        }
+    )
+
+    winsorised_df = winsorised_df.drop(columns=["non_winsorisable_marker"])
+
     return winsorised_df
