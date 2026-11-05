@@ -6,6 +6,48 @@ from bsrm.outliering.winsorisation import winsorise_ratio, winsorise_expansion
 from bsrm.utils.io_mods import safeload_yaml
 
 
+def apply_winsorise_ratio(
+    group_df: pd.DataFrame,
+    calibration_group_col: str,
+    aux_col: str,
+    a_weight_col: str,
+    g_weight_col: str,
+    target_col: str,
+    l_values_col: str,
+) -> pd.DataFrame:
+    """Apply ratio-based Winsorisation to a question group."""
+    result = winsorise_ratio(
+        group_df,
+        calibration_group_col=calibration_group_col,
+        aux_col=aux_col,
+        a_weight_col=a_weight_col,
+        g_weight_col=g_weight_col,
+        target_col=target_col,
+        l_values_col=l_values_col,
+    )
+    result = result.drop(columns=["mean_yi"], errors="ignore")
+    return result
+
+
+def apply_winsorise_expansion(
+    group_df: pd.DataFrame,
+    strata_col: str,
+    target_col: str,
+    a_weight_col: str,
+    l_values_col: str,
+) -> pd.DataFrame:
+    """Apply expansion-based Winsorisation to a question group."""
+    result = winsorise_expansion(
+        group_df,
+        strata_col=strata_col,
+        target_col=target_col,
+        a_weight_col=a_weight_col,
+        l_values_col=l_values_col,
+    )
+    result = result.drop(columns=["mu_factor"], errors="ignore")
+    return result
+
+
 def detect_outlier(
     df: pd.DataFrame,
     question_no_col: str,
@@ -64,43 +106,25 @@ def detect_outlier(
 
     ratio_df[aux_col] = pd.to_numeric(ratio_df[aux_col], errors="raise")
 
-    ratio_results = []
-    for _, group_df in ratio_df.groupby(question_no_col):
-        result = winsorise_ratio(
-            group_df,
-            calibration_group_col=calibration_group_col,
-            aux_col=aux_col,
-            a_weight_col=a_weight_col,
-            g_weight_col=g_weight_col,
-            target_col=target_col,
-            l_values_col=l_values_col,
-        )
-        # Drop expansion-only columns from ratio method
-        result = result.drop(columns=["mean_yi"], errors="ignore")
-        ratio_results.append(result)
-
-    expansion_results = []
-    for _, group_df in expansion_df.groupby(question_no_col):
-        result = winsorise_expansion(
-            group_df,
-            strata_col=strata_col,
-            target_col=target_col,
-            a_weight_col=a_weight_col,
-            l_values_col=l_values_col,
-        )
-        # Drop ratio-only columns from expansion method
-        result = result.drop(columns=["mu_factor"], errors="ignore")
-        expansion_results.append(result)
-
-    # Concatenate all results
-    ratio_concat = pd.concat(ratio_results, ignore_index=True) if ratio_results else pd.DataFrame()
-    expansion_concat = (
-        pd.concat(expansion_results, ignore_index=True) if expansion_results else pd.DataFrame()
+    ratio_df = ratio_df.groupby(question_no_col, group_keys=False).apply(
+        apply_winsorise_ratio,
+        calibration_group_col=calibration_group_col,
+        aux_col=aux_col,
+        a_weight_col=a_weight_col,
+        g_weight_col=g_weight_col,
+        target_col=target_col,
+        l_values_col=l_values_col,
     )
 
-    post_winsorisation_df = pd.concat(
-        [ratio_concat, expansion_concat], ignore_index=True, sort=False
+    expansion_df = expansion_df.groupby(question_no_col, group_keys=False).apply(
+        apply_winsorise_expansion,
+        strata_col=strata_col,
+        target_col=target_col,
+        a_weight_col=a_weight_col,
+        l_values_col=l_values_col,
     )
+
+    post_winsorisation_df = pd.concat([ratio_df, expansion_df], ignore_index=True, sort=False)
 
     return post_winsorisation_df
 
