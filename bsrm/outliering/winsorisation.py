@@ -114,7 +114,17 @@ def winsorise_ratio(
         }
     )
 
-    df = df.drop(columns=["ag_product", "denominator_k_i", "non_winsorisable_marker"])
+    cols_to_drop = [
+        "ag_product",
+        "denominator_k_i",
+        "non_winsorisable_marker",
+        "l_value",
+        "ratio_threshold",
+        "masked_ratio_threshold",
+        "predicted_unit_value",  # Old name before rename
+        "expansion_estimation_threshold",
+    ]
+    df = df.drop(columns=[col for col in cols_to_drop if col in df.columns])
 
     return df
 

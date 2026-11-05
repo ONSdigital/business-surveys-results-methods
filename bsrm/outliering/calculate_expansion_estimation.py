@@ -122,7 +122,7 @@ def calculate_expansion_winsorised_weight(
 
     is_outlier = ~non_winsorisable & threshold.notna() & target.notna() & (target > threshold)
 
-    adjusted_return = target.copy()
+    adjusted_return = target.astype(float)
     adjusted_return.loc[is_outlier] = (
         target.loc[is_outlier] + (df.loc[is_outlier, a_weight_col] - 1) * threshold.loc[is_outlier]
     ) / df.loc[is_outlier, a_weight_col]

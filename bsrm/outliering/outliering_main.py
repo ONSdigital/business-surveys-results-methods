@@ -6,40 +6,6 @@ from bsrm.outliering.winsorisation import winsorise_ratio, winsorise_expansion
 from bsrm.utils.io_mods import safeload_yaml
 
 
-def winsorise_group(
-    group: pd.DataFrame,
-    strata_col: str,
-    calibration_group_col: str,
-    aux_col: str,
-    a_weight_col: str,
-    g_weight_col: str,
-    target_col: str,
-) -> pd.DataFrame:
-    """Apply the appropriate winsorisation method to one question group."""
-    group = group.copy()
-    method = group["method"].iloc[0]
-    if method == "expansion":
-        winsorised_df = winsorise_expansion(
-            group,
-            strata_col,
-            target_col,
-            a_weight_col,
-            "l_value",
-        )
-    else:
-        winsorised_df = winsorise_ratio(
-            group,
-            calibration_group_col,
-            aux_col,
-            a_weight_col,
-            g_weight_col,
-            target_col,
-            "l_value",
-        )
-
-    return winsorised_df
-
-
 def detect_outlier(
     df: pd.DataFrame,
     question_no_col: str,
@@ -50,8 +16,7 @@ def detect_outlier(
     a_weight_col: str,
     g_weight_col: str,
     target_col: str,
-    expansion_l_value: float,
-    ratio_l_value: float,
+    l_values_col: str,
 ) -> pd.DataFrame:
     """Apply Winsorisation to identify and weight outliers.
 
@@ -67,7 +32,7 @@ def detect_outlier(
     strata_col : str
         Name of the stratum column.
     expansion_methods : list[str]
-        Question numbers specified in YAML to use  expansion Winsorisation.
+        Question numbers specified in YAML to use expansion Winsorisation.
         All other questions use ratio Winsorisation.
     calibration_group_col : str
         Name of the calibration group column.
@@ -79,17 +44,16 @@ def detect_outlier(
         Name of the calibration factor column.
     target_col : str
         Name of the target variable column.
-    expansion_l_value : float
-        Tuning parameter for expansion Winsorisation.
-    ratio_l_value : float
-        Tuning parameter for ratio Winsorisation.
+    l_values_col : str
+        Name of the column containing tuning parameters for Winsorisation.
 
     Returns
     -------
     pd.DataFrame
         Dataframe with added outlier_weight and outlier_flag columns.
     """
-    df = df.copy()
+    df = df.drop(columns=["mu_i", "mean_yi", "ki", "yi*", "oi"], errors="ignore").copy()
+    df[l_values_col] = pd.to_numeric(df[l_values_col], errors="raise")
 
     ratio_method = [
         question for question in df[question_no_col].unique() if question not in expansion_methods
@@ -98,41 +62,45 @@ def detect_outlier(
     ratio_df = df[df[question_no_col].isin(ratio_method)].copy()
     expansion_df = df[df[question_no_col].isin(expansion_methods)].copy()
 
-    ratio_df["method"] = "ratio"
-    ratio_df["l_value"] = ratio_l_value
-
-    expansion_df["method"] = "expansion"
-    expansion_df["l_value"] = expansion_l_value
+    ratio_df[aux_col] = pd.to_numeric(ratio_df[aux_col], errors="raise")
 
     ratio_results = []
-    for _question, group_df in ratio_df.groupby(question_no_col):
-        winsorised_group = winsorise_group(
+    for _, group_df in ratio_df.groupby(question_no_col):
+        result = winsorise_ratio(
             group_df,
-            strata_col=strata_col,
             calibration_group_col=calibration_group_col,
             aux_col=aux_col,
             a_weight_col=a_weight_col,
             g_weight_col=g_weight_col,
             target_col=target_col,
+            l_values_col=l_values_col,
         )
-        ratio_results.append(winsorised_group)
+        # Drop expansion-only columns from ratio method
+        result = result.drop(columns=["mean_yi"], errors="ignore")
+        ratio_results.append(result)
 
     expansion_results = []
-    for _question, group_df in expansion_df.groupby(question_no_col):
-        winsorised_group = winsorise_group(
+    for _, group_df in expansion_df.groupby(question_no_col):
+        result = winsorise_expansion(
             group_df,
             strata_col=strata_col,
-            calibration_group_col=calibration_group_col,
-            aux_col=aux_col,
-            a_weight_col=a_weight_col,
-            g_weight_col=g_weight_col,
             target_col=target_col,
+            a_weight_col=a_weight_col,
+            l_values_col=l_values_col,
         )
-        expansion_results.append(winsorised_group)
+        # Drop ratio-only columns from expansion method
+        result = result.drop(columns=["mu_factor"], errors="ignore")
+        expansion_results.append(result)
 
-    # Concat results
-    post_winsorisation_df = pd.concat(ratio_results + expansion_results, ignore_index=True)
-    post_winsorisation_df = post_winsorisation_df.drop(columns=["method"])
+    # Concatenate all results
+    ratio_concat = pd.concat(ratio_results, ignore_index=True) if ratio_results else pd.DataFrame()
+    expansion_concat = (
+        pd.concat(expansion_results, ignore_index=True) if expansion_results else pd.DataFrame()
+    )
+
+    post_winsorisation_df = pd.concat(
+        [ratio_concat, expansion_concat], ignore_index=True, sort=False
+    )
 
     return post_winsorisation_df
 
@@ -147,27 +115,23 @@ if __name__ == "__main__":
     input_path = root_path / "outliering_component_test_input.csv"
     output_path = root_path / "outliering_component_test_output.csv"
 
-    expansion_l_value = config["expansion_l_value"]
-    ratio_l_value = config["ratio_l_value"]
-
     df = pd.read_csv(input_path)
 
     expansion_methods = config["expansion_methods"]
 
-    # call the method to return the dataframe with outlier weights
+    # Call the method to return the dataframe with outlier weights
     outliered_df = detect_outlier(
         df=df,
         question_no_col="question",
-        strata_col="cell_no",
+        strata_col="a_wt_band",
         expansion_methods=expansion_methods,
         calibration_group_col="calibration_group_j",
         aux_col="aux_var",
         a_weight_col="a_weight",
         g_weight_col="g_weight",
         target_col="value",
-        expansion_l_value=expansion_l_value,
-        ratio_l_value=ratio_l_value,
+        l_values_col="L_yi",
     )
 
-    # save the output
+    # Save the output
     outliered_df.to_csv(output_path, index=False)
