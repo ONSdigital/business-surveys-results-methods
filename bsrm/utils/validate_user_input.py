@@ -48,6 +48,7 @@ def validate_estimation_config_dict(config_dict: dict) -> dict:
         g_weight_columns = {}
         aux_cols = []
         univ_aux_cols = []
+        outliering_config = config_dict.get("outliering", {})
 
         for variable_config in g_weight_dict.values():
             aux_col = variable_config["aux_col"]
@@ -66,6 +67,7 @@ def validate_estimation_config_dict(config_dict: dict) -> dict:
         "univ_count_col": config_dict["univ_count_col"],
         "aux_cols": aux_cols,
         "univ_aux_cols": univ_aux_cols,
+        "outliering": outliering_config,
     }
     return config_dict
 

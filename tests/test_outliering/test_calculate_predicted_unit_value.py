@@ -84,7 +84,10 @@ def test_calculate_predicted_unit_values_from_group_sums_returns_dataframe() -> 
             (2, 20, 40.0, 40.0, 80.0),
         ]
     )
-    expected = merged_df.assign(predicted_unit_value=[8.0, 20.0])
+    expected = merged_df.assign(
+        predicted_unit_value=[8.0, 20.0],
+        mu_factor=[0.4, 0.5],
+    )
 
     result = calculate_predicted_unit_values_from_group_sums(merged_df, "aux")
 
@@ -104,7 +107,8 @@ def test_calculate_predicted_unit_value_masks_non_winsorisable_rows(
         "non_winsorisable_marker",
     )
     expected = input_data.assign(
-        predicted_unit_value=[8.0, 10.0, 12.0, 20.0, np.nan]
+        predicted_unit_value=[8.0, 10.0, 12.0, 20.0, np.nan],
+        mu_factor=[0.4, 0.4, 0.4, 0.5, np.nan],
     )
 
     assert_frame_equal(result, expected, check_dtype=False)
@@ -126,3 +130,4 @@ def test_calculate_predicted_unit_values_returns_nan_for_zero_auxiliary_total() 
     result = calculate_predicted_unit_values_from_group_sums(merged_df, "aux")
 
     assert np.isnan(result["predicted_unit_value"].iloc[0])
+    assert np.isnan(result["mu_factor"].iloc[0])
