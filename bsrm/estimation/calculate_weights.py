@@ -180,8 +180,8 @@ def create_weights_qa_df(
         if g_wgt_band_col is not None and g_wgt_band_col != a_wgt_band_col:
             qa_cols_list.append(g_wgt_band_col)
 
-        for aux_col, univ_aux_col in zip(aux_cols, univ_aux_cols, strict=False):
-            qa_cols_list += [f"{aux_col}_sum", f"{univ_aux_col}_sum", f"g_weight_{aux_col}"]
+        for aux_col in aux_cols:
+            qa_cols_list += [f"g_weight_{aux_col}"]
 
     qa_df = df[qa_cols_list].groupby(a_wgt_band_col).first()
     qa_df = qa_df.reset_index()

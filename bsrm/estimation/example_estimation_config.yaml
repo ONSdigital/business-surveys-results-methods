@@ -5,23 +5,20 @@ univ_count_col: uni_count
 round_val: 2
 incl_g_wts: true
 
-a_wgt_band: a_weight_band
-g_wgt_band: a_weight_band  # note: sometimes we specify a_ and g_ bands to be the same
-
-
-a_weight_columns :
-  apply_cols:
-    ["Q101", "Q102", "Q103", "Q401", "Q1", "Q3"]
+a_wgt_band: a_wgt_band
+g_wgt_band: g_wgt_band  # note: sometimes we specify a_ and g_ bands to be the same
+question_col: question
+value_col: value
 
 g_weight_columns:
   aux_var1:
     aux_col: turnover
     univ_aux_col: univ_turnover
-    apply_cols: ["Q101", "Q102", "Q1"]
+    apply_cols: ["Q1"]
   aux_var2:
     aux_col: employment
     univ_aux_col: univ_employment
-    apply_cols: ["Q103"]
+    apply_cols: ["Q3"]
 
 outliering:
   expansion_methods: ["Q401", "Q3", "14", "28", "42"]

@@ -21,7 +21,7 @@ from bsrm.estimation.calculate_weights import (
     calculate_g_weights,
     create_weights_qa_df,
 )
-from bsrm.estimation.apply_weights import apply_weights
+from bsrm.estimation.apply_weights import apply_weights  # noqa
 from bsrm.utils.io_mods import safeload_yaml
 from bsrm.utils.validate_user_input import (
     validate_estimation_config_dict,
@@ -123,9 +123,9 @@ if __name__ == "__main__":
     config_path = "test_estimation_config.yaml"
 
     root_path = "Q:/IABS project/Test data/estimation_tests/"
-    input_path = root_path + "estimation_component_test_input.csv"
+    input_path = root_path + "estimation_input_long.csv"
     qa_output_path = root_path + "estimation_component_test_qa_output.csv"
-    data_with_weights_output_path = root_path + "estimation_component_test_output.csv"
+    data_with_weights_output_path = root_path + "estimation_output_long.csv"
     data_with_weights_applied_output_path = root_path + "estimation_component_test_final_output.csv"
 
     df = pd.read_csv(input_path)
@@ -151,16 +151,16 @@ if __name__ == "__main__":
 
     # call the method to return the dataframe with the new weights applied
     # to the specified columns, and qa dataframe
-    final_weighted_df = apply_weights(
-        weighted_df.copy(),
-        aux_cols=config["aux_cols"],
-        a_weight_columns=config["a_weight_columns"],
-        g_weight_columns=config["g_weight_columns"],
-        calc_g_weight=config["incl_g_wts"],
-        round_val=config["round_val"],
-    )
+    # final_weighted_df = apply_weights(
+    #     weighted_df.copy(),
+    #     aux_cols=config["aux_cols"],
+    #     a_weight_columns=config["a_weight_columns"],
+    #     g_weight_columns=config["g_weight_columns"],
+    #     calc_g_weight=config["incl_g_wts"],
+    #     round_val=config["round_val"],
+    # )
 
     # save the intermediate and final outputs
     weighted_df.to_csv(data_with_weights_output_path, index=False)
     qa_df.to_csv(qa_output_path, index=False)
-    final_weighted_df.to_csv(data_with_weights_applied_output_path, index=False)
+    # final_weighted_df.to_csv(data_with_weights_applied_output_path, index=False)
