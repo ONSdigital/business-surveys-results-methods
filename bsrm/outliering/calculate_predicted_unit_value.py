@@ -34,7 +34,7 @@ def calculate_group_sums(
     pd.DataFrame
         Weighted target and auxiliary sums for each calibration group.
     """
-    filtered_df = df.copy()
+    filtered_df = df.loc[~df[non_winsorisable_marker_col]].copy()
     filtered_df["weighted_target_values"] = filtered_df[a_weight_col] * filtered_df[target_col]
     filtered_df["weighted_auxiliary_values"] = filtered_df[a_weight_col] * filtered_df[aux_col]
 
