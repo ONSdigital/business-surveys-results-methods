@@ -180,8 +180,10 @@ def validate_apply_weights_input(
     a_weight_columns: list[str],
     g_weight_columns: dict[str, list[str]] | None,
     aux_cols: list[str] | None,
-    calc_g_weight: bool,
-    round_val: int,
+    question_col: str = "question",
+    value_col: str = "value",
+    calc_g_weight: bool = False,
+    round_val: int = 4,
 ) -> None:
     """
     Validate the inputs for apply_weights.
@@ -341,9 +343,8 @@ def _check_is_list(param_name: str, param_cols: list[str]) -> None:
         raise TypeError(msg)
 
 
-def _check_columns(df: pd.DataFrame, cols_list: list[str]) -> None:
-    """
-    Check specified column names are strings and in the data.
+def _check_columns(df: pd.DataFrame, cols_list: list[str], question_col: str = "question") -> None:
+    """Check specified column names are strings and in the data.
 
     Parameters
     ----------
@@ -351,6 +352,8 @@ def _check_columns(df: pd.DataFrame, cols_list: list[str]) -> None:
         The dataframe being validated.
     cols_list: list[str]
         The column names expected to exist in the dataframe.
+    question_col: str
+        The name of the question column expected to exist in the dataframe.
 
     Raises
     ------
@@ -366,7 +369,8 @@ def _check_columns(df: pd.DataFrame, cols_list: list[str]) -> None:
 
     cols_list = [c for c in cols_list if len(c) > 0]  # remove empty strings
 
-    missing = [col_name for col_name in cols_list if col_name not in df.columns]
+    question_names = df[question_col].unique()
+    missing = [col_name for col_name in cols_list if col_name not in question_names]
     if missing:
-        msg = f"Specified column(s): {', '.join(missing)} must be column(s) in the data."
+        msg = f"Specified column(s): {', '.join(missing)} must exist in the question column."
         raise Exception(msg)
