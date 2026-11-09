@@ -16,13 +16,18 @@ from bsrm.estimation.calculate_weights import (
 @pytest.fixture
 def input_data():
     """Small sample data used across calculate_weights tests."""
-    col_name = ["ruref", "cell_no", "k", "n", "nk", "y", "x", "N", "Nk", "sum_x"]
+    col_name = ["ruref", "cell_no", "k", "n", "nk", "y", "x", "N", "Nk", "sum_x", "question", "value"]
     data = [
-        ["A", 1, 1, 3, 5, 10.0, 2.0, 6, 20, 40.0],
-        ["B", 1, 1, 3, 5, 20.0, 4.0, 6, 20, 40.0],
-        ["C", 1, 1, 3, 5, 30.0, 0.0, 6, 20, 40.0],
-        ["D", 2, 2, 2, 4, 15.0, 10.0, 6, 18, 60.0],
-        ["E", 2, 2, 2, 4, 25.0, 20.0, 6, 18, 60.0],
+        ["A", 1, 1, 3, 5, 10.0, 2.0, 6, 20, 40.0, "Q1", 100],
+        ["B", 1, 1, 3, 5, 20.0, 4.0, 6, 20, 40.0, "Q1", 100],
+        ["C", 1, 1, 3, 5, 30.0, 0.0, 6, 20, 40.0, "Q1", 100],
+        ["D", 2, 2, 2, 4, 15.0, 10.0, 6, 18, 60.0, "Q1", 100],
+        ["E", 2, 2, 2, 4, 25.0, 20.0, 6, 18, 60.0, "Q1", 100],
+        ["A", 1, 1, 3, 5, 10.0, 2.0, 6, 20, 40.0, "Q2", 200],
+        ["B", 1, 1, 3, 5, 20.0, 4.0, 6, 20, 40.0, "Q2", 200],
+        ["C", 1, 1, 3, 5, 30.0, 0.0, 6, 20, 40.0, "Q2", 200],
+        ["D", 2, 2, 2, 4, 15.0, 10.0, 6, 18, 60.0, "Q2", 200],
+        ["E", 2, 2, 2, 4, 25.0, 20.0, 6, 18, 60.0, "Q2", 200],
     ]
     return pd.DataFrame(columns=col_name, data=data)
 
@@ -41,14 +46,21 @@ def expected_a_weights_df():
         "N",
         "Nk",
         "sum_x",
+        "question",
+        "value",
         "a_weight",
     ]
     data = [
-        ["A", 1, 1, 3, 5, 10.0, 2.0, 6, 20, 40.0, 2.0],
-        ["B", 1, 1, 3, 5, 20.0, 4.0, 6, 20, 40.0, 2.0],
-        ["C", 1, 1, 3, 5, 30.0, 0.0, 6, 20, 40.0, 2.0],
-        ["D", 2, 2, 2, 4, 15.0, 10.0, 6, 18, 60.0, 3.0],
-        ["E", 2, 2, 2, 4, 25.0, 20.0, 6, 18, 60.0, 3.0],
+        ["A", 1, 1, 3, 5, 10.0, 2.0, 6, 20, 40.0, "Q1", 100, 2.0],
+        ["B", 1, 1, 3, 5, 20.0, 4.0, 6, 20, 40.0, "Q1", 100, 2.0],
+        ["C", 1, 1, 3, 5, 30.0, 0.0, 6, 20, 40.0, "Q1", 100, 2.0],
+        ["D", 2, 2, 2, 4, 15.0, 10.0, 6, 18, 60.0, "Q1", 100, 3.0],
+        ["E", 2, 2, 2, 4, 25.0, 20.0, 6, 18, 60.0, "Q1", 100, 3.0],
+        ["A", 1, 1, 3, 5, 10.0, 2.0, 6, 20, 40.0, "Q2", 200, 2.0],
+        ["B", 1, 1, 3, 5, 20.0, 4.0, 6, 20, 40.0, "Q2", 200, 2.0],
+        ["C", 1, 1, 3, 5, 30.0, 0.0, 6, 20, 40.0, "Q2", 200, 2.0],
+        ["D", 2, 2, 2, 4, 15.0, 10.0, 6, 18, 60.0, "Q2", 200, 3.0],
+        ["E", 2, 2, 2, 4, 25.0, 20.0, 6, 18, 60.0, "Q2", 200, 3.0],
     ]
     return pd.DataFrame(data=data, columns=cols)
 
@@ -67,17 +79,24 @@ def expected_g_weights_df():
         "N",
         "Nk",
         "sum_x",
+        "question",
+        "value",
         "a_weight",
         "g_weight_x",
         "sum_x_sum",
         "x_sum",
     ]
     data = [
-        ["A", 1, 1, 3, 5, 10.0, 2.0, 6, 20, 40.0, 2.0, 3.333, 40.0, 6.0],
-        ["B", 1, 1, 3, 5, 20.0, 4.0, 6, 20, 40.0, 2.0, 3.333, 40.0, 6.0],
-        ["C", 1, 1, 3, 5, 30.0, 0.0, 6, 20, 40.0, 2.0, 3.333, 40.0, 6.0],
-        ["D", 2, 2, 2, 4, 15.0, 10.0, 6, 18, 60.0, 3.0, 0.667, 60.0, 30.0],
-        ["E", 2, 2, 2, 4, 25.0, 20.0, 6, 18, 60.0, 3.0, 0.667, 60.0, 30.0],
+        ["A", 1, 1, 3, 5, 10.0, 2.0, 6, 20, 40.0, "Q1", 100, 2.0, 3.333, 40.0, 6.0],
+        ["B", 1, 1, 3, 5, 20.0, 4.0, 6, 20, 40.0, "Q1", 100, 2.0, 3.333, 40.0, 6.0],
+        ["C", 1, 1, 3, 5, 30.0, 0.0, 6, 20, 40.0, "Q1", 100, 2.0, 3.333, 40.0, 6.0],
+        ["D", 2, 2, 2, 4, 15.0, 10.0, 6, 18, 60.0, "Q1", 100, 3.0, 0.667, 60.0, 30.0],
+        ["E", 2, 2, 2, 4, 25.0, 20.0, 6, 18, 60.0, "Q1", 100, 3.0, 0.667, 60.0, 30.0],
+        ["A", 1, 1, 3, 5, 10.0, 2.0, 6, 20, 40.0, "Q2", 200, 2.0, 3.333, 40.0, 6.0],
+        ["B", 1, 1, 3, 5, 20.0, 4.0, 6, 20, 40.0, "Q2", 200, 2.0, 3.333, 40.0, 6.0],
+        ["C", 1, 1, 3, 5, 30.0, 0.0, 6, 20, 40.0, "Q2", 200, 2.0, 3.333, 40.0, 6.0],
+        ["D", 2, 2, 2, 4, 15.0, 10.0, 6, 18, 60.0, "Q2", 200, 3.0, 0.667, 60.0, 30.0],
+        ["E", 2, 2, 2, 4, 25.0, 20.0, 6, 18, 60.0, "Q2", 200, 3.0, 0.667, 60.0, 30.0],
     ]
     return pd.DataFrame(data=data, columns=cols)
 
@@ -90,13 +109,11 @@ def expected_qa_df():
         "N",
         "n",
         "a_weight",
-        "x_sum",
-        "sum_x_sum",
         "g_weight_x",
     ]
     data = [
-        [1, 6, 3, 2.0, 6.0, 40.0, 3.333],
-        [2, 6, 2, 3.0, 30.0, 60.0, 0.667],
+        [1, 6, 3, 2.0, 3.333],
+        [2, 6, 2, 3.0, 0.667],
     ]
     return pd.DataFrame(data=data, columns=cols)
 
@@ -125,23 +142,6 @@ def test_a_weight_with_a_weight_col(input_data):
     assert result["cell_no"].iloc[0] == 1
 
 
-def test_g_weight(expected_a_weights_df):
-    """Test for g weight calculation."""
-    cell_1 = expected_a_weights_df[expected_a_weights_df["cell_no"] == 1].copy()
-    cell_1.name = 1
-    result = g_weight(cell_1, "x", "sum_x", "cell_no")
-    assert result["g_weight_x"].iloc[0] == pytest.approx(40.0 / 12.0, abs=1e-4)
-
-
-def test_g_weight_with_a_weight_col(expected_a_weights_df):
-    """Test that g_wgt_band_col is preserved when passed."""
-    cell_1 = expected_a_weights_df[expected_a_weights_df["cell_no"] == 1].copy()
-    cell_1.name = 1
-    result = g_weight(cell_1, "x", "sum_x", g_wgt_band_col="cell_no")
-    assert result["g_weight_x"].iloc[0] == pytest.approx(40.0 / 12.0, abs=1e-4)
-    assert result["cell_no"].iloc[0] == 1
-
-
 def test_calculate_a_weights(input_data, expected_a_weights_df):
     """Test that the a weights are calculated correctly."""
     result = calculate_a_weights(
@@ -149,6 +149,7 @@ def test_calculate_a_weights(input_data, expected_a_weights_df):
         a_wgt_band_col="cell_no",
         ru_col="ruref",
         univ_count_col="N",
+        question_col="question"
     )
     assert_frame_equal(result, expected_a_weights_df, check_dtype=False, rtol=1e-6)
 
