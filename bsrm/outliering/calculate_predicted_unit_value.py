@@ -68,9 +68,11 @@ def calculate_predicted_unit_values_from_group_sums(
         merged_df["sum_weighted_auxiliary_values"] == 0,
         np.nan,
     )
+
     merged_df["predicted_unit_value"] = merged_df[aux_col] * (
         merged_df["sum_weighted_target_values"] / denominator
     )
+    merged_df["mu_factor"] = merged_df["sum_weighted_target_values"] / denominator
     return merged_df
 
 
@@ -139,6 +141,10 @@ def calculate_predicted_unit_value(
     )
 
     final_df["predicted_unit_value"] = final_df["predicted_unit_value"].mask(
+        final_df[non_winsorisable_marker_col], np.nan
+    )
+
+    final_df["mu_factor"] = final_df["mu_factor"].mask(
         final_df[non_winsorisable_marker_col], np.nan
     )
 

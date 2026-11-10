@@ -41,6 +41,7 @@ def test_validate_estimation_config_dict_for_redesigned_yaml(
         "univ_count_col": "N",
         "aux_cols": ["turnover"],
         "univ_aux_cols": ["univ_turnover_sum"],
+        "outliering": {},
     }
 
 @pytest.fixture
@@ -89,4 +90,5 @@ def test_validate_estimation_config_dict_for_example_config(
         "univ_count_col": "uni_count",
         "aux_cols": ["turnover", "employment"],
         "univ_aux_cols": ["univ_turnover", "univ_employment"],
+        "outliering": {},
     }

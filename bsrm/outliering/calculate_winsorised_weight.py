@@ -18,15 +18,19 @@ def calculate_ratio_winsorised_weight(
         y*_i = [y_i + (a_i * g_i - 1) * k_i] / (a_i * g_i)
         o_i  = y*_i / y_i
 
-    Calculation based on the appendix example (Cell 1, Unit 1):
+    Calculation based on the paper example (Cell 1, Unit 1):
 
-        y_i = 14, k_i = 13.389, a_i * g_i = 2.667 * 2.206 = 5.882
-        y*_i = 14 + (5.882 - 1) * 13.389 / 5.882 = 25.11
+        y_i = 14, k_i = 13.15766243
+        a_i = 2.666666667, g_i = 2.205508475
+        y*_i = [14 + (2.666666667 * 2.205508475 - 1) * 13.15766243]
+               / (2.666666667 * 2.205508475)
+         y*_i =  13.30088409
+        o_i = 13.30088409 / 14
+        o_i =  0.950063149
 
-    Units marked as non-winsorisable (a_i * g_i <= 1) receive outlier_weight = 1.
-
-    The dataframe must already contain the ag_product column, calculated
-    earlier by calculate_ratio_estimation_threshold().
+    Units with both a_i == 1 and g_i == 1 are non-winsorisable.
+    They retain their original return, receive outlier_weight = 1 and
+    receive outlier_flag = 0.
 
     Mapping to paper notation:
 
@@ -46,13 +50,17 @@ def calculate_ratio_winsorised_weight(
     ratio_estimation_threshold_col : str
         Name of the ratio threshold column (k_i in the spec).
     non_winsorisable_marker_col : str
-        Name of the column marking units where a_i * g_i <= 1.
+        Name of the column marking units with both design and calibration
+        weights equal to 1.
 
     Returns
     -------
     pd.DataFrame
          Dataframe with added adjusted_return (y*_i) and outlier_weight (o_i) columns.
+
     """
+    non_winsorisable = df[non_winsorisable_marker_col]
+
     df["adjusted_value"] = (
         df[target_col] + (df["ag_product"] - 1) * df[ratio_estimation_threshold_col]
     ) / df["ag_product"]
@@ -65,11 +73,13 @@ def calculate_ratio_winsorised_weight(
 
     df = df.drop(columns=["mask", "adjusted_value"])
 
-    non_winsorisable = df[non_winsorisable_marker_col]
     division_with_0 = ~non_winsorisable & (df[target_col] == 0)
 
     df["outlier_weight"] = df["outlier_weight"].mask(non_winsorisable | division_with_0, 1)
-    df["adjusted_return"] = df["adjusted_return"].mask(non_winsorisable | division_with_0, 0)
+    df["adjusted_return"] = df["adjusted_return"].mask(
+        non_winsorisable | division_with_0,
+        df[target_col],
+    )
     df["outlier_flag"] = df["outlier_flag"].mask(non_winsorisable | division_with_0, 0)
 
     return df
