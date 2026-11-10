@@ -36,6 +36,75 @@ def impute_capex(
     return group
 
 
+def impute_missing_value(
+    df: pd.DataFrame,
+    current_value: str,
+    prev_value: str,
+    adjusted: bool = False,
+    keep_qa_cols: bool = False,
+) -> pd.DataFrame:
+    """Impute missing responses from previous year data via the median of ratios.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        The dataframe containing data to be imputed (must be in long format).
+    current_value : str
+        The name of the column containing the current period value.
+    prev_value : str
+        The name of the column containing the previous period value.
+    adjusted : bool
+        Whether to adjust the median for the number of zeroes.
+    keep_qa_cols : bool
+        Whether to keep the columns used in computing the median in the output for QA or not.
+
+    Returns
+    -------
+    pd.DataFrame
+        The input dataframe with missing values imputed where possible.
+    """
+    # Calculate growth rate, then the median per group of question and imputation class ("cell_no")
+    df["growth_rate"] = df[current_value] / df[prev_value]
+    df["median"] = df.groupby(["cell_no", "question"])["growth_rate"].transform("median")
+
+    # Calculate adjustment to account for zeroes if needed
+    if adjusted:
+        df["adjustment_numerator"] = df.groupby(["cell_no", "question"])[current_value].transform(
+            lambda values: (values > 0).sum()
+        )
+        df["adjustment_denominator"] = df.groupby(["cell_no", "question"])[current_value].transform(
+            lambda values: (values >= 0).sum()
+        )
+        df["median_adjustment"] = df["adjustment_numerator"] / df["adjustment_denominator"]
+    else:
+        df["median_adjustment"] = 1.0
+
+    # Calculate the adjusted median
+    df["median"] = df["median"] * df["median_adjustment"]
+
+    # Use the adjusted median to impute missing values
+    df.loc[df[current_value].isna(), "imputed_value"] = df[prev_value] * df["median"]
+
+    # Count number of rows usable for imputation in each group, if less than 3 we can't impute
+    group_count = df.groupby(["cell_no", "question"])[current_value].transform("count")
+    df.loc[group_count < 3, "imputed_value"] = None
+
+    # Drop columns used for calculation unless we need them for QA
+    if not keep_qa_cols:
+        df = df.drop(
+            columns=[
+                "growth_rate",
+                "median",
+                "adjustment_numerator",
+                "adjustment_denominator",
+                "median_adjustment",
+            ],
+            errors="ignore",
+        )
+
+    return df
+
+
 def get_imputed_estimate(
     df: pd.DataFrame,
     col1: str,
