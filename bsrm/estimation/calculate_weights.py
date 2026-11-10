@@ -30,7 +30,6 @@ def a_weight(
     stratum_group: pd.DataFrame,
     ru_column: str,
     univ_count_col: str,
-    a_wgt_band_col: str,
 ) -> pd.DataFrame:
     """Calculate the a-weights for a stratum group.
 
@@ -59,9 +58,6 @@ def a_weight(
     if stratum_group.empty:
         return stratum_group
 
-    if stratum_group is not None:
-        stratum_group[a_wgt_band_col] = stratum_group.name
-
     N = stratum_group[univ_count_col].iloc[0]  # noqa: N806 (allow capitals for vars)
     n = calc_lower_n(stratum_group, ru_column)
 
@@ -82,7 +78,6 @@ def g_weight(
     calibration_group: pd.DataFrame,
     aux_col: str,
     univ_aux_col: str,
-    g_wgt_band_col: str,
 ) -> pd.DataFrame:
     """Calculate the g-weights for a calibration group.
 
@@ -118,9 +113,6 @@ def g_weight(
     """
     if calibration_group.empty:
         return calibration_group
-
-    if g_wgt_band_col is not None:
-        calibration_group[g_wgt_band_col] = calibration_group.name
 
     univ_aux_sum = calibration_group[univ_aux_col].iloc[0]
     aux_col_sum = calibration_group[aux_col].sum()
@@ -180,8 +172,8 @@ def create_weights_qa_df(
         if g_wgt_band_col is not None and g_wgt_band_col != a_wgt_band_col:
             qa_cols_list.append(g_wgt_band_col)
 
-        for aux_col, univ_aux_col in zip(aux_cols, univ_aux_cols, strict=False):
-            qa_cols_list += [f"{aux_col}_sum", f"{univ_aux_col}_sum", f"g_weight_{aux_col}"]
+        for aux_col in aux_cols:
+            qa_cols_list += [f"g_weight_{aux_col}"]
 
     qa_df = df[qa_cols_list].groupby(a_wgt_band_col).first()
     qa_df = qa_df.reset_index()
@@ -194,6 +186,7 @@ def calculate_a_weights(
     a_wgt_band_col: str,
     ru_col: str,
     univ_count_col: str,
+    question_col: str = "question",
 ) -> pd.DataFrame:
     """Calculate the 'a' weight for each stratum in the data.
 
@@ -207,19 +200,22 @@ def calculate_a_weights(
         The name of the column containing reference unit data.
     univ_count_col : str
         The name of the column containing the total number of reporting units in the stratum.
-
+    question_col : str, optional
+        The name of the column containing the question identifier, by default "question".
 
     Returns
     -------
         pd.DataFrame: The full dataframe with the added new column "a_weight".
     """
+    input_columns = df.columns.tolist()
     df = df.copy()
     df["a_weight"] = 1.0
-    df = df.groupby(a_wgt_band_col, group_keys=False).apply(
-        a_weight, ru_col, univ_count_col, a_wgt_band_col
+    df = df.groupby([question_col, a_wgt_band_col], group_keys=False).apply(
+        a_weight, ru_col, univ_count_col
     )
 
-    return df
+    added_columns = [column for column in df.columns if column not in input_columns]
+    return df[input_columns + added_columns]
 
 
 def calculate_g_weights(
@@ -227,6 +223,7 @@ def calculate_g_weights(
     g_wgt_col: str,
     aux_col: str,
     univ_aux_col: str,
+    question_col: str = "question",
 ) -> pd.DataFrame:
     """Calculate the g-weight for each calibration group in the data.
 
@@ -249,6 +246,8 @@ def calculate_g_weights(
     df = df.copy()
 
     df[f"g_weight_{aux_col}"] = 1.0
-    df = df.groupby(g_wgt_col, group_keys=False).apply(g_weight, aux_col, univ_aux_col, g_wgt_col)
+    df = df.groupby([question_col, g_wgt_col], group_keys=False).apply(
+        g_weight, aux_col, univ_aux_col
+    )
 
     return df

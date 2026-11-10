@@ -12,14 +12,16 @@ def estimation_config_dict() -> dict:
         "incl_g_wts": True,
         "a_wgt_band": "a_wt_band",
         "g_wgt_band": "g_wt_band",
+        "question_col": "question",
+        "value_col": "value",
         "a_weight_columns": {
-            "apply_cols": ["question"],
+            "apply_cols": ["Q1", "Q2"],
         },
         "g_weight_columns": {
             "aux_var1": {
                 "aux_col": "turnover",
                 "univ_aux_col": "univ_turnover_sum",
-                "apply_cols": ["question"],
+                "apply_cols": ["Q1"],
             },
         },
     }
@@ -33,8 +35,8 @@ def test_validate_estimation_config_dict_for_redesigned_yaml(
     assert config == {
         "a_wgt_band_col": "a_wt_band",
         "g_wgt_band_col": "g_wt_band",
-        "a_weight_columns": ["question"],
-        "g_weight_columns": {"turnover": ["question"]},
+        "a_weight_columns": ["Q1", "Q2"],
+        "g_weight_columns": {"turnover": ["Q1"]},
         "incl_g_wts": True,
         "round_val": 2,
         "ru_col": "ruref",
@@ -42,6 +44,8 @@ def test_validate_estimation_config_dict_for_redesigned_yaml(
         "aux_cols": ["turnover"],
         "univ_aux_cols": ["univ_turnover_sum"],
         "outliering": {},
+        "question_col": "question",
+        "value_col": "value",
     }
 
 @pytest.fixture
@@ -53,6 +57,8 @@ def estimation_example_config_dict() -> dict:
         "incl_g_wts": True,
         "a_wgt_band": "a_weight_band",
         "g_wgt_band": "a_weight_band",
+        "question_col": "question",
+        "value_col": "value",
         "a_weight_columns": {
             "apply_cols": ["Q101", "Q102", "Q103"],
         },
@@ -91,4 +97,6 @@ def test_validate_estimation_config_dict_for_example_config(
         "aux_cols": ["turnover", "employment"],
         "univ_aux_cols": ["univ_turnover", "univ_employment"],
         "outliering": {},
+        "question_col": "question",
+        "value_col": "value",
     }
