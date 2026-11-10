@@ -1,6 +1,7 @@
 """Run one-sided Winsorisation for a dataframe."""
 
 import pandas as pd
+import numpy as np
 
 from bsrm.outliering.calculate_predicted_unit_value import (
     calculate_predicted_unit_value,
@@ -189,6 +190,8 @@ def winsorise_expansion(
     df["non_winsorisable_marker"] = df[a_weight_col] == 1
 
     df = calculate_stratum_mean(df, strata_col, target_col)
+
+    df["stratum_mean"] = df["stratum_mean"].mask(df["non_winsorisable_marker"], np.nan)
     df = calculate_expansion_estimation_threshold(
         df,
         a_weight_col,
@@ -213,6 +216,8 @@ def winsorise_expansion(
             "outlier_weight": "oi",
         }
     )
+
+    winsorised_df.loc[winsorised_df[a_weight_col] == 1, "mean_yi"] = np.nan
 
     winsorised_df = winsorised_df.drop(columns=["non_winsorisable_marker"])
 

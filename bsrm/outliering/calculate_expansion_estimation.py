@@ -26,7 +26,7 @@ def calculate_stratum_mean(
         The input DataFrame with an additional column for the stratum mean (stratum_mean).
     """
     df = df.copy()
-    df["stratum_mean"] = df.groupby(strata_col)[target_col].transform("mean")
+    df["stratum_mean"] = df.groupby([strata_col, "a_wt_band"])[target_col].transform("mean")
     return df
 
 
