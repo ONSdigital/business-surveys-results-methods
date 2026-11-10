@@ -120,7 +120,7 @@ def run_estimation(
 
 # example usage
 if __name__ == "__main__":
-    config_path = "test_estimation_config.yaml"
+    config_path = "example_estimation_config.yaml"
 
     root_path = "Q:/IABS project/Test data/estimation_tests/"
     input_path = root_path + "estimation_input_long.csv"

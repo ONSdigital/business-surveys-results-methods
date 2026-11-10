@@ -1,24 +1,28 @@
 # This is an example of a config file where two auxilliary variables
 # are used for the g_weights
 ru_col: ruref
-univ_count_col: uni_count
+univ_count_col: N
 round_val: 2
 incl_g_wts: true
 
-a_wgt_band: a_wgt_band
-g_wgt_band: g_wgt_band  # note: sometimes we specify a_ and g_ bands to be the same
+a_wgt_band: a_wt_band
+g_wgt_band: g_wt_band
 question_col: question
 value_col: value
+
+a_weight_columns :
+  apply_cols:
+    ["Q1", "Q2", "Q3"]
 
 g_weight_columns:
   aux_var1:
     aux_col: turnover
-    univ_aux_col: univ_turnover
+    univ_aux_col: univ_turnover_sum
     apply_cols: ["Q1"]
   aux_var2:
-    aux_col: employment
-    univ_aux_col: univ_employment
-    apply_cols: ["Q3"]
+    aux_col: emp
+    univ_aux_col: univ_emp_sum
+    apply_cols: ["Q2"]
 
 outliering:
   expansion_methods: ["Q401", "Q3", "14", "28", "42"]
