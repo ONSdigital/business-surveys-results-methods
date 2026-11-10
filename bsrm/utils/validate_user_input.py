@@ -61,6 +61,8 @@ def validate_estimation_config_dict(config_dict: dict) -> dict:
         "g_wgt_band_col": config_dict["g_wgt_band"],
         "a_weight_columns": config_dict["a_weight_columns"]["apply_cols"],
         "g_weight_columns": g_weight_columns,
+        "question_col": config_dict["question_col"],
+        "value_col": config_dict["value_col"],
         "incl_g_wts": config_dict["incl_g_wts"],
         "round_val": config_dict["round_val"],
         "ru_col": config_dict["ru_col"],
@@ -305,7 +307,7 @@ def _validate_weights(
         )
         raise ValueError(msg)
 
-    _check_columns(df, a_weight_columns + flattened_g_weight_columns)
+    _check_question_columns(df, a_weight_columns + flattened_g_weight_columns)
 
     # Raise error if no weights specified
     if not (a_weight_columns or flattened_g_weight_columns):
@@ -344,6 +346,40 @@ def _check_is_list(param_name: str, param_cols: list[str]) -> None:
 
 
 def _check_columns(df: pd.DataFrame, cols_list: list[str], question_col: str = "question") -> None:
+    """Check specified column names are strings and in the data.
+
+    Parameters
+    ----------
+    df: pd.DataFrame
+        The dataframe being validated.
+    cols_list: list[str]
+        The column names expected to exist in the dataframe.
+    question_col: str
+        The name of the question column expected to exist in the dataframe.
+
+    Raises
+    ------
+    TypeError
+        If one or more specified column names are not strings.
+    Exception
+        If one or more specified columns are not present in the dataframe.
+    """
+    not_strings = [col_name for col_name in cols_list if not isinstance(col_name, str)]
+    if not_strings:
+        msg = f"Specified column name(s): {', '.join(map(str, not_strings))} must be string(s)."
+        raise TypeError(msg)
+
+    cols_list = [c for c in cols_list if len(c) > 0]  # remove empty strings
+
+    missing = [col_name for col_name in cols_list if col_name not in df.columns]
+    if missing:
+        msg = f"Specified column(s): {', '.join(missing)} must exist in the dataframe."
+        raise Exception(msg)
+
+
+def _check_question_columns(
+    df: pd.DataFrame, cols_list: list[str], question_col: str = "question"
+) -> None:
     """Check specified column names are strings and in the data.
 
     Parameters

@@ -129,7 +129,7 @@ def test_a_weight(input_data):
     """Test for a weight calculation."""
     cell_1 = input_data[input_data["cell_no"] == 1].copy()
     cell_1.name = 1
-    result = a_weight(cell_1, "ruref", "N", "cell_no")
+    result = a_weight(cell_1, "ruref", "N")
     assert result["a_weight"].iloc[0] == 2.0
 
 
@@ -137,7 +137,7 @@ def test_a_weight_with_a_weight_col(input_data):
     """Test that a_wgt_band_col is preserved when passed."""
     cell_1 = input_data[input_data["cell_no"] == 1].copy()
     cell_1.name = 1
-    result = a_weight(cell_1, "ruref", "N", a_wgt_band_col="cell_no")
+    result = a_weight(cell_1, "ruref", "N")
     assert result["a_weight"].iloc[0] == 2.0
     assert result["cell_no"].iloc[0] == 1
 

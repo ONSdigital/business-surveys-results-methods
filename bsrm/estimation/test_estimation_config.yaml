@@ -8,12 +8,15 @@ incl_g_wts: true
 a_wgt_band: a_wt_band
 g_wgt_band: g_wt_band
 
+question_col: "question"
+value_col: "value"
+
 a_weight_columns :
   apply_cols:
-    ["question"]
+    ["Q1", "Q2"]
 
 g_weight_columns:
   aux_var1:
     aux_col: turnover
     univ_aux_col: univ_turnover_sum
-    apply_cols: ["question"]
+    apply_cols: ["Q1", "Q2"]

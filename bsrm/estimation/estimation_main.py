@@ -137,6 +137,9 @@ if __name__ == "__main__":
     config_dict = safeload_yaml(str(config_path))
     config = validate_estimation_config_dict(config_dict)
 
+    # ensure value column is of type float
+    df[config["value_col"]] = df[config["value_col"]].astype(float)
+
     # call the method to return the dataframe with new weights columns, and qa dataframe
     weighted_df, qa_df = run_estimation(
         df=df,
@@ -151,16 +154,18 @@ if __name__ == "__main__":
 
     # call the method to return the dataframe with the new weights applied
     # to the specified columns, and qa dataframe
-    # final_weighted_df = apply_weights(
-    #     weighted_df.copy(),
-    #     aux_cols=config["aux_cols"],
-    #     a_weight_columns=config["a_weight_columns"],
-    #     g_weight_columns=config["g_weight_columns"],
-    #     calc_g_weight=config["incl_g_wts"],
-    #     round_val=config["round_val"],
-    # )
+    final_weighted_df = apply_weights(
+        weighted_df.copy(),
+        aux_cols=config["aux_cols"],
+        a_weight_columns=config["a_weight_columns"],
+        g_weight_columns=config["g_weight_columns"],
+        question_col=config["question_col"],
+        value_col=config["value_col"],
+        calc_g_weight=config["incl_g_wts"],
+        round_val=config["round_val"],
+    )
 
     # save the intermediate and final outputs
     weighted_df.to_csv(data_with_weights_output_path, index=False)
     qa_df.to_csv(qa_output_path, index=False)
-    # final_weighted_df.to_csv(data_with_weights_applied_output_path, index=False)
+    final_weighted_df.to_csv(data_with_weights_applied_output_path, index=False)
