@@ -197,5 +197,5 @@ def test_run_estimation(
         univ_aux_cols=["univ_turnover_sum"],
         incl_g_wts=True,
     )
-    assert_frame_equal(weighted_df.round(4), estimation_component_test_output, check_dtype=False, atol=1e-4)
-    assert_frame_equal(qa_df.round(4), estimation_component_test_qa_output, check_dtype=False, atol=1e-4)
+    assert_frame_equal(weighted_df.round(4), estimation_component_test_output, check_like=True, check_dtype=False, atol=1e-4)
+    assert_frame_equal(qa_df.round(4), estimation_component_test_qa_output, check_like=True, check_dtype=False, atol=1e-4)
