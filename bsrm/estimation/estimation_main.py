@@ -114,7 +114,7 @@ def run_estimation(
         for aux_col, univ_aux_col in zip(aux_cols, univ_aux_cols, strict=False):
             intermediate_cols.extend([f"{univ_aux_col}_sum", f"{aux_col}_sum"])
 
-        weighted_df = weighted_df.drop(columns=list(dict.fromkeys(intermediate_cols)), axis=1)
+        weighted_df = weighted_df.drop(columns=list(dict.fromkeys(intermediate_cols)))
     return weighted_df, qa_frame
 
 
