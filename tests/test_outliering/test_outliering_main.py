@@ -69,8 +69,27 @@ def winsorise_ratio_component_test_input():
 @pytest.fixture(scope="function")
 def winsorise_ratio_component_test_output():
     """Expected output for ratio estimation winsorisation."""
-    return pd.DataFrame(
+    return create_test_dataframe(
         [
+            (
+                "calibration_group_j",
+                "ruref",
+                "a_wt_band",
+                "g_wt_band",
+                "question",
+                "value",
+                "a_weight",
+                "g_weight",
+                "aux_var",
+                "g_wgt_type",
+                "L_yi",
+                "mu_i",
+                "mu_factor",
+                "ki",
+                "yi*",
+                "outlier_flag",
+                "oi",
+            ),
             (1, 17, 1, 1, "Q1", 100, 2.666667, 2.205508, 10.2, "turnover", 100, 72.033898, 7.0621468, 92.520009, 93.791823, 1, 0.9379182337023092),
             (1, 1, 1, 1, "Q1", 200, 2.666667, 2.205508, 30.0, "turnover", 100, 211.86440, 7.0621468, 232.35051, 200.0, 0, 1.0),
             (1, 16, 1, 1, "Q1", 200, 2.666667, 0.677677, 30.6, "turnover", 100, 216.10169, 7.0621468, 339.99625, 200.0, 0, 1.0),
@@ -109,25 +128,6 @@ def winsorise_ratio_component_test_output():
             (14, 97, 17, 14, "Q1", 200, 1.0, 1.0, 4947.0, "turnover", 100, None, None, None, 200.0, 0, 1.0),
             (14, 83, 17, 14, "Q1", 200, 1.0, 1.0, 5018.4, "turnover", 100, None, None, None, 200.0, 0, 1.0),
             (14, 74, 17, 14, "Q1", 200, 1.0, 1.0, 50000.0, "turnover", 100, None, None, None, 200.0, 0, 1.0),
-        ],
-        columns=[
-            "calibration_group_j",
-            "ruref",
-            "a_wt_band",
-            "g_wt_band",
-            "question",
-            "value",
-            "a_weight",
-            "g_weight",
-            "aux_var",
-            "g_wgt_type",
-            "L_yi",
-            "mu_i",
-            "mu_factor",
-            "ki",
-            "yi*",
-            "outlier_flag",
-            "oi",
         ],
     )
 
@@ -216,8 +216,26 @@ def winsorise_expansion_component_test_input():
 @pytest.fixture(scope="function")
 def winsorise_expansion_component_test_output():
     """Expected output for expansion winsorisation."""
-    return pd.DataFrame(
+    return create_test_dataframe(
         [
+            (
+                "calibration_group_j",
+                "ruref",
+                "a_wt_band",
+                "g_wt_band",
+                "question",
+                "value",
+                "a_weight",
+                "g_weight",
+                "aux_var",
+                "g_wgt_type",
+                "L_yi",
+                "ki",
+                "yi*",
+                "outlier_flag",
+                "oi",
+                "mean_yi",
+            ),
             (1, 17, 1, 1, "Q3", 14, 2.666667, 1.0, 10.2, "no_g_wt", 10, 29.333333, 14.0, 0, 1.0, 23.333333333333332),
             (1, 1, 1, 1, "Q3", 28, 2.666667, 1.0, 30.0, "no_g_wt", 10, 29.333333, 28.0, 0, 1.0, 23.333333333333332),
             (1, 16, 1, 1, "Q3", 28, 2.666667, 1.0, 30.6, "no_g_wt", 10, 29.333333, 28.0, 0, 1.0, 23.333333333333332),
@@ -256,24 +274,6 @@ def winsorise_expansion_component_test_output():
             (14, 97, 17, 14, "Q3", 28, 1.0, 1.0, 4947.0, "no_g_wt", 10, None, 28.0, 0, 1.0, None),
             (14, 83, 17, 14, "Q3", 28, 1.0, 1.0, 5018.4, "no_g_wt", 10, None, 28.0, 0, 1.0, None),
             (14, 74, 17, 14, "Q3", 28, 1.0, 1.0, 50000.0, "no_g_wt", 10, None, 28.0, 0, 1.0, None),
-        ],
-        columns=[
-            "calibration_group_j",
-            "ruref",
-            "a_wt_band",
-            "g_wt_band",
-            "question",
-            "value",
-            "a_weight",
-            "g_weight",
-            "aux_var",
-            "g_wgt_type",
-            "L_yi",
-            "ki",
-            "yi*",
-            "outlier_flag",
-            "oi",
-            "mean_yi",
         ],
     )
 
