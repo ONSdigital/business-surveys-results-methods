@@ -182,8 +182,6 @@ def validate_apply_weights_input(
     a_weight_columns: list[str],
     g_weight_columns: dict[str, list[str]] | None,
     aux_cols: list[str] | None,
-    question_col: str = "question",
-    value_col: str = "value",
     calc_g_weight: bool = False,
     round_val: int = 4,
 ) -> None:

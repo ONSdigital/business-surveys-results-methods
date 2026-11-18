@@ -39,8 +39,6 @@ def apply_weights(
         a_weight_columns,
         g_weight_columns,
         aux_cols,
-        question_col,
-        value_col,
         calc_g_weight,
         round_val,
     )
