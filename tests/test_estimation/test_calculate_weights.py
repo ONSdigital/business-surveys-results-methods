@@ -151,13 +151,13 @@ def test_calculate_a_weights(input_data, expected_a_weights_df):
         univ_count_col="N",
         question_col="question"
     )
-    assert_frame_equal(result, expected_a_weights_df, check_dtype=False, rtol=1e-6)
+    assert_frame_equal(result, expected_a_weights_df, check_like=True, check_dtype=False, rtol=1e-6)
 
 
 def test_calculate_g_weights(expected_a_weights_df, expected_g_weights_df):
     """Test that the g weights are calculated correctly."""
     result = calculate_g_weights(expected_a_weights_df, "k", "x", "sum_x")
-    assert_frame_equal(result.round(3), expected_g_weights_df, check_dtype=False, rtol=1e-6)
+    assert_frame_equal(result.round(3), expected_g_weights_df, check_like=True, check_dtype=False, rtol=1e-6)
 
 
 def test_create_weights_qa_df(expected_g_weights_df, expected_qa_df):

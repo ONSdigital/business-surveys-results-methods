@@ -9,8 +9,9 @@ readme = "README.md"
 requires-python = ">=3.11,<3.12"
 
 dependencies = [
-    "rdsa-utils~=0.16.1",
     "black>=26.5.0",
+    "pandas==2.1.4",
+    "tomli>=2.5.0",
 ]
 
 [dependency-groups]
