@@ -21,7 +21,7 @@ from bsrm.estimation.calculate_weights import (
     calculate_g_weights,
     create_weights_qa_df,
 )
-from bsrm.estimation.apply_weights import apply_weights
+from bsrm.estimation.apply_weights import apply_weights  # noqa
 from bsrm.utils.io_mods import safeload_yaml
 from bsrm.utils.validate_user_input import (
     validate_estimation_config_dict,
@@ -120,12 +120,12 @@ def run_estimation(
 
 # example usage
 if __name__ == "__main__":
-    config_path = "test_estimation_config.yaml"
+    config_path = "example_estimation_config.yaml"
 
     root_path = "Q:/IABS project/Test data/estimation_tests/"
-    input_path = root_path + "estimation_component_test_input.csv"
+    input_path = root_path + "estimation_input_long.csv"
     qa_output_path = root_path + "estimation_component_test_qa_output.csv"
-    data_with_weights_output_path = root_path + "estimation_component_test_output.csv"
+    data_with_weights_output_path = root_path + "estimation_output_long.csv"
     data_with_weights_applied_output_path = root_path + "estimation_component_test_final_output.csv"
 
     df = pd.read_csv(input_path)
@@ -136,6 +136,9 @@ if __name__ == "__main__":
 
     config_dict = safeload_yaml(str(config_path))
     config = validate_estimation_config_dict(config_dict)
+
+    # ensure value column is of type float
+    df[config["value_col"]] = df[config["value_col"]].astype(float)
 
     # call the method to return the dataframe with new weights columns, and qa dataframe
     weighted_df, qa_df = run_estimation(
@@ -156,6 +159,8 @@ if __name__ == "__main__":
         aux_cols=config["aux_cols"],
         a_weight_columns=config["a_weight_columns"],
         g_weight_columns=config["g_weight_columns"],
+        question_col=config["question_col"],
+        value_col=config["value_col"],
         calc_g_weight=config["incl_g_wts"],
         round_val=config["round_val"],
     )
