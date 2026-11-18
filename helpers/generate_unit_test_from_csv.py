@@ -482,18 +482,14 @@ if __name__ == "__main__":
         output_directory="Q:/IABS project/Test data/estimation_tests",
         # output_directory="H:/Desktop/IABSCSV",
         input_files=[
-            "estimation_component_test_input.csv",
+            "estimation_input_long.csv",
         ],
-        exp_output_files=[
-            "estimation_component_test_output.csv",
-            "estimation_component_test_qa_output.csv",
-            "estimation_component_test_final_output.csv",
-        ],
+        exp_output_files=["estimation_output_long.csv", "estimation_qa_output.csv"],
         function_name="run_estimation",
         module_name="bsrm.estimation.estimation_main",
         column_type_override={
             "string": [
-                "rusic2007",
+                # "rusic2007",
                 # "postcodes_harmonised",
                 # "itl",
                 # "LAU121CD",
