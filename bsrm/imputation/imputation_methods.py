@@ -36,6 +36,41 @@ def impute_capex(
     return group
 
 
+def calc_growth_rate(
+    df: pd.DataFrame,
+    current_value: str,
+    prev_value: str,
+) -> pd.DataFrame:
+    """Calculate the growth rate, with protection for division by zero."""
+    df["growth_rate"] = df[current_value] / df[prev_value]
+
+    # Where prev_value was 0, make growth_rate NaN
+    df["growth_rate"] = df["growth_rate"].mask(
+        cond=(df[prev_value] == 0),
+        other=None,
+    )
+
+    return df
+
+
+# TODO This function is untested since previous year imputation does not need it
+def adjust_for_zeroes(
+    df: pd.DataFrame,
+    current_value: str,
+) -> pd.DataFrame:
+    """Adjust a median value for the presence of zeroes in the imputation class."""
+    df["adjustment_numerator"] = df.groupby(["imp_class", "question"])[current_value].transform(
+        lambda values: (values > 0).sum()
+    )
+    df["adjustment_denominator"] = df.groupby(["imp_class", "question"])[current_value].transform(
+        lambda values: (values >= 0).sum()
+    )
+    df["median_adjustment"] = df["adjustment_numerator"] / df["adjustment_denominator"]
+    df["median"] = df["median"] * df["median_adjustment"]
+
+    return df
+
+
 def impute_missing_value(
     df: pd.DataFrame,
     current_value: str,
@@ -63,30 +98,19 @@ def impute_missing_value(
     pd.DataFrame
         The input dataframe with missing values imputed where possible.
     """
-    # Calculate growth rate, then the median per group of question and imputation class ("cell_no")
-    df["growth_rate"] = df[current_value] / df[prev_value]
-    df["median"] = df.groupby(["cell_no", "question"])["growth_rate"].transform("median")
+    # Calculate growth rate, then the median per group of question and imputation class
+    df = calc_growth_rate(df, current_value, prev_value)
+    df["median"] = df.groupby(["imp_class", "question"])["growth_rate"].transform("median")
 
-    # Calculate adjustment to account for zeroes if needed
+    # Adjust the median to account for zeroes if needed
     if adjusted:
-        df["adjustment_numerator"] = df.groupby(["cell_no", "question"])[current_value].transform(
-            lambda values: (values > 0).sum()
-        )
-        df["adjustment_denominator"] = df.groupby(["cell_no", "question"])[current_value].transform(
-            lambda values: (values >= 0).sum()
-        )
-        df["median_adjustment"] = df["adjustment_numerator"] / df["adjustment_denominator"]
-    else:
-        df["median_adjustment"] = 1.0
-
-    # Calculate the adjusted median
-    df["median"] = df["median"] * df["median_adjustment"]
+        df = adjust_for_zeroes(df, current_value)
 
     # Use the adjusted median to impute missing values
     df.loc[df[current_value].isna(), "imputed_value"] = df[prev_value] * df["median"]
 
     # Count number of rows usable for imputation in each group, if less than 3 we can't impute
-    group_count = df.groupby(["cell_no", "question"])[current_value].transform("count")
+    group_count = df.groupby(["imp_class", "question"])[current_value].transform("count")
     df.loc[group_count < 3, "imputed_value"] = None
 
     # Drop columns used for calculation unless we need them for QA

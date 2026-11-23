@@ -6,8 +6,9 @@ from bsrm.utils.helpers import create_test_dataframe
 import pandas as pd
 
 from bsrm.imputation.imputation_methods import (
+    calc_growth_rate,
     impute_capex,
-    impute_missing_value
+    impute_missing_value,
 )
 
 
@@ -17,7 +18,7 @@ def input_df():
     return create_test_dataframe(
         [
             # Growth rates should be ~0.8 and ~1.2 but not exactly
-            ("ruref", "cell_no", "turnover", "empment", "Q311", "Q399", "Q600", "Q601"),
+            ("ruref", "imp_class", "turnover", "empment", "Q311", "Q399", "Q600", "Q601"),
             (1,          "class1",          0,       101,     98,    123,    100,  None),
             (2,          "class1",          0,       101,    365,    456,    118,   147),
             (3,          "class1",          0,       101,    631,    789,    206,   258),
@@ -38,7 +39,7 @@ def expected_df():
     return create_test_dataframe(
         [
             # Growth rates should be ~0.8 and ~1.2 but not exactly
-            ("ruref", "cell_no", "turnover", "empment", "Q311", "Q399", "Q600", "Q601", "Q311_growth_factor", "Q601_growth_factor", "Q311_median_growth_factor", "Q601_median_growth_factor", "Q311_imputed_estimate", "Q601_imputed_estimate"),
+            ("ruref", "imp_class", "turnover", "empment", "Q311", "Q399", "Q600", "Q601", "Q311_growth_factor", "Q601_growth_factor", "Q311_median_growth_factor", "Q601_median_growth_factor", "Q311_imputed_estimate", "Q601_imputed_estimate"),
             (1,          "class1",          0,       101,     98,    123,    100,  None, 0.796747967479674796,                 None,        0.799746514575411913,        1.250847457627118644,                    None,    125.0847457627118644),
             (2,          "class1",          0,       101,    365,    456,    118,   147, 0.800438596491228070, 1.245762711864406779,        0.799746514575411913,        1.250847457627118644,                    None,                    None),
             (3,          "class1",          0,       101,    631,    789,    206,   258, 0.799746514575411913, 1.252427184466019417,        0.799746514575411913,        1.250847457627118644,                    None,                    None),
@@ -61,10 +62,10 @@ def test_impute_capex(
     """Test the CAPEX imputation function."""
     # The function is intended take an imputation class, not the whole dataframe, so we split the
     # input by imputation class to run them through separately, then concatenate after
-    input_class1 = input_df[input_df["cell_no"] == "class1"].copy()
+    input_class1 = input_df[input_df["imp_class"] == "class1"].copy()
     result_class1 = impute_capex(input_class1, sector="acp")
 
-    input_class2 = input_df[input_df["cell_no"] == "class2"].copy()
+    input_class2 = input_df[input_df["imp_class"] == "class2"].copy()
     result_class2 = impute_capex(input_class2, sector="acp")
 
     result = pd.concat([result_class1, result_class2], axis="index").reset_index()
@@ -80,7 +81,7 @@ def input_prev_df():
     """Create dataframe with data from previous year to be imputed."""
     return create_test_dataframe(
         [
-            ("ruref",   "cell_no", "question", "value", "prev_value",),
+            ("ruref", "imp_class", "question", "value", "prev_value",),
             (    "1",           1,       "Q1",     123,           83,),
             (    "1",           1,       "Q2",     456,          356,),
             (    "1",           1,       "Q3",     789,          689,),
@@ -128,7 +129,7 @@ def expected_prev_df():
     """Create dataframe with data imputed from previous year values."""
     return create_test_dataframe(
         [
-            ("ruref",   "cell_no", "question", "value", "prev_value", "imputed_value",),
+            ("ruref", "imp_class", "question", "value", "prev_value", "imputed_value",),
             (    "1",           1,       "Q1",     123,           83,            None,),
             (    "1",           1,       "Q2",     456,          356,            None,),
             (    "1",           1,       "Q3",     789,          689,            None,),
@@ -183,3 +184,40 @@ def test_impute_prev(
     )
 
     assert_frame_equal(result_df, expected_prev_df)
+
+
+@pytest.fixture
+def input_div_by_zero_df():
+    """Create dataframe with data that includes a division by zero."""
+    return create_test_dataframe(
+        [
+            ("col_a",  "col_b",),
+            (   1.0,      1,),
+            (  10.0,      2,),
+            ( 100.0,      3,),
+            (1000.0,      0,),
+        ]
+    )
+
+
+@pytest.fixture
+def expected_div_by_zero_df():
+    """Create dataframe with data that includes a divide by zero handled correctly."""
+    return create_test_dataframe(
+        [
+            ("col_a",  "col_b", "growth_rate"),
+            (   1.0,         1,            1,),
+            (  10.0,         2,            5,),
+            ( 100.0,         3,    33.333333,),
+            (1000.0,         0,         None,),
+        ]
+    )
+
+
+def test_calc_growth_rate(
+    input_div_by_zero_df: pd.DataFrame,
+    expected_div_by_zero_df: pd.DataFrame,
+):
+    """Test that growth rates are calculated handling division by zero correctly."""
+    result_df = calc_growth_rate(input_div_by_zero_df, "col_a", "col_b")
+    assert_frame_equal(result_df, expected_div_by_zero_df )
