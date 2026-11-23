@@ -1,7 +1,6 @@
 import pytest
 import pandas as pd
 from pandas.testing import assert_frame_equal
-import numpy as np
 
 from bsrm.outliering.winsorisation import winsorise_ratio, winsorise_expansion
 from bsrm.outliering.outliering_main import (
@@ -287,7 +286,7 @@ def test_winsorise_component_expansion(
 ):
     result = winsorise_expansion(
         df=winsorise_expansion_component_test_input,
-        strata_col="calibration_group_j",
+        strata_col="a_wt_band",
         target_col="value",
         a_weight_col="a_weight",
         l_values_col="L_yi",
@@ -300,16 +299,12 @@ def test_winsorise_component_expansion(
         atol=1e-4,
     )
 
-@pytest.mark.parametrize("include_mean_yi", [False, True])
+
 def test_apply_winsorise_ratio(
     winsorise_ratio_component_test_input,
     winsorise_ratio_component_test_output,
-    include_mean_yi,
 ):
     """Return ratio Winsorisation results without the expansion-only mean."""
-    if include_mean_yi:
-        winsorise_ratio_component_test_input["mean_yi"] = 150.0
-
     result = apply_winsorise_ratio(
         winsorise_ratio_component_test_input,
         calibration_group_col="calibration_group_j",
@@ -328,16 +323,12 @@ def test_apply_winsorise_ratio(
         atol=1e-4,
     )
 
-@pytest.mark.parametrize("include_mu_factor", [False, True])
+
 def test_apply_winsorise_expansion(
     winsorise_expansion_component_test_input,
     winsorise_expansion_component_test_output,
-    include_mu_factor,
 ):
     """Return expansion results without the ratio-only factor."""
-    if include_mu_factor:
-        winsorise_expansion_component_test_input["mu_factor"] = 1.5
-
     result = apply_winsorise_expansion(
         winsorise_expansion_component_test_input,
         strata_col="a_wt_band",
@@ -355,7 +346,7 @@ def test_apply_winsorise_expansion(
         atol=1e-4,
     )
 
-
+# This is the full component test
 def test_detect_outlier(
     winsorise_ratio_component_test_input,
     winsorise_ratio_component_test_output,

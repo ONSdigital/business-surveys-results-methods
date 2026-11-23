@@ -9,23 +9,32 @@ from bsrm.utils.helpers import create_test_dataframe
 
 def test_calculate_stratum_mean() -> None:
     """Test stratum and weight-band means with missing responses."""
-    df = create_test_dataframe(
+    input_df = create_test_dataframe(
         [
-            ("cell", "a_wt_band", "response"),
-            (1, 1, 10.0),
-            (1, 2, 100.0),
-            (2, 1, 40.0),
-            (1, 1, 20.0),
-            (2, 1, np.nan),
-            (1, 2, 140.0),
-            (3, 1, np.nan),
+            ("ruref", "a_wt_band", "response"),
+            (100, 1, 10.0),
+            (101, 2, 100.0),
+            (201, 1, 40.0),
+            (102, 1, 20.0),
+            (202, 1, np.nan),
+            (103, 2, 140.0),
+            (203, 1, np.nan),
         ],
-        index=[9, 3, 7, 1, 8, 2, 6],
     )
-    expected = df.assign(
-        stratum_mean=[15.0, 120.0, 40.0, 15.0, 40.0, 120.0, np.nan],
+    exected_df = create_test_dataframe(
+        [
+            ("ruref", "a_wt_band", "response", "stratum_mean"),
+            (100, 1, 10.0, 23.3333),
+            (101, 2, 100.0, 120.0),
+            (201, 1, 40.0, 23.3333),
+            (102, 1, 20.0, 23.3333),
+            (202, 1, np.nan, 23.3333),
+            (103, 2, 140.0, 120.0),
+            (203, 1, np.nan, 23.3333),
+        ],
     )
 
-    result = calculate_stratum_mean(df, strata_col="cell", target_col="response")
 
-    assert_frame_equal(result, expected)
+    result = calculate_stratum_mean(input_df, strata_col="a_wt_band", target_col="response")
+
+    assert_frame_equal(result, exected_df, rtol=1e-4)

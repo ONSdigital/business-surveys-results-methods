@@ -24,4 +24,4 @@ g_weight_columns:
     apply_cols: ["Q103"]
 
 outliering:
-  expansion_methods: ["Q401", "Q3", "14", "28", "42"]
+  expansion_methods: ["Q401", "Q3"]
