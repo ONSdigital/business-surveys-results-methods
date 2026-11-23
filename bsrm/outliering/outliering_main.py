@@ -25,7 +25,7 @@ def apply_winsorise_ratio(
         target_col=target_col,
         l_values_col=l_values_col,
     )
-    result = result.drop(columns=["mean_yi"], errors="ignore")
+    # result = result.drop(columns=["mean_yi"], errors="ignore")
     return result
 
 
@@ -44,7 +44,7 @@ def apply_winsorise_expansion(
         a_weight_col=a_weight_col,
         l_values_col=l_values_col,
     )
-    result = result.drop(columns=["mu_factor"], errors="ignore")
+    # result = result.drop(columns=["mu_factor"], errors="ignore")
     return result
 
 

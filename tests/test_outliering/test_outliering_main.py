@@ -1,9 +1,13 @@
 import pytest
 import pandas as pd
 from pandas.testing import assert_frame_equal
-import numpy as np
 
 from bsrm.outliering.winsorisation import winsorise_ratio, winsorise_expansion
+from bsrm.outliering.outliering_main import (
+    apply_winsorise_expansion,
+    apply_winsorise_ratio,
+    detect_outlier,
+)
 from bsrm.utils.helpers import create_test_dataframe
 
 
@@ -152,7 +156,6 @@ def test_winsorise_component_ratio(
         atol=1e-4,
     )
 
-
 @pytest.fixture(scope="function")
 def winsorise_expansion_component_test_input():
     """Input data for expansion winsorisation - Q3 (no g_weight)."""
@@ -283,7 +286,7 @@ def test_winsorise_component_expansion(
 ):
     result = winsorise_expansion(
         df=winsorise_expansion_component_test_input,
-        strata_col="calibration_group_j",
+        strata_col="a_wt_band",
         target_col="value",
         a_weight_col="a_weight",
         l_values_col="L_yi",
@@ -293,5 +296,97 @@ def test_winsorise_component_expansion(
         result[expected.columns].round(4),
         expected.round(4),
         check_dtype=False,
+        atol=1e-4,
+    )
+
+
+def test_apply_winsorise_ratio(
+    winsorise_ratio_component_test_input,
+    winsorise_ratio_component_test_output,
+):
+    """Return ratio Winsorisation results without the expansion-only mean."""
+    result = apply_winsorise_ratio(
+        winsorise_ratio_component_test_input,
+        calibration_group_col="calibration_group_j",
+        aux_col="aux_var",
+        a_weight_col="a_weight",
+        g_weight_col="g_weight",
+        target_col="value",
+        l_values_col="L_yi",
+    )
+
+    expected = winsorise_ratio_component_test_output
+    assert_frame_equal(
+        result.round(4),
+        expected.round(4),
+        check_dtype=False,
+        atol=1e-4,
+    )
+
+
+def test_apply_winsorise_expansion(
+    winsorise_expansion_component_test_input,
+    winsorise_expansion_component_test_output,
+):
+    """Return expansion results without the ratio-only factor."""
+    result = apply_winsorise_expansion(
+        winsorise_expansion_component_test_input,
+        strata_col="a_wt_band",
+        target_col="value",
+        a_weight_col="a_weight",
+        l_values_col="L_yi",
+    )
+
+    expected = winsorise_expansion_component_test_output
+    assert_frame_equal(
+        result.round(4),
+        expected.round(4),
+        check_dtype=False,
+        check_like=True,
+        atol=1e-4,
+    )
+
+# This is the full component test
+def test_detect_outlier(
+    winsorise_ratio_component_test_input,
+    winsorise_ratio_component_test_output,
+    winsorise_expansion_component_test_input,
+    winsorise_expansion_component_test_output,
+):
+    """Test ratio and expansion Winsorisation for their respective questions."""
+    df = pd.concat(
+        [
+            winsorise_ratio_component_test_input,
+            winsorise_expansion_component_test_input,
+        ],
+        ignore_index=True,
+    )
+
+    result = detect_outlier(
+        df,
+        question_no_col="question",
+        strata_col="a_wt_band",
+        expansion_methods=["Q3"],
+        calibration_group_col="calibration_group_j",
+        aux_col="aux_var",
+        a_weight_col="a_weight",
+        g_weight_col="g_weight",
+        target_col="value",
+        l_values_col="L_yi",
+    )
+
+    expected = pd.concat(
+        [
+            winsorise_ratio_component_test_output,
+            winsorise_expansion_component_test_output,
+        ],
+        ignore_index=True,
+        sort=False,
+    )
+    assert_frame_equal(
+        result.round(4),
+        expected.round(4),
+        check_dtype=False,
+        check_like=True,
         atol=1e-4,
     )
