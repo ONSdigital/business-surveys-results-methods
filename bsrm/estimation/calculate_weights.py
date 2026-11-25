@@ -125,22 +125,22 @@ def g_weight(
     else:
         g_weight = 1.0
 
-    calibration_group[f"{univ_aux_col}_sum"] = univ_aux_sum
     calibration_group[f"{aux_col}_sum"] = aux_col_sum
 
-    calibration_group[f"g_weight_{aux_col}"] = g_weight
+    calibration_group["g_weight"] = g_weight
 
     return calibration_group
 
 
 def create_weights_qa_df(
     df: pd.DataFrame,
-    a_wgt_band_col: str,
     univ_count_col: str,
-    incl_g_wts: bool = True,
+    a_wgt_band_col: str,
     g_wgt_band_col: str | None = None,
-    aux_cols: list[str] | None = None,
-    univ_aux_cols: list[str] | None = None,
+    incl_g_wts: bool = True,
+    aux_col: str | None = None,
+    univ_aux_col: str | None = None,
+    g_wgt_type_col: str | None = None,
 ) -> pd.DataFrame:
     """Create a QA dataframe for the weight calculation.
 
@@ -156,10 +156,12 @@ def create_weights_qa_df(
         Whether to include g-weights in the QA dataframe, by default True.
     g_wgt_band_col : str | None, optional
         The name of the column containing calibration group identifiers, by default None.
-    aux_cols : list[str] | None, optional
-        The list of columns containing auxiliary employment data, by default None.
-    univ_aux_cols : list[str] | None, optional
-        The list of columns containing the total auxiliary employment in the calibration group.
+    aux_col : str | None, optional
+        The column containing auxiliary employment data, by default None.
+    univ_aux_col : str | None, optional
+        The column containing the total auxiliary employment in the calibration group.
+    g_wgt_type_col : str | None, optional
+        The column containing the type of g weight, by default None.
 
     Returns
     -------
@@ -168,15 +170,25 @@ def create_weights_qa_df(
     """
     qa_cols_list = [a_wgt_band_col, univ_count_col, "n", "a_weight"]
 
-    if incl_g_wts and aux_cols is not None and univ_aux_cols is not None:
-        if g_wgt_band_col is not None and g_wgt_band_col != a_wgt_band_col:
-            qa_cols_list.append(g_wgt_band_col)
+    qa_df_a_wts = df[qa_cols_list].groupby(a_wgt_band_col).first().reset_index()
 
-        for aux_col in aux_cols:
-            qa_cols_list += [f"g_weight_{aux_col}"]
+    if incl_g_wts:
+        # remove rows where g_weight is null beacause there is no aux_var specified
+        df = df[df[aux_col].notna()]
 
-    qa_df = df[qa_cols_list].groupby(a_wgt_band_col).first()
-    qa_df = qa_df.reset_index()
+        # find the descriptions of the various aux variables
+        g_wgt_type_list = df[g_wgt_type_col].unique().tolist()
+        qa_cols_list += [g_wgt_band_col]
+
+        for g_wgt_type in g_wgt_type_list:
+            df_g_wgt_type = df.copy()[df[g_wgt_type_col] == g_wgt_type]
+            df_g_wgt_type[f"g_weight_{g_wgt_type}"] = df_g_wgt_type["g_weight"]
+            cols = qa_cols_list + [f"g_weight_{g_wgt_type}"]
+            qa_df_temp = df_g_wgt_type[cols].groupby(g_wgt_band_col).first().reset_index()
+
+            qa_df = qa_df_a_wts.merge(qa_df_temp, on=a_wgt_band_col, how="left")
+    else:
+        qa_df = qa_df_a_wts
 
     return qa_df
 
@@ -241,11 +253,11 @@ def calculate_g_weights(
     Returns
     -------
     pd.DataFrame
-        The full dataframe with the added new column "g_weight_{aux_col}".
+        The full dataframe with the added new column "g_weight".
     """
     df = df.copy()
 
-    df[f"g_weight_{aux_col}"] = 1.0
+    df["g_weight"] = 1.0
     df = df.groupby([question_col, g_wgt_col], group_keys=False).apply(
         g_weight, aux_col, univ_aux_col
     )

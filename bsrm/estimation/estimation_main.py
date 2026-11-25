@@ -5,8 +5,18 @@ separately with appropriate filtering and preprocessing steps.
 
 This script acts as a runner for the estimation functions to be run in sequence.
 
-NOTE: It might be necessary to use different auxiliary columns for different variables/questions
-in calculating the g_weights. For this reason, the code allows for a list.
+NOTE: This code now expects the question values are in a single column with a corresponding
+column for the question number. The same holds for the auxiliary variables.
+
+EXAMPLE INPUT:
+
+"reference" | "question" | "value" | "aux_var" | "aux_var_type" |
+"RU1"       | "Q1"       | 10      | 100       | "employment" |
+"RU1"       | "Q2"       | 200     | 2000      | "turnover" |
+"RU2"       | "Q1"       | 33      | 300       | "employment" |
+"RU2"       | "Q2"       | 5000    | 9000      | "turnover" |
+
+See the component tests in the tests/test_estimation_main.py script for fuller examples.
 
 To use this script and run it directly, provide the appropriate input and output file paths
 and variable names in the section under `if __name__ == "__main__":`.
@@ -25,7 +35,6 @@ from bsrm.estimation.apply_weights import apply_weights  # noqa
 from bsrm.utils.io_mods import safeload_yaml
 from bsrm.utils.validate_user_input import (
     validate_estimation_config_dict,
-    validate_g_weighting_input,
     validate_run_estimation_input,
 )
 
@@ -38,9 +47,10 @@ def run_estimation(
     g_wgt_band_col: str | None,
     ru_col: str,
     univ_count_col: str,
-    aux_cols: list[str] | None = None,
-    univ_aux_cols: list[str] | None = None,
+    aux_col: str | None = None,
+    univ_aux_col: str | None = None,
     incl_g_wts: bool = True,
+    g_wgt_type_col: str | None = None,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Run the estimation module.
@@ -57,10 +67,10 @@ def run_estimation(
         The column representing the reference unit.
     univ_count_col: str
         The column representing the universe count.
-    aux_cols: list[str] | None
-        The columns representing the auxiliary variables.
-    univ_aux_cols: list[str] | None
-        The columns representing the universe auxiliary variables.
+    aux_col: str | None
+        The column representing the auxiliary variable.
+    univ_aux_col: str | None
+        The column representing the universe auxiliary variable.
     incl_g_wts: bool
         Whether to include g weights in the calculation.
 
@@ -78,43 +88,39 @@ def run_estimation(
         ru_col,
         univ_count_col,
         g_wgt_band_col,
-        aux_cols,
-        univ_aux_cols,
+        aux_col,
+        univ_aux_col,
         incl_g_wts,
+        g_wgt_type_col,
     )
 
     # calculate the weights
     weighted_df = calculate_a_weights(df, a_wgt_band_col, ru_col, univ_count_col)
 
-    # if required also calculate g weights
-    if incl_g_wts:
-        g_weight_band_col, g_weight_aux_cols, g_weight_univ_aux_cols = validate_g_weighting_input(
-            g_wgt_band_col,
-            aux_cols,
-            univ_aux_cols,
-        )
-
-        for aux_col, univ_aux_col in zip(g_weight_aux_cols, g_weight_univ_aux_cols, strict=False):
-            weighted_df = calculate_g_weights(weighted_df, g_weight_band_col, aux_col, univ_aux_col)
+    if incl_g_wts and (
+        g_wgt_band_col is not None and aux_col is not None and univ_aux_col is not None
+    ):
+        weighted_df = calculate_g_weights(weighted_df, g_wgt_band_col, aux_col, univ_aux_col)
 
     # Create a QA dataframe
     qa_frame = create_weights_qa_df(
         weighted_df,
-        a_wgt_band_col,
         univ_count_col,
-        incl_g_wts,
+        a_wgt_band_col,
         g_wgt_band_col,
-        aux_cols,
-        univ_aux_cols,
+        incl_g_wts,
+        aux_col,
+        univ_aux_col,
+        g_wgt_type_col,
     )
 
     # drop intermediate calculation columns
-    if incl_g_wts and aux_cols is not None and univ_aux_cols is not None:
-        intermediate_cols: list[str] = []
-        for aux_col, univ_aux_col in zip(aux_cols, univ_aux_cols, strict=False):
-            intermediate_cols.extend([f"{univ_aux_col}_sum", f"{aux_col}_sum"])
+    # if incl_g_wts and aux_cols is not None and univ_aux_cols is not None:
+    #     intermediate_cols: list[str] = []
+    #     for aux_col, univ_aux_col in zip(aux_cols, univ_aux_cols, strict=False):
+    #         intermediate_cols.extend([f"{univ_aux_col}_sum", f"{aux_col}_sum"])
 
-        weighted_df = weighted_df.drop(columns=list(dict.fromkeys(intermediate_cols)))
+    #     weighted_df = weighted_df.drop(columns=list(dict.fromkeys(intermediate_cols)))
     return weighted_df, qa_frame
 
 
@@ -123,9 +129,9 @@ if __name__ == "__main__":
     config_path = "example_estimation_config.yaml"
 
     root_path = "Q:/IABS project/Test data/estimation_tests/"
-    input_path = root_path + "estimation_input_long.csv"
+    input_path = root_path + "estimation_component_test_input.csv"
     qa_output_path = root_path + "estimation_component_test_qa_output.csv"
-    data_with_weights_output_path = root_path + "estimation_output_long.csv"
+    data_with_weights_output_path = root_path + "estimation_component_test_output.csv"
     data_with_weights_applied_output_path = root_path + "estimation_component_test_final_output.csv"
 
     df = pd.read_csv(input_path)
@@ -147,16 +153,16 @@ if __name__ == "__main__":
         g_wgt_band_col=config["g_wgt_band_col"],
         ru_col=config["ru_col"],
         univ_count_col=config["univ_count_col"],
-        aux_cols=config["aux_cols"],
-        univ_aux_cols=config["univ_aux_cols"],
+        aux_col=config["aux_col"],
+        univ_aux_col=config["univ_aux_col"],
         incl_g_wts=config["incl_g_wts"],
+        g_wgt_type_col=config["g_wgt_type_col"],
     )
 
     # call the method to return the dataframe with the new weights applied
     # to the specified columns, and qa dataframe
     final_weighted_df = apply_weights(
         weighted_df.copy(),
-        aux_cols=config["aux_cols"],
         a_weight_columns=config["a_weight_columns"],
         g_weight_columns=config["g_weight_columns"],
         question_col=config["question_col"],
