@@ -40,6 +40,7 @@ def validate_estimation_config_dict(config_dict: dict) -> dict:
     aux_col = config_dict.get("aux_col", None)
     univ_aux_col = config_dict.get("univ_aux_col", None)
     g_wgt_type_col = config_dict.get("g_wgt_type_col", None)
+    no_g_wgt_indicator = config_dict.get("no_g_wgt_indicator", None)
 
     g_weight_apply_cols = []
 
@@ -66,6 +67,7 @@ def validate_estimation_config_dict(config_dict: dict) -> dict:
         "univ_aux_col": univ_aux_col,
         "outliering": outliering_config,
         "g_wgt_type_col": g_wgt_type_col,
+        "no_g_wgt_indicator": no_g_wgt_indicator,
     }
     return config_dict
 
@@ -140,6 +142,7 @@ def validate_apply_weights_input(
     g_weight_columns: list[str] | None,
     calc_g_weight: bool = False,
     round_val: int = 4,
+    question_col: str = "question",
 ) -> None:
     """
     Validate the inputs for apply_weights.
@@ -156,6 +159,8 @@ def validate_apply_weights_input(
         Whether to include g weights in the calculation.
     round_val: int
         The number of decimal places to use when rounding weighted values.
+    question_col: str
+        The column containing the question identifiers.
 
     Raises
     ------
@@ -192,14 +197,15 @@ def validate_apply_weights_input(
         raise Exception(msg)
 
     # Validate weights specified
-    _validate_weights(df, a_weight_columns, g_weight_columns)
+    _check_columns(df, [question_col])
+    _validate_weights(df, a_weight_columns, g_weight_columns, question_col)
 
 
 def _validate_weights(
     df: pd.DataFrame,
     a_weight_columns: list[str],
     g_weight_columns: list[str] | None,
-    aux_col: str | None = None,
+    question_col: str,
 ) -> None:
     """
     Validate weights specified by user.
@@ -212,8 +218,8 @@ def _validate_weights(
         The columns to which a weights will be applied.
     g_weight_columns: list[str] | None
         The columns to which g weights will be applied.
-    aux_col: str | None
-        The column representing the auxiliary variable.
+    question_col: str
+        The column containing the question identifiers.
 
     Raises
     ------
@@ -228,12 +234,14 @@ def _validate_weights(
     """
     _check_is_list("a_weight_columns", a_weight_columns)
 
-    g_weight_columns = g_weight_columns or []
-    aux_col = aux_col or ""
-
-    if not isinstance(g_weight_columns, list):
+    if g_weight_columns is None:
+        g_weight_columns = []
+    elif not isinstance(g_weight_columns, list):
         msg = f"Expected g_weight_columns to be a list, but got {type(g_weight_columns).__name__}!"
         raise TypeError(msg)
+
+    _check_question_columns(df, a_weight_columns, question_col)
+    _check_question_columns(df, g_weight_columns, question_col)
 
 
 def _check_is_list(param_name: str, param_cols: list[str]) -> None:

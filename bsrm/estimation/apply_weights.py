@@ -37,6 +37,7 @@ def apply_weights(
         g_weight_columns,
         calc_g_weight,
         round_val,
+        question_col,
     )
     # create a new column for the grossed (weighted) values
     df[f"{value_col}_grossed"] = df[value_col].astype(float)

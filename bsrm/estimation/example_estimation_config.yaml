@@ -13,6 +13,7 @@ value_col: value
 aux_col: aux_var
 univ_aux_col: uni_aux_var
 g_wgt_type_col: g_wgt_type
+no_g_wgt_indicator: "no_g_wgt"
 
 a_weight_columns :
   apply_cols:

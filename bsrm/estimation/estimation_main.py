@@ -46,11 +46,13 @@ def run_estimation(
     a_wgt_band_col: str,
     g_wgt_band_col: str | None,
     ru_col: str,
+    question_col: str,
     univ_count_col: str,
     aux_col: str | None = None,
     univ_aux_col: str | None = None,
     incl_g_wts: bool = True,
     g_wgt_type_col: str | None = None,
+    no_g_wgt_indicator: str | None = None,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Run the estimation module.
@@ -60,19 +62,23 @@ def run_estimation(
     df: pd.DataFrame
         The survey data where estimation will be applied.
     a_wgt_band_col: str
-        The column representing the a weight band (strata).
+        The name of the column representing the a weight band (strata).
     g_wgt_band_col: str | None
-        The column representing the g weight band (if applicable).
+        The name of the column representing the g weight band (if applicable).
     ru_col: str
-        The column representing the reference unit.
+        The name of the column representing the reference unit.
     univ_count_col: str
-        The column representing the universe count.
+        The name of the column representing the universe count.
     aux_col: str | None
-        The column representing the auxiliary variable.
+        The name of the column representing the auxiliary variable.
     univ_aux_col: str | None
-        The column representing the universe auxiliary variable.
+        The name of the column representing the universe auxiliary variable.
     incl_g_wts: bool
         Whether to include g weights in the calculation.
+    g_wgt_type_col: str | None
+        The name of the column specifying the type of g weight for each reference unit.
+    no_g_wgt_indicator: str | None
+        The column value indicating no g weights should be applied for a reference unit.
 
     Returns
     -------
@@ -95,32 +101,31 @@ def run_estimation(
     )
 
     # calculate the weights
-    weighted_df = calculate_a_weights(df, a_wgt_band_col, ru_col, univ_count_col)
+    weighted_df = calculate_a_weights(df, a_wgt_band_col, ru_col, univ_count_col, question_col)
 
     if incl_g_wts and (
         g_wgt_band_col is not None and aux_col is not None and univ_aux_col is not None
     ):
-        weighted_df = calculate_g_weights(weighted_df, g_wgt_band_col, aux_col, univ_aux_col)
+        condition = weighted_df[g_wgt_type_col] != no_g_wgt_indicator
+        df_calc_g_wgt = weighted_df.copy().loc[condition]
+        df_no_g_wgt = weighted_df.copy().loc[~condition]
+        df_no_g_wgt["g_weight"] = 1.0
+
+        df_calc_g_wgt = calculate_g_weights(
+            df_calc_g_wgt, g_wgt_band_col, aux_col, univ_aux_col, question_col
+        )
+
+        weighted_df = pd.concat([df_calc_g_wgt, df_no_g_wgt], ignore_index=True)
 
     # Create a QA dataframe
     qa_frame = create_weights_qa_df(
-        weighted_df,
+        df_calc_g_wgt,
         univ_count_col,
         a_wgt_band_col,
         g_wgt_band_col,
         incl_g_wts,
-        aux_col,
-        univ_aux_col,
         g_wgt_type_col,
     )
-
-    # drop intermediate calculation columns
-    # if incl_g_wts and aux_cols is not None and univ_aux_cols is not None:
-    #     intermediate_cols: list[str] = []
-    #     for aux_col, univ_aux_col in zip(aux_cols, univ_aux_cols, strict=False):
-    #         intermediate_cols.extend([f"{univ_aux_col}_sum", f"{aux_col}_sum"])
-
-    #     weighted_df = weighted_df.drop(columns=list(dict.fromkeys(intermediate_cols)))
     return weighted_df, qa_frame
 
 
@@ -152,11 +157,13 @@ if __name__ == "__main__":
         a_wgt_band_col=config["a_wgt_band_col"],
         g_wgt_band_col=config["g_wgt_band_col"],
         ru_col=config["ru_col"],
+        question_col=config["question_col"],
         univ_count_col=config["univ_count_col"],
         aux_col=config["aux_col"],
         univ_aux_col=config["univ_aux_col"],
         incl_g_wts=config["incl_g_wts"],
         g_wgt_type_col=config["g_wgt_type_col"],
+        no_g_wgt_indicator=config["no_g_wgt_indicator"],
     )
 
     # call the method to return the dataframe with the new weights applied

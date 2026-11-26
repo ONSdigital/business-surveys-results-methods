@@ -6,10 +6,11 @@ from pandas.testing import assert_frame_equal
 from bsrm.estimation.apply_weights import apply_weights
 
 
+
 @pytest.fixture
 def input_df():
     """Small sample data used across apply_weights tests."""
-    cols = ["ruref", "cell_no", "question", "value", "a_weight", "g_weight_turnover"]
+    cols = ["ruref", "cell_no", "question", "value", "a_weight", "g_weight"]
     data = [
         ["A", 1, "Q1", 10.0, 2.0, 3.3333],
         ["B", 1, "Q1", 20.0, 2.0, 3.3333],
@@ -25,6 +26,7 @@ def input_df():
     return pd.DataFrame(data=data, columns=cols)
 
 
+
 @pytest.fixture
 def expected_a_and_g_df():
     """Expected output after applying both a_weight and g_weight to y.
@@ -35,7 +37,7 @@ def expected_a_and_g_df():
               = 10.0  * 2.0      * 3.3333
               = 66.666 (rounded to 4dp)
     """
-    cols = ["ruref", "cell_no", "question", "value", "a_weight", "g_weight_turnover", "value_grossed"]
+    cols = ["ruref", "cell_no", "question", "value", "a_weight", "g_weight", "value_grossed"]
     data = [
         ["A", 1, "Q1", 10.0, 2.0, 3.3333, 66.666],
         ["B", 1, "Q1", 20.0, 2.0, 3.3333, 133.332],
@@ -83,8 +85,9 @@ def test_apply_a_and_g_weights(input_df, expected_a_and_g_df):
     result = apply_weights(
         df=input_df.copy(),
         a_weight_columns=["Q1", "Q2"],
-        g_weight_columns={"turnover": ["Q1", "Q2"]},
-        aux_cols=["turnover"],
+        g_weight_columns=["Q1", "Q2"],
+        question_col="question",
+        value_col="value",
         calc_g_weight=True,
         round_val=4,
     )
@@ -94,7 +97,7 @@ def test_apply_a_and_g_weights(input_df, expected_a_and_g_df):
 def test_apply_a_weight_only(input_df, expected_a_only_df):
     """Test applying only a_weight when calc_g_weight is False."""
     result = apply_weights(
-        df=input_df.copy().drop(columns=["g_weight_turnover"]),
+        df=input_df.copy().drop(columns=["g_weight"]),
         a_weight_columns=["Q1", "Q2"],
         calc_g_weight=False,
         round_val=4,
@@ -111,6 +114,43 @@ def test_apply_weights_invalid_column(input_df):
         apply_weights(
             df=input_df.copy(),
             a_weight_columns=["invalid_column"],
+            question_col="question",
+            value_col="value",
+            calc_g_weight=False,
+            round_val=4,
+        )
+
+
+def test_apply_weights_invalid_g_weight_column(input_df):
+    """Raise an error when a g-weight question does not exist."""
+    with pytest.raises(
+        Exception,
+        match=r"Specified column\(s\): invalid_column must exist in the question column.",
+    ):
+        apply_weights(
+            df=input_df.copy(),
+            a_weight_columns=["Q1"],
+            g_weight_columns=["invalid_column"],
+            question_col="question",
+            value_col="value",
+            calc_g_weight=True,
+            round_val=4,
+        )
+
+
+def test_apply_weights_validates_custom_question_column(input_df):
+    """Validate question values against the configured question column."""
+    df = input_df.rename(columns={"question": "measure"})
+
+    with pytest.raises(
+        Exception,
+        match=r"Specified column\(s\): invalid_column must exist in the question column.",
+    ):
+        apply_weights(
+            df=df,
+            a_weight_columns=["invalid_column"],
+            question_col="measure",
+            value_col="value",
             calc_g_weight=False,
             round_val=4,
         )

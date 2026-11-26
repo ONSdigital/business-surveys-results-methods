@@ -138,8 +138,6 @@ def create_weights_qa_df(
     a_wgt_band_col: str,
     g_wgt_band_col: str | None = None,
     incl_g_wts: bool = True,
-    aux_col: str | None = None,
-    univ_aux_col: str | None = None,
     g_wgt_type_col: str | None = None,
 ) -> pd.DataFrame:
     """Create a QA dataframe for the weight calculation.
@@ -150,16 +148,12 @@ def create_weights_qa_df(
         The input dataframe containing survey data.
     a_wgt_band_col : str
         The name of the column containing stratum identifiers.
+    g_wgt_band_col : str | None, optional
+        The name of the column containing calibration group identifiers, by default None.
     univ_count_col : str
         The name of the column containing the total number of reporting units in the stratum.
     incl_g_wts : bool, optional
         Whether to include g-weights in the QA dataframe, by default True.
-    g_wgt_band_col : str | None, optional
-        The name of the column containing calibration group identifiers, by default None.
-    aux_col : str | None, optional
-        The column containing auxiliary employment data, by default None.
-    univ_aux_col : str | None, optional
-        The column containing the total auxiliary employment in the calibration group.
     g_wgt_type_col : str | None, optional
         The column containing the type of g weight, by default None.
 
@@ -173,9 +167,6 @@ def create_weights_qa_df(
     qa_df = df[qa_cols_list].groupby(a_wgt_band_col).first().reset_index()
 
     if incl_g_wts:
-        # remove rows where g_weight is null beacause there is no aux_var specified
-        df = df[df[aux_col].notna()]
-
         # find the descriptions of the various aux variables
         g_wgt_type_list = df[g_wgt_type_col].unique().tolist()
 
@@ -200,7 +191,7 @@ def calculate_a_weights(
     a_wgt_band_col: str,
     ru_col: str,
     univ_count_col: str,
-    question_col: str = "question",
+    question_col: str,
 ) -> pd.DataFrame:
     """Calculate the 'a' weight for each stratum in the data.
 
@@ -214,8 +205,8 @@ def calculate_a_weights(
         The name of the column containing reference unit data.
     univ_count_col : str
         The name of the column containing the total number of reporting units in the stratum.
-    question_col : str, optional
-        The name of the column containing the question identifier, by default "question".
+    question_col : str
+        The name of the column containing the question identifier.
 
     Returns
     -------
@@ -237,20 +228,22 @@ def calculate_g_weights(
     g_wgt_col: str,
     aux_col: str,
     univ_aux_col: str,
-    question_col: str = "question",
+    question_col: str,
 ) -> pd.DataFrame:
     """Calculate the g-weight for each calibration group in the data.
 
     Parameters
     ----------
     df : pd.DataFrame
-        The input df containing survey data
+        The input df containing survey data.
     g_wgt_col : str
         The name of the column containing calibration group identifiers.
     aux_col : str
-        The name of the column containing auxiliary employment data.
+        The name of the column containing auxiliary data.
     univ_aux_col : str
-        The name of the column containing the population auxiliary total for each calibration group.
+        The name of the column containing the universe auxiliary total for each calibration group.
+    question_col : str
+        The name of the column containing the question identifier.
 
     Returns
     -------
@@ -261,14 +254,8 @@ def calculate_g_weights(
 
     df["g_weight"] = 1.0
 
-    # exclude rows with missing auxiliary data - this will be valid if no g_weight is to be applied
-    df_calc_g_wgt = df.loc[~df[aux_col].isna()]
-    df_no_g_wgt = df.loc[df[aux_col].isna()]
-
-    df_calc_g_wgt = df_calc_g_wgt.groupby([question_col, g_wgt_col], group_keys=False).apply(
+    df = df.groupby([question_col, g_wgt_col], group_keys=False).apply(
         g_weight, aux_col, univ_aux_col
     )
-
-    df = pd.concat([df_calc_g_wgt, df_no_g_wgt], ignore_index=True)
 
     return df
