@@ -170,7 +170,7 @@ def create_weights_qa_df(
     """
     qa_cols_list = [a_wgt_band_col, univ_count_col, "n", "a_weight"]
 
-    qa_df_a_wts = df[qa_cols_list].groupby(a_wgt_band_col).first().reset_index()
+    qa_df = df[qa_cols_list].groupby(a_wgt_band_col).first().reset_index()
 
     if incl_g_wts:
         # remove rows where g_weight is null beacause there is no aux_var specified
@@ -178,17 +178,19 @@ def create_weights_qa_df(
 
         # find the descriptions of the various aux variables
         g_wgt_type_list = df[g_wgt_type_col].unique().tolist()
-        qa_cols_list += [g_wgt_band_col]
+
+        qa_cols_list = [a_wgt_band_col, g_wgt_band_col, univ_count_col, "n", "a_weight"]
+        qa_df = df[qa_cols_list].groupby(a_wgt_band_col).first().reset_index()
 
         for g_wgt_type in g_wgt_type_list:
             df_g_wgt_type = df.copy()[df[g_wgt_type_col] == g_wgt_type]
             df_g_wgt_type[f"g_weight_{g_wgt_type}"] = df_g_wgt_type["g_weight"]
             cols = qa_cols_list + [f"g_weight_{g_wgt_type}"]
             qa_df_temp = df_g_wgt_type[cols].groupby(g_wgt_band_col).first().reset_index()
-
-            qa_df = qa_df_a_wts.merge(qa_df_temp, on=a_wgt_band_col, how="left")
-    else:
-        qa_df = qa_df_a_wts
+            new_cols = [a_wgt_band_col, g_wgt_band_col, f"g_weight_{g_wgt_type}"]
+            qa_df = qa_df.merge(
+                qa_df_temp[new_cols], on=[a_wgt_band_col, g_wgt_band_col], how="left"
+            )
 
     return qa_df
 
@@ -258,8 +260,15 @@ def calculate_g_weights(
     df = df.copy()
 
     df["g_weight"] = 1.0
-    df = df.groupby([question_col, g_wgt_col], group_keys=False).apply(
+
+    # exclude rows with missing auxiliary data - this will be valid if no g_weight is to be applied
+    df_calc_g_wgt = df.loc[~df[aux_col].isna()]
+    df_no_g_wgt = df.loc[df[aux_col].isna()]
+
+    df_calc_g_wgt = df_calc_g_wgt.groupby([question_col, g_wgt_col], group_keys=False).apply(
         g_weight, aux_col, univ_aux_col
     )
+
+    df = pd.concat([df_calc_g_wgt, df_no_g_wgt], ignore_index=True)
 
     return df

@@ -39,20 +39,22 @@ def apply_weights(
         round_val,
     )
     # create a new column for the grossed (weighted) values
-    df[f"{value_col}_grossed"] = df[value_col]
+    df[f"{value_col}_grossed"] = df[value_col].astype(float)
 
     # apply a_weights to the questions specified for a_weights
     a_weight_cond = df[question_col].isin(a_weight_columns)
-    df.loc[a_weight_cond, f"{value_col}_grossed"] = round(
-        df.loc[a_weight_cond, value_col] * df.loc[a_weight_cond, "a_weight"], round_val
+    df.loc[a_weight_cond, f"{value_col}_grossed"] = (
+        df.loc[a_weight_cond, value_col] * df.loc[a_weight_cond, "a_weight"]
     )
 
     # update the grossed values with g_weights for the questions specified for g_weights (if any)
     if calc_g_weight and g_weight_columns is not None:
         g_weight_cond = df[question_col].isin(g_weight_columns)
-        df.loc[g_weight_cond, f"{value_col}_grossed"] = round(
-            df.loc[g_weight_cond, f"{value_col}_grossed"] * df.loc[g_weight_cond, "g_weight"],
-            round_val,
+        df.loc[g_weight_cond, f"{value_col}_grossed"] = (
+            df.loc[g_weight_cond, f"{value_col}_grossed"] * df.loc[g_weight_cond, "g_weight"]
         )
+
+    # round the grossed values to the specified number of decimal places
+    df[f"{value_col}_grossed"] = df[f"{value_col}_grossed"].round(round_val)
 
     return df

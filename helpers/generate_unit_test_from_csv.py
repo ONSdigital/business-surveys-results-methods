@@ -152,6 +152,7 @@ def dataframe_to_string(
     file_name: str,
     column_type_override: dict[str, list[str]] | None = None,
     rounding_precision: int = 4,
+    exceptional_rounding: dict[str, int] | None = None,
     padding: int = 20,
 ) -> str:
     """Convert a DataFrame to a formatted string representation suitable for unit tests.
@@ -170,6 +171,9 @@ def dataframe_to_string(
         Dictionary mapping column types to lists of columns. Defaults to None.
     rounding_precision : int
         The number of decimal places to round float values.
+    exceptional_rounding : dict[str, int] | None
+        Dictionary specifying exceptional rounding for specific columns.
+        Keys are column names and values are the number of decimal places to round to.
     padding : int
         The number of spaces to pad each column in the output string for alignment.
         NOTE: padding is used for the commented out alternative method for right alignment
@@ -216,7 +220,10 @@ def dataframe_to_string(
     # Format float columns with decimal points
     for col in type_dict["float"]:
         # round the float values to the specified precision
-        df[col] = df[col].astype(float).round(rounding_precision).astype(str)
+        if exceptional_rounding and col in exceptional_rounding.keys():
+            df[col] = df[col].astype(float).round(exceptional_rounding[col]).astype(str)
+        else:
+            df[col] = df[col].astype(float).round(rounding_precision).astype(str)
         mask = df[col] != "nan"
     df = df.replace("nan", "np.nan")
 
@@ -320,7 +327,7 @@ def generate_test_code(
         "import pandas as pd\n"
         "import numpy as np\n"
         "import pytest\n"
-        "from iabs.utils.helpers import create_test_dataframe\n"
+        "from bsrm.utils.helpers import create_test_dataframe\n"
         f"from {module_name} import {function_name}\n"
     )
 
@@ -355,6 +362,8 @@ def process_dataframe(
     exp_output_files: list[str],
     function_name: str,
     module_name: str,
+    rounding_precision: int = 4,
+    exceptional_rounding: dict[str, int] | None = None,
     column_type_override: dict[str, list[str]] | None = None,
     padding: int = 20,
 ) -> None:
@@ -378,6 +387,11 @@ def process_dataframe(
         Name of the function to be tested.
     module_name : str
         Module path for the function.
+    rounding_precision : int
+        Default number of decimal places to round to.
+    exceptional_rounding : dict[str, int] | None
+        Dictionary specifying exceptional rounding for specific columns. Keys are column names and
+        values are the number of decimal places to round to. Defaults to None.
     column_type_override : dict[str, list[str]] | None
         Dictionary mapping column types to lists of columns. Defaults to None.
     padding : int
@@ -399,13 +413,23 @@ def process_dataframe(
     for file_name in input_files:
         df = pd.read_csv(Path(csv_directory) / file_name)
         input_strings[file_name] = dataframe_to_string(
-            df, file_name, column_type_override, padding=padding
+            df,
+            file_name,
+            column_type_override,
+            rounding_precision=rounding_precision,
+            exceptional_rounding=exceptional_rounding,
+            padding=padding,
         )
         logging.info(f"Successfully read and processed file: {file_name}")
     for file_name in exp_output_files:
         df = pd.read_csv(Path(csv_directory) / file_name)
         output_strings[file_name] = dataframe_to_string(
-            df, file_name, column_type_override, padding=padding
+            df,
+            file_name,
+            column_type_override,
+            rounding_precision=rounding_precision,
+            exceptional_rounding=exceptional_rounding,
+            padding=padding,
         )
         logging.info(f"Successfully read and processed file: {file_name}")
 
@@ -449,6 +473,8 @@ class TestConfig:
     function_name: str
     module_name: str
     column_type_override: dict[str, list[str]]
+    rounding_precision: int = 4
+    exceptional_rounding: dict[str, int] | None = None
     padding: int = 20
 
 
@@ -478,13 +504,17 @@ def main(config: TestConfig) -> None:
 
 if __name__ == "__main__":
     config = TestConfig(
-        csv_directory="Q:/IABS project/Test data/estimation_tests",
-        output_directory="Q:/IABS project/Test data/estimation_tests",
+        csv_directory="Q:/IABS project/Test data/estimation_tests/expected_output_non_python",
+        output_directory="Q:/IABS project/Test data/estimation_tests/expected_output_non_python",
         # output_directory="H:/Desktop/IABSCSV",
         input_files=[
-            "estimation_input_long.csv",
+            "estimation_component_test_input.csv",
         ],
-        exp_output_files=["estimation_output_long.csv", "estimation_qa_output.csv"],
+        exp_output_files=[
+            "estimation_component_test_expected_output.csv",
+            "estimation_component_test_expected_qa_output.csv",
+            "estimation_component_test_expected_final_output.csv",
+        ],
         function_name="run_estimation",
         module_name="bsrm.estimation.estimation_main",
         column_type_override={
@@ -498,6 +528,11 @@ if __name__ == "__main__":
                 # "pcd",
             ],
             "float": [],
+        },
+        rounding_precision=4,
+        exceptional_rounding={
+            "a_weight": 8,
+            "g_weight": 8,
         },
         padding=10,  # Needs to be at least the length of the longest column or value, plus 4
     )
